@@ -475,12 +475,17 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
             </Button>
          </div>
 
-         <div className="flex-1 hidden lg:block"></div>
-
-         <div className="hidden lg:block">
+         <div className="mt-auto pt-4">
             <Button variant="outline" size="sm" className="w-full" onClick={() => document.getElementById('file-upload')?.click()}>
                 <Upload className="mr-2 h-4 w-4" /> Load New Puzzle
             </Button>
+            <input 
+                id="file-upload" 
+                type="file" 
+                accept=".json" 
+                className="hidden" 
+                onChange={handleFileUpload}
+            />
          </div>
       </aside>
 
