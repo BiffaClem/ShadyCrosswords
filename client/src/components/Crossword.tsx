@@ -4,12 +4,22 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Eye, HelpCircle, RotateCcw, Upload, ChevronRight, ChevronDown } from "lucide-react";
+import { Check, Eye, HelpCircle, RotateCcw, Upload, Settings, BookOpen, Shield, Zap, Menu } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 interface CrosswordProps {
   initialPuzzle?: PuzzleData;
 }
+
+type Difficulty = "normal" | "easy" | "learner";
 
 // Helper to get clue ID
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
@@ -20,6 +30,7 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
   const [activeCell, setActiveCell] = useState<Position | null>(null);
   const [direction, setDirection] = useState<"across" | "down">("across");
   const [showErrors, setShowErrors] = useState<boolean>(false);
+  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
   
   // Initialize grid state when puzzle loads
   useEffect(() => {
@@ -349,6 +360,17 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
       return false;
   };
 
+  const isClueFilled = (clue: Clue) => {
+     if (!gridState.length) return false;
+     let r = clue.row - 1;
+     let c = clue.col - 1;
+     for (let i = 0; i < clue.length; i++) {
+        const val = clue.direction === "across" ? gridState[r][c + i] : gridState[r + i][c];
+        if (!val) return false;
+     }
+     return true;
+  };
+
 
   if (!puzzle) {
     return (
@@ -368,189 +390,244 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     );
   }
 
-  // Calculate cell size dynamically or just use responsive grid
-  // We use CSS Grid in render
+  // Layout Design:
+  // Desktop: [Sidebar] [Main Grid Area] [Clues]
+  // Mobile: [Header] [Tools] [Grid] [Clues]
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto p-4 lg:p-8 animate-in fade-in duration-500">
+    <div className="flex flex-col lg:flex-row h-screen bg-background overflow-hidden">
       
-      {/* Left Column: Controls & Grid */}
-      <div className="flex-1 flex flex-col gap-6">
-        
-        {/* Header */}
-        <div className="flex flex-col space-y-2">
-            <h1 className="text-3xl font-serif font-bold tracking-tight">{puzzle.title}</h1>
-            <div className="flex items-center text-sm text-muted-foreground gap-2">
-                <span>{puzzle.source.site}</span>
-                {puzzle.source.url && (
-                    <a href={puzzle.source.url} target="_blank" rel="noreferrer" className="hover:underline text-primary">
-                       Source
-                    </a>
-                )}
-            </div>
-        </div>
+      {/* Sidebar (Desktop) / Header (Mobile) */}
+      <aside className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-border bg-card p-4 flex flex-col gap-4 lg:h-full z-10 shrink-0 overflow-y-auto">
+         {/* Title Block */}
+         <div className="space-y-1">
+             <h1 className="text-xl font-serif font-bold tracking-tight line-clamp-2">{puzzle.title}</h1>
+             <div className="text-xs text-muted-foreground truncate">{puzzle.source.site}</div>
+         </div>
 
-        {/* Toolbar */}
-        <div className="flex flex-wrap gap-2 pb-2 border-b border-border/40">
-            <Button variant="outline" size="sm" onClick={checkClue} disabled={!activeClue}>
+         <Separator className="hidden lg:block" />
+
+         {/* Difficulty Selector */}
+         <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Difficulty</label>
+            <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
+                <SelectTrigger>
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="normal">
+                        <div className="flex items-center gap-2">
+                            <Shield className="w-4 h-4" /> <span>Normal</span>
+                        </div>
+                    </SelectItem>
+                    <SelectItem value="easy">
+                        <div className="flex items-center gap-2">
+                            <Zap className="w-4 h-4" /> <span>Easy</span>
+                        </div>
+                    </SelectItem>
+                    <SelectItem value="learner">
+                        <div className="flex items-center gap-2">
+                            <BookOpen className="w-4 h-4" /> <span>Learner</span>
+                        </div>
+                    </SelectItem>
+                </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground/80 px-1">
+                {difficulty === "normal" && "Standard play. Reveal disabled."}
+                {difficulty === "easy" && "Relaxed rules. Reveal allowed."}
+                {difficulty === "learner" && "Shows explanations for clues."}
+            </p>
+         </div>
+         
+         <Separator className="hidden lg:block" />
+
+         {/* Actions */}
+         <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+            <Button variant="secondary" size="sm" onClick={checkClue} disabled={!activeClue} className="justify-start">
                 <Check className="mr-2 h-4 w-4" /> Check Clue
             </Button>
-            <Button variant="outline" size="sm" onClick={revealClue} disabled={!activeClue}>
+            
+            <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={revealClue} 
+                disabled={!activeClue || difficulty === "normal"} 
+                className="justify-start"
+                title={difficulty === "normal" ? "Disabled in Normal Mode" : "Reveal Clue"}
+            >
                 <Eye className="mr-2 h-4 w-4" /> Reveal Clue
             </Button>
-            <div className="w-px h-6 bg-border mx-2 self-center hidden sm:block"></div>
-             <Button variant="ghost" size="sm" onClick={checkPuzzle}>
-                <Check className="mr-2 h-4 w-4" /> Check All
-            </Button>
-            <Button variant="ghost" size="sm" onClick={revealPuzzle}>
-                <RotateCcw className="mr-2 h-4 w-4" /> Reveal All
-            </Button>
-             <div className="flex-1"></div>
-             <Button variant="secondary" size="sm" onClick={() => document.getElementById('file-upload')?.click()}>
-                <Upload className="mr-2 h-4 w-4" /> Load New
-            </Button>
-            <input 
-                id="file-upload" 
-                type="file" 
-                accept=".json" 
-                className="hidden" 
-                onChange={handleFileUpload}
-            />
-        </div>
 
-        {/* Grid Container */}
-        <div className="w-full flex justify-center bg-card p-4 rounded-xl shadow-sm border border-border/50">
-            <div 
-                className="grid gap-px bg-border border border-border select-none"
-                style={{
-                    gridTemplateColumns: `repeat(${puzzle.size.cols}, minmax(1.5rem, 3rem))`,
-                    width: 'fit-content'
-                }}
+            <div className="lg:h-2 col-span-2 lg:col-span-1"></div>
+
+            <Button variant="ghost" size="sm" onClick={checkPuzzle} className="justify-start">
+                <Check className="mr-2 h-4 w-4" /> Check Puzzle
+            </Button>
+            
+             <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={revealPuzzle} 
+                disabled={difficulty === "normal"}
+                className="justify-start"
             >
-                {puzzle.grid.map((rowStr, r) => (
-                    rowStr.split('').map((cellChar, c) => {
-                        const isBlack = cellChar === "#";
-                        const isActive = activeCell?.row === r && activeCell?.col === c;
-                        const isInClue = !isBlack && isCellInActiveClue(r, c);
-                        const number = puzzle.numbers[r][c];
-                        const value = gridState[r]?.[c] || "";
-                        const isError = isCellError(r, c);
-                        const boundary = boundaryMap[`${r}-${c}`];
+                <RotateCcw className="mr-2 h-4 w-4" /> Reveal Puzzle
+            </Button>
+         </div>
 
-                        return (
-                            <div 
-                                key={`${r}-${c}`}
-                                onClick={() => handleCellClick(r, c)}
-                                className={cn(
-                                    "relative aspect-square flex items-center justify-center text-lg sm:text-2xl font-sans font-bold uppercase transition-colors duration-75 cursor-pointer",
-                                    isBlack ? "bg-black" : "bg-white",
-                                    isActive ? "bg-accent text-accent-foreground z-10" : "",
-                                    !isActive && isInClue ? "bg-accent/30" : "",
-                                    isError ? "text-destructive bg-destructive/10" : "",
-                                    
-                                    // Word Boundaries
-                                    boundary?.right ? "border-r-4 border-r-border/80" : "",
-                                    boundary?.bottom ? "border-b-4 border-b-border/80" : ""
-                                )}
-                            >
-                                {!isBlack && number && (
-                                    <span className="crossword-cell-number text-[0.5rem] sm:text-[0.6rem] font-mono text-muted-foreground/80">
-                                        {number}
-                                    </span>
-                                )}
-                                {!isBlack && value}
-                            </div>
-                        );
-                    })
-                ))}
-            </div>
-        </div>
+         <div className="flex-1 hidden lg:block"></div>
+
+         <div className="hidden lg:block">
+            <Button variant="outline" size="sm" className="w-full" onClick={() => document.getElementById('file-upload')?.click()}>
+                <Upload className="mr-2 h-4 w-4" /> Load New Puzzle
+            </Button>
+         </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
         
-        {/* Explanation Panel */}
-        <div className="min-h-[120px] p-6 bg-muted/30 rounded-lg border border-border/50">
-             {activeClue ? (
-                 <div className="space-y-2 animate-in slide-in-from-bottom-2 duration-300">
-                     <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-1 rounded">
-                            {activeClue.number} {activeClue.direction}
-                        </span>
-                        <span className="text-sm font-medium text-muted-foreground">
-                            ({activeClue.enumeration})
-                        </span>
-                     </div>
-                     <p className="text-lg font-serif leading-snug">
-                         {activeClue.text}
-                     </p>
-                     
-                     <div className="mt-4 pt-4 border-t border-border/40 flex items-start gap-3">
-                         <HelpCircle className="w-5 h-5 text-primary mt-0.5" />
-                         <div className="space-y-1">
-                             <p className="text-sm font-medium">Explanation</p>
-                             <p className="text-sm text-muted-foreground italic">
-                                 {activeClue.explanation || "No explanation available."}
-                             </p>
+        {/* Grid & Explanation Section */}
+        <div className="flex-1 flex flex-col overflow-auto bg-muted/5 p-4 lg:p-8 items-center gap-6">
+            
+            {/* Grid Container */}
+            <div className="bg-card p-4 rounded-xl shadow-sm border border-border/50 animate-in zoom-in-95 duration-500">
+                <div 
+                    className="grid gap-px bg-border border border-border select-none"
+                    style={{
+                        gridTemplateColumns: `repeat(${puzzle.size.cols}, minmax(1.5rem, 3.5rem))`,
+                        width: 'fit-content'
+                    }}
+                >
+                    {puzzle.grid.map((rowStr, r) => (
+                        rowStr.split('').map((cellChar, c) => {
+                            const isBlack = cellChar === "#";
+                            const isActive = activeCell?.row === r && activeCell?.col === c;
+                            const isInClue = !isBlack && isCellInActiveClue(r, c);
+                            const number = puzzle.numbers[r][c];
+                            const value = gridState[r]?.[c] || "";
+                            const isError = isCellError(r, c);
+                            const boundary = boundaryMap[`${r}-${c}`];
+
+                            return (
+                                <div 
+                                    key={`${r}-${c}`}
+                                    onClick={() => handleCellClick(r, c)}
+                                    className={cn(
+                                        "relative aspect-square flex items-center justify-center text-lg sm:text-2xl lg:text-3xl font-sans font-bold uppercase transition-colors duration-75 cursor-pointer",
+                                        isBlack ? "bg-black" : "bg-white",
+                                        isActive ? "bg-accent text-accent-foreground z-10" : "",
+                                        !isActive && isInClue ? "bg-accent/30" : "",
+                                        isError ? "text-destructive bg-destructive/10" : "",
+                                        
+                                        // Word Boundaries
+                                        boundary?.right ? "border-r-4 border-r-border/80" : "",
+                                        boundary?.bottom ? "border-b-4 border-b-border/80" : ""
+                                    )}
+                                >
+                                    {!isBlack && number && (
+                                        <span className="crossword-cell-number text-[0.5rem] sm:text-[0.6rem] font-mono text-muted-foreground/80">
+                                            {number}
+                                        </span>
+                                    )}
+                                    {!isBlack && value}
+                                </div>
+                            );
+                        })
+                    ))}
+                </div>
+            </div>
+
+            {/* Explanation Panel - Conditional */}
+            {(difficulty === "learner" && activeClue) && (
+                 <div className="w-full max-w-2xl bg-card p-6 rounded-lg border border-border shadow-sm animate-in slide-in-from-bottom-4">
+                     <div className="flex items-center gap-3 mb-3">
+                         <div className="bg-primary/10 text-primary p-2 rounded-full">
+                             <BookOpen className="w-5 h-5" />
+                         </div>
+                         <div className="space-y-0.5">
+                            <h3 className="font-semibold text-sm">Learning Mode</h3>
+                            <p className="text-xs text-muted-foreground">Explanation for {activeClue.number} {activeClue.direction}</p>
                          </div>
                      </div>
+                     <p className="text-base italic text-muted-foreground border-l-4 border-accent pl-4 py-1">
+                         {activeClue.explanation || "No explanation provided for this clue."}
+                     </p>
                  </div>
-             ) : (
-                 <div className="h-full flex items-center justify-center text-muted-foreground text-sm italic">
-                     Select a clue to see details
-                 </div>
-             )}
+            )}
         </div>
 
-      </div>
-
-      {/* Right Column: Clue List */}
-      <div className="w-full lg:w-[350px] flex flex-col h-[600px] lg:h-[calc(100vh-4rem)] lg:sticky lg:top-8 border border-border rounded-xl bg-card shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-border bg-muted/20">
-            <h2 className="font-serif font-bold text-lg">Clues</h2>
-        </div>
-        
-        <Tabs defaultValue="across" className="flex-1 flex flex-col overflow-hidden">
-            <div className="px-4 pt-2">
-                <TabsList className="w-full grid grid-cols-2">
-                    <TabsTrigger value="across">Across</TabsTrigger>
-                    <TabsTrigger value="down">Down</TabsTrigger>
-                </TabsList>
+        {/* Clue List Sidebar (Right) */}
+        <div className="w-full lg:w-80 h-[40vh] lg:h-full border-t lg:border-t-0 lg:border-l border-border bg-card flex flex-col shrink-0">
+            <div className="p-3 bg-muted/20 border-b border-border flex items-center justify-between">
+                <h2 className="font-serif font-bold">Clues</h2>
+                <div className="text-xs text-muted-foreground">{activeCell ? `${activeCell.col + 1},${activeCell.row + 1}` : ""}</div>
             </div>
-            
-            {["across", "down"].map((dir) => (
-                <TabsContent key={dir} value={dir} className="flex-1 overflow-hidden mt-2">
-                    <ScrollArea className="h-full clue-scroll">
-                        <div className="p-4 space-y-1">
-                            {puzzle.clues[dir as "across"|"down"].map((clue) => {
-                                const isActive = activeClue?.number === clue.number && activeClue?.direction === dir;
-                                return (
-                                    <button
-                                    key={getClueId(clue)}
-                                    onClick={() => handleClueClick(clue)}
-                                    className={cn(
-                                        "w-full text-left p-3 rounded-md text-sm transition-all hover:bg-muted/50 flex items-start gap-3 group",
-                                        isActive ? "bg-accent/40 hover:bg-accent/50 ring-1 ring-border" : ""
-                                    )}
-                                    >
-                                        <span className={cn("font-bold font-mono w-6 shrink-0", isActive ? "text-primary" : "text-muted-foreground")}>
-                                            {clue.number}
-                                        </span>
-                                        <div className="space-y-1">
-                                            <span className={cn("block leading-relaxed", isActive ? "font-medium text-foreground" : "text-muted-foreground group-hover:text-foreground")}>
-                                                {clue.text}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground/70">
-                                                ({clue.enumeration})
-                                            </span>
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </ScrollArea>
-                </TabsContent>
-            ))}
-        </Tabs>
-      </div>
 
+            <Tabs defaultValue="across" className="flex-1 flex flex-col overflow-hidden">
+                <div className="px-2 pt-2">
+                    <TabsList className="w-full grid grid-cols-2">
+                        <TabsTrigger value="across">Across</TabsTrigger>
+                        <TabsTrigger value="down">Down</TabsTrigger>
+                    </TabsList>
+                </div>
+                
+                {["across", "down"].map((dir) => (
+                    <TabsContent key={dir} value={dir} className="flex-1 overflow-hidden mt-2 p-0">
+                        <ScrollArea className="h-full clue-scroll">
+                            <div className="px-2 pb-4 space-y-0.5">
+                                {puzzle.clues[dir as "across"|"down"].map((clue) => {
+                                    const isActive = activeClue?.number === clue.number && activeClue?.direction === dir;
+                                    const isFilled = isClueFilled(clue);
+                                    
+                                    // Auto scroll active clue into view
+                                    // (Simplistic implementation: we assume the user scrolls, or we can use ref in future)
+                                    
+                                    return (
+                                        <button
+                                        key={getClueId(clue)}
+                                        onClick={() => handleClueClick(clue)}
+                                        id={`clue-${getClueId(clue)}`}
+                                        className={cn(
+                                            "w-full text-left p-2.5 rounded-md text-sm transition-all flex items-start gap-3 group relative overflow-hidden",
+                                            isActive 
+                                                ? "bg-accent/40 hover:bg-accent/50 text-foreground" 
+                                                : "hover:bg-muted/50 text-muted-foreground"
+                                        )}
+                                        >
+                                            <span className={cn(
+                                                "font-bold font-mono w-6 shrink-0 pt-0.5", 
+                                                isActive ? "text-primary" : "text-muted-foreground/70",
+                                                isFilled && !isActive && "line-through opacity-50"
+                                            )}>
+                                                {clue.number}
+                                            </span>
+                                            <div className="space-y-0.5 min-w-0 flex-1">
+                                                <span className={cn(
+                                                    "block leading-tight", 
+                                                    isActive ? "font-medium" : "group-hover:text-foreground/80",
+                                                    isFilled && !isActive && "line-through opacity-60 decoration-muted-foreground/50"
+                                                )}>
+                                                    {clue.text}
+                                                </span>
+                                                <span className="text-[10px] text-muted-foreground/60">
+                                                    ({clue.enumeration})
+                                                </span>
+                                            </div>
+                                            {isActive && (
+                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </ScrollArea>
+                    </TabsContent>
+                ))}
+            </Tabs>
+        </div>
+
+      </main>
     </div>
   );
 }
