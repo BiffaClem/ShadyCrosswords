@@ -1,0 +1,214 @@
+You are building a small, self-contained crossword web app in this Replit project.
+
+Goal
+- Build a browser-based cryptic crossword viewer and solver that reads puzzle data from JSON files generated offline.
+- The JSON schema is already fixed and must not be changed.
+- The app should allow loading a puzzle JSON, render the grid, list the clues, let the user type answers into the grid, and show explanations for each clue on demand.
+
+Technology constraints
+- Use a simple front end: index.html, style.css, script.js.
+- No backend is required beyond Replit’s static hosting. Everything can run client side.
+- Use vanilla JavaScript, no frameworks.
+- Keep the code modular and well commented so it is easy to extend later.
+
+JSON schema
+The JSON file structure is as follows (puzzle_1372.json is an example):
+
+Top level
+- puzzleId: string, for example "1372"
+- title: string, puzzle title
+- source: object
+  - site: string (for example "lucianpoll.com")
+  - url: string (full source URL)
+- size: object
+  - rows: integer
+  - cols: integer
+- grid: array of strings, length = rows
+  - each string length = cols
+  - each character is either "." (white cell) or "#" (black cell)
+- numbers: 2D array of the same shape as grid
+  - numbers[r][c] is either an integer clue number or null
+  - coordinates correspond to grid rows and columns
+- clues: object
+  - across: array of clue objects
+  - down: array of clue objects
+- sanityChecks: object, used for validation, can be displayed in a diagnostics area but not required for core functionality
+
+Clue object structure
+Each clue in clues.across and clues.down has:
+- number: integer, the clue number as printed
+- direction: string, either "across" or "down"
+- text: string, the clue text as printed
+- enumeration: string, the printed enumeration, for example:
+  - "7"
+  - "4,2"
+  - "6,6,4"
+  - "2,5,3,6"
+  - "5-6"
+- answer: string, solution with no spaces or hyphens, for example:
+  - "BRITPOP"
+  - "TENDERLOVINGCARE"
+  - "ATSIXESANDSEVENS"
+- explanation: string, a text explanation for how the cryptic clue works
+- row: integer, 1-based row index of the first cell of the answer in the grid
+- col: integer, 1-based column index of the first cell of the answer in the grid
+- length: integer, total number of letters in the answer
+- wordBoundaries: array of integers, cumulative positions from the start of the answer, including the final length. Examples:
+  - enumeration "7"           -> [7]
+  - enumeration "6,6,4"       -> [6,12,16]
+  - enumeration "2,5,3,6"     -> [2,7,10,16]
+  - enumeration "5-6"         -> [5,11]
+- start: object { row: int, col: int } (1-based), same as (row, col)
+- end: object { row: int, col: int } (1-based), last cell of the answer
+- sanity: object, for example:
+  - sanity.crossingConflicts: array (currently empty in the provided sample)
+
+Important conventions
+- All row and col fields in clues, start, and end are 1-based. When indexing into JavaScript arrays for grid and numbers you must subtract 1.
+- grid is the single source of truth for blocked vs white cells:
+  - "." is a white cell that can hold a letter.
+  - "#" is a black cell.
+- numbers contains the clue number where a clue starts, otherwise null. Not every white run has an across clue. Some white cells only belong to down clues.
+
+Functional requirements
+
+1) Loading puzzles
+- Provide a simple way to load a puzzle JSON file:
+  - Option A: Include one or more sample JSON files in a puzzles/ folder (for example puzzles/puzzle_1372.json) and show a dropdown to choose between them.
+  - Option B: Add an <input type="file"> that lets the user upload any JSON file with this schema from their machine.
+- After a file is loaded and parsed, the app should:
+  - Validate that rows x cols match grid and numbers.
+  - Validate that clues.across and clues.down entries map to white cells and correct spans (length does not run off the grid).
+  - Show an error message if the file does not match the expected schema.
+
+2) Grid rendering
+- Render the crossword grid using an HTML container (for example a div with CSS grid).
+- Use size.rows and size.cols to set up the layout dynamically.
+- For each cell:
+  - If grid[r][c] is "#", render a black square that is not editable.
+  - If grid[r][c] is ".", render an empty white square that can hold a single letter.
+- If numbers[r][c] is a number, render that number in the top left corner of that cell.
+- Use CSS to make the grid look like a normal crossword:
+  - square cells
+  - thin borders between cells
+- Make the grid responsive so it scales to the available width but keeps square cells.
+
+3) Clue list UI
+- Provide a panel that lists all clues.
+- The clue list should have two sections:
+  - Across
+  - Down
+- For each clue show:
+  - number
+  - clue text
+  - enumeration string in parentheses
+    - example: "1. Trip merrily in dance music of the 1990s (7)"
+- Allow clicking on a clue in the list:
+  - When a clue is clicked, highlight the corresponding cells in the grid.
+  - Set that clue as the active clue.
+  - Scroll the grid if necessary so the active clue is visible.
+
+4) Grid interaction and navigation
+- Clicking on a cell in the grid should:
+  - Select the cell.
+  - Determine which clue is active, based on the current direction (across or down).
+    - If the cell belongs to multiple clues (one across and one down), use a simple rule such as:
+      - If the active direction is across, pick the across clue.
+      - If the active direction is down, pick the down clue.
+      - Allow the user to toggle the active direction with a key (for example space bar) or UI button.
+- When a clue becomes active:
+  - Highlight all cells of that clue.
+  - Highlight the clue text in the clue list.
+- Typing letters on the keyboard should:
+  - Insert the letter into the currently selected white cell.
+  - Automatically move to the next cell in the active clue.
+  - Overwrite existing letters.
+- Support basic navigation keys:
+  - Arrow keys move the selected cell in that direction (skipping over black squares).
+  - Backspace deletes the current cell and moves backwards within the clue.
+
+5) Answers and checking
+- Use the answer field in each clue, but do not show it by default.
+- For each clue, provide at least two actions:
+  - Check this clue:
+    - Compare the letters in the grid for this clue with the answer.
+    - Highlight mismatches (for example by changing the border or background of incorrect cells).
+  - Reveal this clue:
+    - Fill the cells for this clue with the correct answer.
+- At the puzzle level provide:
+  - Check all:
+    - Check all clues but only highlight where entries are wrong.
+  - Reveal all:
+    - Fill the entire grid with all answers.
+- Keep all checking and revealing actions local to the browser. No network calls are necessary.
+
+6) Explanations panel
+- Provide a dedicated area for showing the explanation text of the active clue.
+- When a clue is selected (either by clicking in the clue list or in the grid):
+  - Display its explanation field in the explanation panel.
+- The explanation panel should show:
+  - Clue number and direction (for example "1 across")
+  - Clue text
+  - Enumeration
+  - Explanation string
+- This panel is read-only, just for learning and reference.
+
+7) Word boundary styling (nice to have)
+Using wordBoundaries, give some visual hint of multi-word answers in the grid:
+- For each clue, interpret wordBoundaries as offsets from the start of the answer.
+- For an across clue:
+  - For each boundary position b, add a stronger vertical border between the cells at positions b and b+1 in that answer span.
+- For a down clue:
+  - For each boundary position b, add a stronger horizontal border between the cells at positions b and b+1 in that answer span.
+- If edges overlap between clues, the border should still appear. You can manage this by assigning CSS classes to specific cell edges.
+
+Implementation details and structure
+
+Files
+- index.html
+  - Contains the layout:
+    - header with puzzle title and source link
+    - controls for loading a puzzle (dropdown and/or file input)
+    - main area with:
+      - grid container
+      - clue list panel
+      - explanation panel
+      - optional diagnostics panel (for sanityChecks)
+- style.css
+  - Styling for the grid cells, clue list, active selections, and explanation panel.
+  - Ensure the grid looks like a standard crossword.
+- script.js
+  - Handles:
+    - loading and parsing the JSON
+    - mapping between grid cells and clues
+    - user interactions (clicks, keyboard input, navigation, checking, revealing)
+    - updating the DOM
+
+Data structures in script.js
+- Store the loaded puzzle object as a global variable (for example currentPuzzle).
+- Build helper maps on load:
+  - cellToClues[row][col] = array of clue references that touch this cell.
+  - clueIdToCells["across-1"], "down-5", etc. = array of {row, col} coordinates for that clue.
+- Use 0-based indices internally in JavaScript:
+  - When reading from clues row and col, subtract 1 to convert to 0-based.
+  - When writing back to any UI element, keep using 0-based indexing.
+
+Sanity checks (optional, but useful)
+- After loading a puzzle:
+  - Check that the size, grid and numbers dimensions are consistent.
+  - For each clue:
+    - Verify that all its cells are "." in grid.
+    - Verify that length does not exceed the puzzle bounds.
+  - Display sanityChecks from the JSON in a small diagnostics panel, if any fields indicate problems (unmappedClues, unmappedGridRuns, lengthMismatches, gridConflicts, etc).
+
+User experience
+- The app should feel similar to solving in an online crossword interface:
+  - Clear grid, clear clue list.
+  - Clicking clues and cells behaves intuitively.
+  - Typing flows along the active clue.
+- Aim for a clean, minimal UI rather than a fancy design.
+
+Important
+- Do not change the JSON schema or write back to the JSON file.
+- Only read and interpret the schema as described.
+- Ensure the app works for any puzzle using this format, not only puzzle_1372.
