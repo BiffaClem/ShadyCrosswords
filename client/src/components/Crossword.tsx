@@ -339,6 +339,9 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
   
   const isCellError = (r: number, c: number) => {
       if (!puzzle || !showErrors) return false;
+      // Safe access
+      if (!gridState[r] || gridState[r][c] === undefined) return false;
+      
       const userVal = gridState[r][c];
       if (!userVal) return false;
       
@@ -364,8 +367,20 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
      if (!gridState.length) return false;
      let r = clue.row - 1;
      let c = clue.col - 1;
+     
+     // Safe access check to prevent runtime errors if gridState dimensions mismatch
+     if (r < 0 || r >= gridState.length) return false;
+
      for (let i = 0; i < clue.length; i++) {
-        const val = clue.direction === "across" ? gridState[r][c + i] : gridState[r + i][c];
+        let currR = r;
+        let currC = c;
+        if (clue.direction === "across") currC += i;
+        else currR += i;
+        
+        // Check bounds for each cell
+        if (currR >= gridState.length || !gridState[currR] || currC >= gridState[currR].length) return false;
+        
+        const val = gridState[currR][currC];
         if (!val) return false;
      }
      return true;
