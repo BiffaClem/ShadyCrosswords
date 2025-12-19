@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Eye, HelpCircle, RotateCcw, Upload, Settings, BookOpen, Shield, Zap, Menu } from "lucide-react";
+import { Check, Eye, RotateCcw, Upload, BookOpen, Menu, X, Trash2, Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   Select,
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+import { puzzleStorage } from "@/lib/puzzle-storage";
 
 interface CrosswordProps {
   initialPuzzle?: PuzzleData;
@@ -21,7 +21,6 @@ interface CrosswordProps {
 
 type Difficulty = "normal" | "easy" | "learner";
 
-// Helper to get clue ID
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
 export default function Crossword({ initialPuzzle }: CrosswordProps) {
@@ -31,14 +30,23 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
   const [direction, setDirection] = useState<"across" | "down">("across");
   const [showErrors, setShowErrors] = useState<boolean>(false);
   const [difficulty, setDifficulty] = useState<Difficulty>("normal");
-  
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [puzzleLibrary, setPuzzleLibrary] = useState(puzzleStorage.getPuzzles());
+
   // Initialize grid state when puzzle loads
   useEffect(() => {
     if (puzzle) {
       const rows = puzzle.size.rows;
       const cols = puzzle.size.cols;
-      const newGrid = Array(rows).fill(null).map(() => Array(cols).fill(""));
-      setGridState(newGrid);
+      
+      // Try to load saved progress
+      const savedProgress = puzzleStorage.getProgress(puzzle.puzzleId);
+      if (savedProgress) {
+        setGridState(savedProgress);
+      } else {
+        const newGrid = Array(rows).fill(null).map(() => Array(cols).fill(""));
+        setGridState(newGrid);
+      }
       
       // Find first white square to select
       for (let r = 0; r < rows; r++) {
@@ -52,6 +60,13 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     }
   }, [puzzle]);
 
+  // Save progress whenever grid changes
+  useEffect(() => {
+    if (puzzle && gridState.length) {
+      puzzleStorage.saveProgress(puzzle.puzzleId, gridState);
+    }
+  }, [gridState, puzzle]);
+
   // Pre-calculate word boundaries
   const boundaryMap = useMemo(() => {
     if (!puzzle) return {};
@@ -61,9 +76,8 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
         clues.forEach(clue => {
             if (!clue.wordBoundaries) return;
             clue.wordBoundaries.forEach(b => {
-                if (b >= clue.length) return; // Ignore end of word
+                if (b >= clue.length) return;
                 
-                // Calculate cell coordinate before the boundary
                 let r = clue.row - 1;
                 let c = clue.col - 1;
                 
@@ -96,13 +110,11 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     let nextR = row + dRow;
     let nextC = col + dCol;
     
-    // Loop until we find a white cell or hit edge
     while (nextR >= 0 && nextR < rows && nextC >= 0 && nextC < cols) {
         if (puzzle.grid[nextR][nextC] === ".") {
             setActiveCell({ row: nextR, col: nextC });
             return;
         }
-        // Skip black cell
         nextR += dRow;
         nextC += dCol;
     }
@@ -117,7 +129,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     let nextRow = row;
     let nextCol = col;
     
-    // Find next white cell in current direction
     let found = false;
     let attempts = 0;
     while (!found && attempts < Math.max(rows, cols)) {
@@ -127,9 +138,8 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
         nextRow += step;
       }
       
-      // Check bounds
       if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {
-        break; // Stop at edge
+        break;
       }
       
       if (puzzle.grid[nextRow][nextCol] === ".") {
@@ -147,13 +157,11 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     setDirection(prev => prev === "across" ? "down" : "across");
   }, []);
 
-  // Handle keyboard input
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!puzzle || !activeCell) return;
 
     const { row, col } = activeCell;
 
-    // Prevent default scrolling for arrows and space
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
       e.preventDefault();
     }
@@ -162,9 +170,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
       const newGrid = [...gridState];
       newGrid[row][col] = "";
       setGridState(newGrid);
-      
-      // Move backwards if empty or just always?
-      // Standard behavior: Backspace deletes current and moves back.
       moveCursorTyping(-1);
       return;
     }
@@ -188,7 +193,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
       return;
     }
 
-    // Navigation
     if (e.key === "ArrowUp") moveSelectionByArrow(-1, 0);
     if (e.key === "ArrowDown") moveSelectionByArrow(1, 0);
     if (e.key === "ArrowLeft") moveSelectionByArrow(0, -1);
@@ -201,8 +205,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-
-  // Active Clue Logic
   const getActiveClue = (): Clue | null => {
     if (!puzzle || !activeCell) return null;
     
@@ -210,7 +212,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     const r = activeCell.row + 1;
     const c = activeCell.col + 1;
     
-    // Find clue that includes the current cell
     return clues.find(clue => {
       if (direction === "across") {
         return clue.row === r && c >= clue.col && c < clue.col + clue.length;
@@ -222,11 +223,8 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
   
   const activeClue = getActiveClue();
   
-  // Also check if we should show the "other direction" clue if the current direction has none
-  // (e.g. user clicked a cell but default direction has no clue there)
   useEffect(() => {
       if (!activeClue && puzzle && activeCell) {
-          // Try switching direction
           const otherDir = direction === "across" ? "down" : "across";
           const clues = puzzle.clues[otherDir];
           const r = activeCell.row + 1;
@@ -245,7 +243,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
       }
   }, [activeCell, activeClue, direction, puzzle]);
 
-  // Interactions
   const handleCellClick = (r: number, c: number) => {
     if (!puzzle) return;
     if (puzzle.grid[r][c] === "#") return;
@@ -299,8 +296,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
       setTimeout(() => setShowErrors(false), 1500); 
   };
 
-
-  // File Upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -309,7 +304,10 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     reader.onload = (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
+        puzzleStorage.savePuzzle(json);
+        setPuzzleLibrary(puzzleStorage.getPuzzles());
         setPuzzle(json);
+        setMenuOpen(false);
         toast({
           title: "Puzzle Loaded",
           description: json.title,
@@ -324,8 +322,24 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     };
     reader.readAsText(file);
   };
+
+  const selectPuzzleFromLibrary = (puzzleId: string) => {
+    const p = puzzleStorage.getPuzzleById(puzzleId);
+    if (p) {
+      setPuzzle(p);
+      setMenuOpen(false);
+    }
+  };
+
+  const deletePuzzleFromLibrary = (puzzleId: string) => {
+    puzzleStorage.deletePuzzle(puzzleId);
+    setPuzzleLibrary(puzzleStorage.getPuzzles());
+    toast({
+      title: "Puzzle Deleted",
+      description: "The puzzle and its progress have been removed.",
+    });
+  };
   
-  // Render Helpers
   const isCellInActiveClue = (r: number, c: number) => {
       if (!activeClue) return false;
       const r1 = r + 1;
@@ -339,7 +353,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
   
   const isCellError = (r: number, c: number) => {
       if (!puzzle || !showErrors) return false;
-      // Safe access
       if (!gridState[r] || gridState[r][c] === undefined) return false;
       
       const userVal = gridState[r][c];
@@ -368,7 +381,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
      let r = clue.row - 1;
      let c = clue.col - 1;
      
-     // Safe access check to prevent runtime errors if gridState dimensions mismatch
      if (r < 0 || r >= gridState.length) return false;
 
      for (let i = 0; i < clue.length; i++) {
@@ -377,7 +389,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
         if (clue.direction === "across") currC += i;
         else currR += i;
         
-        // Check bounds for each cell
         if (currR >= gridState.length || !gridState[currR] || currC >= gridState[currR].length) return false;
         
         const val = gridState[currR][currC];
@@ -386,14 +397,38 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
      return true;
   };
 
-
   if (!puzzle) {
     return (
-      <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
-        <h2 className="text-2xl font-serif">No Puzzle Loaded</h2>
-        <Button onClick={() => document.getElementById('file-upload')?.click()}>
-            <Upload className="mr-2 h-4 w-4" /> Load JSON
-        </Button>
+      <div className="flex flex-col items-center justify-center h-screen bg-background space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-serif font-bold">Cryptic Crossword</h1>
+          <p className="text-muted-foreground">Load or select a puzzle to begin</p>
+        </div>
+
+        <div className="space-y-4 w-full max-w-sm">
+          <Button onClick={() => document.getElementById('file-upload')?.click()} className="w-full" size="lg">
+              <Upload className="mr-2 h-4 w-4" /> Load New Puzzle
+          </Button>
+
+          {puzzleLibrary.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Or continue a puzzle:</p>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {puzzleLibrary.map(stored => (
+                  <button
+                    key={stored.id}
+                    onClick={() => selectPuzzleFromLibrary(stored.id)}
+                    className="w-full text-left p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="font-medium">{stored.data.title}</div>
+                    <div className="text-xs text-muted-foreground">{stored.data.source.site}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         <input 
             id="file-upload" 
             type="file" 
@@ -405,113 +440,109 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     );
   }
 
-  // Layout Design:
-  // Desktop: [Sidebar] [Main Grid Area] [Clues]
-  // Mobile: [Header] [Tools] [Grid] [Clues]
-
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-background overflow-hidden">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
       
-      {/* Sidebar (Desktop) / Header (Mobile) */}
-      <aside className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-border bg-card p-4 flex flex-col gap-4 lg:h-full z-10 shrink-0 overflow-y-auto">
-         {/* Title Block */}
-         <div className="space-y-1">
-             <h1 className="text-xl font-serif font-bold tracking-tight line-clamp-2">{puzzle.title}</h1>
-             <div className="text-xs text-muted-foreground truncate">{puzzle.source.site}</div>
-         </div>
-
-         <Separator className="hidden lg:block" />
-
-         {/* Difficulty Selector */}
-         <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Difficulty</label>
-            <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
-                <SelectTrigger>
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="normal">
-                        <div className="flex items-center gap-2">
-                            <Shield className="w-4 h-4" /> <span>Normal</span>
-                        </div>
-                    </SelectItem>
-                    <SelectItem value="easy">
-                        <div className="flex items-center gap-2">
-                            <Zap className="w-4 h-4" /> <span>Easy</span>
-                        </div>
-                    </SelectItem>
-                    <SelectItem value="learner">
-                        <div className="flex items-center gap-2">
-                            <BookOpen className="w-4 h-4" /> <span>Learner</span>
-                        </div>
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground/80 px-1">
-                {difficulty === "normal" && "Standard play. Reveal disabled."}
-                {difficulty === "easy" && "Relaxed rules. Reveal allowed."}
-                {difficulty === "learner" && "Shows explanations for clues."}
-            </p>
-         </div>
-         
-         <Separator className="hidden lg:block" />
-
-         {/* Actions */}
-         <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-            <Button variant="secondary" size="sm" onClick={checkClue} disabled={!activeClue} className="justify-start">
-                <Check className="mr-2 h-4 w-4" /> Check Clue
-            </Button>
-            
-            <Button 
-                variant="secondary" 
-                size="sm" 
-                onClick={revealClue} 
-                disabled={!activeClue || difficulty === "normal"} 
-                className="justify-start"
-                title={difficulty === "normal" ? "Disabled in Normal Mode" : "Reveal Clue"}
-            >
-                <Eye className="mr-2 h-4 w-4" /> Reveal Clue
-            </Button>
-
-            <div className="lg:h-2 col-span-2 lg:col-span-1"></div>
-
-            <Button variant="ghost" size="sm" onClick={checkPuzzle} className="justify-start">
-                <Check className="mr-2 h-4 w-4" /> Check Puzzle
-            </Button>
-            
-             <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={revealPuzzle} 
-                disabled={difficulty === "normal"}
-                className="justify-start"
-            >
-                <RotateCcw className="mr-2 h-4 w-4" /> Reveal Puzzle
-            </Button>
-         </div>
-
-         <div className="mt-auto pt-4">
-            <Button variant="outline" size="sm" className="w-full" onClick={() => document.getElementById('file-upload')?.click()}>
-                <Upload className="mr-2 h-4 w-4" /> Load New Puzzle
-            </Button>
-            <input 
-                id="file-upload" 
-                type="file" 
-                accept=".json" 
-                className="hidden" 
-                onChange={handleFileUpload}
-            />
-         </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+      {/* Minimal Header */}
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
+        <div className="flex-1">
+          <h1 className="text-xl font-serif font-bold">{puzzle.title}</h1>
+        </div>
         
-        {/* Grid & Explanation Section */}
-        <div className="flex-1 flex flex-col overflow-auto bg-muted/5 p-4 lg:p-8 items-center gap-6">
-            
-            {/* Grid Container */}
-            <div className="bg-card p-4 rounded-xl shadow-sm border border-border/50 animate-in zoom-in-95 duration-500">
+        <div className="relative">
+          <Button variant="ghost" size="icon" onClick={() => setMenuOpen(!menuOpen)}>
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+
+          {menuOpen && (
+            <div className="absolute right-0 top-full mt-2 w-72 bg-card border border-border rounded-lg shadow-lg z-50">
+              <div className="p-4 space-y-4">
+                
+                {/* Difficulty */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium uppercase tracking-wide">Mode</label>
+                  <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="easy">Easy (Reveal)</SelectItem>
+                      <SelectItem value="learner">Learner (Hints)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Actions */}
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <Button variant="secondary" size="sm" onClick={checkClue} disabled={!activeClue} className="w-full justify-start">
+                    <Check className="mr-2 h-4 w-4" /> Check Clue
+                  </Button>
+                  
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    onClick={revealClue} 
+                    disabled={!activeClue || difficulty === "normal"} 
+                    className="w-full justify-start"
+                  >
+                    <Eye className="mr-2 h-4 w-4" /> Reveal Clue
+                  </Button>
+
+                  <Button variant="ghost" size="sm" onClick={checkPuzzle} className="w-full justify-start">
+                    <Check className="mr-2 h-4 w-4" /> Check Puzzle
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={revealPuzzle} 
+                    disabled={difficulty === "normal"}
+                    className="w-full justify-start"
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" /> Reveal Puzzle
+                  </Button>
+                </div>
+
+                {/* Puzzle Library */}
+                <div className="space-y-2 pt-2 border-t border-border max-h-64 overflow-y-auto">
+                  <p className="text-xs font-medium uppercase tracking-wide">Puzzles</p>
+                  <Button onClick={() => document.getElementById('file-upload-menu')?.click()} variant="outline" size="sm" className="w-full justify-start">
+                    <Plus className="mr-2 h-4 w-4" /> Load New
+                  </Button>
+                  
+                  <div className="space-y-1">
+                    {puzzleLibrary.map(stored => (
+                      <div key={stored.id} className="flex items-center gap-2 text-sm">
+                        <button
+                          onClick={() => selectPuzzleFromLibrary(stored.id)}
+                          className="flex-1 text-left p-2 rounded hover:bg-muted/50 transition-colors truncate"
+                        >
+                          {stored.data.title}
+                        </button>
+                        <button
+                          onClick={() => deletePuzzleFromLibrary(stored.id)}
+                          className="p-1 hover:bg-destructive/10 rounded transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex flex-1 overflow-hidden">
+        
+        {/* Grid Section */}
+        <div className="flex-1 flex flex-col overflow-auto p-4 lg:p-8 items-center justify-start gap-4">
+            {/* Grid */}
+            <div className="bg-card p-4 rounded-xl shadow-sm border border-border/50">
                 <div 
                     className="grid gap-px bg-border border border-border select-none"
                     style={{
@@ -539,8 +570,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                                         isActive ? "bg-accent text-accent-foreground z-10" : "",
                                         !isActive && isInClue ? "bg-accent/30" : "",
                                         isError ? "text-destructive bg-destructive/10" : "",
-                                        
-                                        // Word Boundaries
                                         boundary?.right ? "border-r-4 border-r-border/80" : "",
                                         boundary?.bottom ? "border-b-4 border-b-border/80" : ""
                                     )}
@@ -558,30 +587,24 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                 </div>
             </div>
 
-            {/* Explanation Panel - Conditional */}
+            {/* Learner Mode Explanation */}
             {(difficulty === "learner" && activeClue) && (
-                 <div className="w-full max-w-2xl bg-card p-6 rounded-lg border border-border shadow-sm animate-in slide-in-from-bottom-4">
-                     <div className="flex items-center gap-3 mb-3">
-                         <div className="bg-primary/10 text-primary p-2 rounded-full">
-                             <BookOpen className="w-5 h-5" />
-                         </div>
-                         <div className="space-y-0.5">
-                            <h3 className="font-semibold text-sm">Learning Mode</h3>
-                            <p className="text-xs text-muted-foreground">Explanation for {activeClue.number} {activeClue.direction}</p>
-                         </div>
+                 <div className="w-full max-w-2xl bg-card p-6 rounded-lg border border-border shadow-sm">
+                     <div className="flex items-center gap-2 mb-2">
+                         <BookOpen className="w-5 h-5 text-primary" />
+                         <h3 className="font-semibold text-sm">{activeClue.number} {activeClue.direction}</h3>
                      </div>
-                     <p className="text-base italic text-muted-foreground border-l-4 border-accent pl-4 py-1">
-                         {activeClue.explanation || "No explanation provided for this clue."}
+                     <p className="text-sm italic text-muted-foreground border-l-4 border-accent pl-3">
+                         {activeClue.explanation || "No explanation provided."}
                      </p>
                  </div>
             )}
         </div>
 
-        {/* Clue List Sidebar (Right) */}
-        <div className="w-full lg:w-80 h-[40vh] lg:h-full border-t lg:border-t-0 lg:border-l border-border bg-card flex flex-col shrink-0">
-            <div className="p-3 bg-muted/20 border-b border-border flex items-center justify-between">
-                <h2 className="font-serif font-bold">Clues</h2>
-                <div className="text-xs text-muted-foreground">{activeCell ? `${activeCell.col + 1},${activeCell.row + 1}` : ""}</div>
+        {/* Clue List (Hidden on small screens) */}
+        <div className="hidden lg:flex w-80 border-l border-border bg-card flex-col shrink-0">
+            <div className="p-3 bg-muted/20 border-b border-border">
+                <h2 className="font-serif font-bold text-sm">Clues</h2>
             </div>
 
             <Tabs defaultValue="across" className="flex-1 flex flex-col overflow-hidden">
@@ -600,23 +623,19 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                                     const isActive = activeClue?.number === clue.number && activeClue?.direction === dir;
                                     const isFilled = isClueFilled(clue);
                                     
-                                    // Auto scroll active clue into view
-                                    // (Simplistic implementation: we assume the user scrolls, or we can use ref in future)
-                                    
                                     return (
                                         <button
                                         key={getClueId(clue)}
                                         onClick={() => handleClueClick(clue)}
-                                        id={`clue-${getClueId(clue)}`}
                                         className={cn(
-                                            "w-full text-left p-2.5 rounded-md text-sm transition-all flex items-start gap-3 group relative overflow-hidden",
+                                            "w-full text-left p-2 rounded-md text-xs transition-all flex items-start gap-2 group relative",
                                             isActive 
-                                                ? "bg-accent/40 hover:bg-accent/50 text-foreground" 
+                                                ? "bg-accent/40 text-foreground" 
                                                 : "hover:bg-muted/50 text-muted-foreground"
                                         )}
                                         >
                                             <span className={cn(
-                                                "font-bold font-mono w-6 shrink-0 pt-0.5", 
+                                                "font-bold font-mono w-5 shrink-0", 
                                                 isActive ? "text-primary" : "text-muted-foreground/70",
                                                 isFilled && !isActive && "line-through opacity-50"
                                             )}>
@@ -624,9 +643,9 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                                             </span>
                                             <div className="space-y-0.5 min-w-0 flex-1">
                                                 <span className={cn(
-                                                    "block leading-tight", 
-                                                    isActive ? "font-medium" : "group-hover:text-foreground/80",
-                                                    isFilled && !isActive && "line-through opacity-60 decoration-muted-foreground/50"
+                                                    "block leading-tight text-xs", 
+                                                    isActive ? "font-medium" : "",
+                                                    isFilled && !isActive && "line-through opacity-60"
                                                 )}>
                                                     {clue.text}
                                                 </span>
@@ -634,9 +653,6 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                                                     ({clue.enumeration})
                                                 </span>
                                             </div>
-                                            {isActive && (
-                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent" />
-                                            )}
                                         </button>
                                     );
                                 })}
@@ -646,8 +662,15 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                 ))}
             </Tabs>
         </div>
-
       </main>
+
+      <input 
+        id="file-upload-menu" 
+        type="file" 
+        accept=".json" 
+        className="hidden" 
+        onChange={handleFileUpload}
+      />
     </div>
   );
 }
