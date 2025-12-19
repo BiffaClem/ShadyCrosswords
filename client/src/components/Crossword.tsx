@@ -537,10 +537,10 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+      <main className="flex flex-row flex-1 overflow-hidden">
         
         {/* Clue List (Left side) */}
-        <div className="w-full lg:w-80 h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-r border-border bg-card flex flex-col shrink-0 order-3 lg:order-1">
+        <div className="w-80 h-full border-r border-border bg-card flex flex-col shrink-0">
             <div className="p-3 bg-muted/20 border-b border-border">
                 <h2 className="font-serif font-bold text-sm">Clues</h2>
             </div>
@@ -601,10 +601,10 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
             </Tabs>
         </div>
 
-        {/* Grid Section (Center/Right) */}
-        <div className="flex-1 flex flex-col overflow-auto p-4 lg:p-8 items-center justify-start gap-4 order-2 lg:order-2">
-            {/* Grid */}
-            <div className="bg-card p-4 rounded-xl shadow-sm border border-border/50">
+        {/* Grid Section (Right) */}
+        <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center gap-4">
+            {/* Grid - Zoomed out to 25% */}
+            <div className="bg-card p-4 rounded-lg shadow-sm border border-border/50" style={{ transform: 'scale(0.25)', transformOrigin: 'center center' }}>
                 <div 
                     className="grid gap-px bg-border border border-border select-none"
                     style={{
