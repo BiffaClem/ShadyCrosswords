@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Eye, RotateCcw, Upload, BookOpen, Menu, X, Trash2, Plus } from "lucide-react";
+import { Check, Eye, RotateCcw, Upload, BookOpen, Menu, X, Trash2, Plus, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   Select,
@@ -32,6 +32,7 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
   const [difficulty, setDifficulty] = useState<Difficulty>("normal");
   const [menuOpen, setMenuOpen] = useState(false);
   const [puzzleLibrary, setPuzzleLibrary] = useState(puzzleStorage.getPuzzles());
+  const [zoom, setZoom] = useState(1);
 
   // Initialize grid state when puzzle loads
   useEffect(() => {
@@ -603,14 +604,52 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
 
         {/* Grid Section (Right) */}
         <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center gap-4">
-            {/* Grid - Zoomed out to 25% */}
-            <div className="bg-card p-4 rounded-lg shadow-sm border border-border/50" style={{ transform: 'scale(0.25)', transformOrigin: 'center center' }}>
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-2 bg-card px-3 py-2 rounded-lg border border-border shadow-sm">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-medium w-12 text-center">{Math.round(zoom * 100)}%</span>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setZoom(Math.min(2, zoom + 0.25))}
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Grid Container - Responsive with aspect ratio */}
+            <div className="flex-1 flex items-center justify-center min-w-0 w-full">
+              <div 
+                className="bg-card p-4 rounded-lg shadow-sm border border-border/50"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'auto'
+                }}
+              >
                 <div 
-                    className="grid gap-px bg-border border border-border select-none"
-                    style={{
-                        gridTemplateColumns: `repeat(${puzzle.size.cols}, minmax(1.5rem, 3.5rem))`,
-                        width: 'fit-content'
-                    }}
+                  style={{
+                    transform: `scale(${zoom})`,
+                    transformOrigin: 'center center',
+                    width: 'fit-content',
+                    height: 'fit-content'
+                  }}
+                >
+                  <div 
+                      className="grid gap-px bg-border border border-border select-none"
+                      style={{
+                          gridTemplateColumns: `repeat(${puzzle.size.cols}, minmax(1.5rem, 3.5rem))`,
+                          width: 'fit-content'
+                      }}
                 >
                     {puzzle.grid.map((rowStr, r) => (
                         rowStr.split('').map((cellChar, c) => {
@@ -646,7 +685,9 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                             );
                         })
                     ))}
+                  </div>
                 </div>
+              </div>
             </div>
 
             {/* Learner Mode Explanation */}
