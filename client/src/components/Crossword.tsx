@@ -666,7 +666,7 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                                     key={`${r}-${c}`}
                                     onClick={() => handleCellClick(r, c)}
                                     className={cn(
-                                        "relative aspect-square flex items-center justify-center text-lg sm:text-2xl lg:text-3xl font-sans font-bold uppercase transition-colors duration-75 cursor-pointer",
+                                        "relative aspect-square flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 cursor-pointer",
                                         isBlack ? "bg-black" : "bg-white",
                                         isActive ? "bg-accent text-accent-foreground z-10" : "",
                                         !isActive && isInClue ? "bg-accent/30" : "",
@@ -674,9 +674,13 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                                         boundary?.right ? "border-r-4 border-r-border/80" : "",
                                         boundary?.bottom ? "border-b-4 border-b-border/80" : ""
                                     )}
+                                    style={{ fontSize: `${1.5 * zoom}rem` }}
                                 >
                                     {!isBlack && number && (
-                                        <span className="crossword-cell-number text-[0.5rem] sm:text-[0.6rem] font-mono text-muted-foreground/80">
+                                        <span 
+                                          className="crossword-cell-number font-mono text-muted-foreground/80 absolute top-0.5 left-0.5"
+                                          style={{ fontSize: `${0.35 * zoom}rem` }}
+                                        >
                                             {number}
                                         </span>
                                     )}
