@@ -537,72 +537,10 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex flex-1 overflow-hidden">
+      <main className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         
-        {/* Grid Section */}
-        <div className="flex-1 flex flex-col overflow-auto p-4 lg:p-8 items-center justify-start gap-4">
-            {/* Grid */}
-            <div className="bg-card p-4 rounded-xl shadow-sm border border-border/50">
-                <div 
-                    className="grid gap-px bg-border border border-border select-none"
-                    style={{
-                        gridTemplateColumns: `repeat(${puzzle.size.cols}, minmax(1.5rem, 3.5rem))`,
-                        width: 'fit-content'
-                    }}
-                >
-                    {puzzle.grid.map((rowStr, r) => (
-                        rowStr.split('').map((cellChar, c) => {
-                            const isBlack = cellChar === "#";
-                            const isActive = activeCell?.row === r && activeCell?.col === c;
-                            const isInClue = !isBlack && isCellInActiveClue(r, c);
-                            const number = puzzle.numbers[r][c];
-                            const value = gridState[r]?.[c] || "";
-                            const isError = isCellError(r, c);
-                            const boundary = boundaryMap[`${r}-${c}`];
-
-                            return (
-                                <div 
-                                    key={`${r}-${c}`}
-                                    onClick={() => handleCellClick(r, c)}
-                                    className={cn(
-                                        "relative aspect-square flex items-center justify-center text-lg sm:text-2xl lg:text-3xl font-sans font-bold uppercase transition-colors duration-75 cursor-pointer",
-                                        isBlack ? "bg-black" : "bg-white",
-                                        isActive ? "bg-accent text-accent-foreground z-10" : "",
-                                        !isActive && isInClue ? "bg-accent/30" : "",
-                                        isError ? "text-destructive bg-destructive/10" : "",
-                                        boundary?.right ? "border-r-4 border-r-border/80" : "",
-                                        boundary?.bottom ? "border-b-4 border-b-border/80" : ""
-                                    )}
-                                >
-                                    {!isBlack && number && (
-                                        <span className="crossword-cell-number text-[0.5rem] sm:text-[0.6rem] font-mono text-muted-foreground/80">
-                                            {number}
-                                        </span>
-                                    )}
-                                    {!isBlack && value}
-                                </div>
-                            );
-                        })
-                    ))}
-                </div>
-            </div>
-
-            {/* Learner Mode Explanation */}
-            {(difficulty === "learner" && activeClue) && (
-                 <div className="w-full max-w-2xl bg-card p-6 rounded-lg border border-border shadow-sm">
-                     <div className="flex items-center gap-2 mb-2">
-                         <BookOpen className="w-5 h-5 text-primary" />
-                         <h3 className="font-semibold text-sm">{activeClue.number} {activeClue.direction}</h3>
-                     </div>
-                     <p className="text-sm italic text-muted-foreground border-l-4 border-accent pl-3">
-                         {activeClue.explanation || "No explanation provided."}
-                     </p>
-                 </div>
-            )}
-        </div>
-
-        {/* Clue List (Hidden on small screens) */}
-        <div className="hidden lg:flex w-80 border-l border-border bg-card flex-col shrink-0">
+        {/* Clue List (Left side) */}
+        <div className="w-full lg:w-80 h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-r border-border bg-card flex flex-col shrink-0 order-3 lg:order-1">
             <div className="p-3 bg-muted/20 border-b border-border">
                 <h2 className="font-serif font-bold text-sm">Clues</h2>
             </div>
@@ -661,6 +599,68 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                     </TabsContent>
                 ))}
             </Tabs>
+        </div>
+
+        {/* Grid Section (Center/Right) */}
+        <div className="flex-1 flex flex-col overflow-auto p-4 lg:p-8 items-center justify-start gap-4 order-2 lg:order-2">
+            {/* Grid */}
+            <div className="bg-card p-4 rounded-xl shadow-sm border border-border/50">
+                <div 
+                    className="grid gap-px bg-border border border-border select-none"
+                    style={{
+                        gridTemplateColumns: `repeat(${puzzle.size.cols}, minmax(1.5rem, 3.5rem))`,
+                        width: 'fit-content'
+                    }}
+                >
+                    {puzzle.grid.map((rowStr, r) => (
+                        rowStr.split('').map((cellChar, c) => {
+                            const isBlack = cellChar === "#";
+                            const isActive = activeCell?.row === r && activeCell?.col === c;
+                            const isInClue = !isBlack && isCellInActiveClue(r, c);
+                            const number = puzzle.numbers[r][c];
+                            const value = gridState[r]?.[c] || "";
+                            const isError = isCellError(r, c);
+                            const boundary = boundaryMap[`${r}-${c}`];
+
+                            return (
+                                <div 
+                                    key={`${r}-${c}`}
+                                    onClick={() => handleCellClick(r, c)}
+                                    className={cn(
+                                        "relative aspect-square flex items-center justify-center text-lg sm:text-2xl lg:text-3xl font-sans font-bold uppercase transition-colors duration-75 cursor-pointer",
+                                        isBlack ? "bg-black" : "bg-white",
+                                        isActive ? "bg-accent text-accent-foreground z-10" : "",
+                                        !isActive && isInClue ? "bg-accent/30" : "",
+                                        isError ? "text-destructive bg-destructive/10" : "",
+                                        boundary?.right ? "border-r-4 border-r-border/80" : "",
+                                        boundary?.bottom ? "border-b-4 border-b-border/80" : ""
+                                    )}
+                                >
+                                    {!isBlack && number && (
+                                        <span className="crossword-cell-number text-[0.5rem] sm:text-[0.6rem] font-mono text-muted-foreground/80">
+                                            {number}
+                                        </span>
+                                    )}
+                                    {!isBlack && value}
+                                </div>
+                            );
+                        })
+                    ))}
+                </div>
+            </div>
+
+            {/* Learner Mode Explanation */}
+            {(difficulty === "learner" && activeClue) && (
+                 <div className="w-full max-w-2xl bg-card p-6 rounded-lg border border-border shadow-sm">
+                     <div className="flex items-center gap-2 mb-2">
+                         <BookOpen className="w-5 h-5 text-primary" />
+                         <h3 className="font-semibold text-sm">{activeClue.number} {activeClue.direction}</h3>
+                     </div>
+                     <p className="text-sm italic text-muted-foreground border-l-4 border-accent pl-3">
+                         {activeClue.explanation || "No explanation provided."}
+                     </p>
+                 </div>
+            )}
         </div>
       </main>
 
