@@ -26,12 +26,28 @@ function countCorrectCells(userGrid: string[][], puzzleData: any): number {
   if (!userGrid.length || !puzzleData.clues) return 0;
   
   const correctCells = new Set<string>();
-  const clues = [...puzzleData.clues.across, ...puzzleData.clues.down];
   
-  for (const clue of clues) {
+  // Process across clues
+  for (const clue of puzzleData.clues.across || []) {
     for (let i = 0; i < clue.length; i++) {
-      const row = clue.direction === 'across' ? clue.row - 1 : clue.row - 1 + i;
-      const col = clue.direction === 'across' ? clue.col - 1 + i : clue.col - 1;
+      const row = clue.row - 1;
+      const col = clue.col - 1 + i;
+      
+      if (userGrid[row] && userGrid[row][col]) {
+        const userVal = userGrid[row][col];
+        const expectedVal = clue.answer[i];
+        if (userVal === expectedVal) {
+          correctCells.add(`${row}-${col}`);
+        }
+      }
+    }
+  }
+  
+  // Process down clues
+  for (const clue of puzzleData.clues.down || []) {
+    for (let i = 0; i < clue.length; i++) {
+      const row = clue.row - 1 + i;
+      const col = clue.col - 1;
       
       if (userGrid[row] && userGrid[row][col]) {
         const userVal = userGrid[row][col];
