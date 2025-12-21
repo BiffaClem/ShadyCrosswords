@@ -49,6 +49,7 @@ export const puzzleProgress = pgTable("puzzle_progress", {
   grid: jsonb("grid").notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
   updatedBy: varchar("updated_by").references(() => users.id),
+  submittedAt: timestamp("submitted_at"),
 });
 
 // Session invites - tracks pending invitations to sessions

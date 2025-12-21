@@ -20,6 +20,7 @@ export interface IStorage {
   getSession(id: string): Promise<PuzzleSession | undefined>;
   getUserSessions(userId: string): Promise<PuzzleSession[]>;
   createSession(session: InsertSession): Promise<PuzzleSession>;
+  deleteSession(id: string): Promise<void>;
   
   // Participants
   getSessionParticipants(sessionId: string): Promise<SessionParticipant[]>;
@@ -31,6 +32,7 @@ export interface IStorage {
   getProgress(sessionId: string): Promise<PuzzleProgress | undefined>;
   saveProgress(progress: InsertProgress): Promise<PuzzleProgress>;
   updateProgress(sessionId: string, grid: any, updatedBy: string): Promise<PuzzleProgress | undefined>;
+  submitSession(sessionId: string): Promise<PuzzleProgress | undefined>;
   
   // Participant activity
   getSessionParticipantsWithActivity(sessionId: string): Promise<Array<{id: string; firstName: string | null; email: string | null; lastActivity: Date | null; joinedAt: Date | null}>>;
@@ -94,6 +96,14 @@ export class DatabaseStorage implements IStorage {
   async createSession(session: InsertSession): Promise<PuzzleSession> {
     const [created] = await db.insert(puzzleSessions).values(session).returning();
     return created;
+  }
+
+  async deleteSession(id: string): Promise<void> {
+    // Delete in correct order due to foreign keys
+    await db.delete(sessionInvites).where(eq(sessionInvites.sessionId, id));
+    await db.delete(puzzleProgress).where(eq(puzzleProgress.sessionId, id));
+    await db.delete(sessionParticipants).where(eq(sessionParticipants.sessionId, id));
+    await db.delete(puzzleSessions).where(eq(puzzleSessions.id, id));
   }
 
   // Participants
@@ -189,6 +199,15 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db
       .update(puzzleProgress)
       .set({ grid, updatedBy, updatedAt: new Date() })
+      .where(eq(puzzleProgress.sessionId, sessionId))
+      .returning();
+    return updated;
+  }
+
+  async submitSession(sessionId: string): Promise<PuzzleProgress | undefined> {
+    const [updated] = await db
+      .update(puzzleProgress)
+      .set({ submittedAt: new Date() })
       .where(eq(puzzleProgress.sessionId, sessionId))
       .returning();
     return updated;
