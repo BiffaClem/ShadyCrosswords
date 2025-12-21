@@ -1,12 +1,13 @@
 import { 
-  puzzles, puzzleSessions, sessionParticipants, puzzleProgress, users,
+  puzzles, puzzleSessions, sessionParticipants, puzzleProgress, sessionInvites, users,
   type Puzzle, type InsertPuzzle,
   type PuzzleSession, type InsertSession,
   type SessionParticipant, type InsertParticipant,
-  type PuzzleProgress, type InsertProgress
+  type PuzzleProgress, type InsertProgress,
+  type SessionInvite, type InsertInvite
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Puzzles
@@ -30,6 +31,15 @@ export interface IStorage {
   getProgress(sessionId: string): Promise<PuzzleProgress | undefined>;
   saveProgress(progress: InsertProgress): Promise<PuzzleProgress>;
   updateProgress(sessionId: string, grid: any, updatedBy: string): Promise<PuzzleProgress | undefined>;
+  
+  // Invites
+  createInvites(invites: InsertInvite[]): Promise<SessionInvite[]>;
+  getInvitesForUser(userId: string): Promise<SessionInvite[]>;
+  getInvite(id: string): Promise<SessionInvite | undefined>;
+  updateInviteStatus(id: string, status: string): Promise<SessionInvite | undefined>;
+  
+  // Users
+  getAllUsers(): Promise<Array<{id: string; firstName: string | null; email: string | null}>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -142,6 +152,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(puzzleProgress.sessionId, sessionId))
       .returning();
     return updated;
+  }
+
+  // Invites
+  async createInvites(invites: InsertInvite[]): Promise<SessionInvite[]> {
+    if (invites.length === 0) return [];
+    const created = await db.insert(sessionInvites).values(invites).returning();
+    return created;
+  }
+
+  async getInvitesForUser(userId: string): Promise<SessionInvite[]> {
+    return db.select().from(sessionInvites).where(eq(sessionInvites.invitedUserId, userId));
+  }
+
+  async getInvite(id: string): Promise<SessionInvite | undefined> {
+    const [invite] = await db.select().from(sessionInvites).where(eq(sessionInvites.id, id));
+    return invite;
+  }
+
+  async updateInviteStatus(id: string, status: string): Promise<SessionInvite | undefined> {
+    const [updated] = await db
+      .update(sessionInvites)
+      .set({ status, respondedAt: new Date() })
+      .where(eq(sessionInvites.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Users
+  async getAllUsers(): Promise<Array<{id: string; firstName: string | null; email: string | null}>> {
+    return db.select({
+      id: users.id,
+      firstName: users.firstName,
+      email: users.email,
+    }).from(users);
   }
 }
 

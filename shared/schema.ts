@@ -50,6 +50,19 @@ export const puzzleProgress = pgTable("puzzle_progress", {
   updatedBy: varchar("updated_by").references(() => users.id),
 });
 
+// Session invites - tracks pending invitations to sessions
+export const sessionInvites = pgTable("session_invites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => puzzleSessions.id).notNull(),
+  invitedUserId: varchar("invited_user_id").references(() => users.id).notNull(),
+  invitedById: varchar("invited_by_id").references(() => users.id).notNull(),
+  status: varchar("status").default("pending").notNull(), // pending, accepted, declined
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+}, (table) => [
+  index("idx_invite_user").on(table.invitedUserId, table.status)
+]);
+
 // Relations
 export const puzzlesRelations = relations(puzzles, ({ one, many }) => ({
   uploader: one(users, {
@@ -97,11 +110,27 @@ export const puzzleProgressRelations = relations(puzzleProgress, ({ one }) => ({
   }),
 }));
 
+export const sessionInvitesRelations = relations(sessionInvites, ({ one }) => ({
+  session: one(puzzleSessions, {
+    fields: [sessionInvites.sessionId],
+    references: [puzzleSessions.id],
+  }),
+  invitedUser: one(users, {
+    fields: [sessionInvites.invitedUserId],
+    references: [users.id],
+  }),
+  invitedBy: one(users, {
+    fields: [sessionInvites.invitedById],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertPuzzleSchema = createInsertSchema(puzzles).omit({ id: true, createdAt: true });
 export const insertSessionSchema = createInsertSchema(puzzleSessions).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertParticipantSchema = createInsertSchema(sessionParticipants).omit({ id: true, joinedAt: true });
 export const insertProgressSchema = createInsertSchema(puzzleProgress).omit({ id: true, updatedAt: true });
+export const insertInviteSchema = createInsertSchema(sessionInvites).omit({ id: true, createdAt: true, respondedAt: true });
 
 // Types
 export type Puzzle = typeof puzzles.$inferSelect;
@@ -112,3 +141,5 @@ export type SessionParticipant = typeof sessionParticipants.$inferSelect;
 export type InsertParticipant = z.infer<typeof insertParticipantSchema>;
 export type PuzzleProgress = typeof puzzleProgress.$inferSelect;
 export type InsertProgress = z.infer<typeof insertProgressSchema>;
+export type SessionInvite = typeof sessionInvites.$inferSelect;
+export type InsertInvite = z.infer<typeof insertInviteSchema>;
