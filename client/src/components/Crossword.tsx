@@ -645,10 +645,11 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                   }}
                 >
                   <div 
-                      className="grid gap-px bg-border border border-border select-none"
+                      className="grid gap-0 select-none"
                       style={{
-                          gridTemplateColumns: `repeat(${puzzle.size.cols}, minmax(1.5rem, 3.5rem))`,
-                          width: 'fit-content'
+                          gridTemplateColumns: `repeat(${puzzle.size.cols}, 1fr)`,
+                          width: 'fit-content',
+                          backgroundColor: '#999'
                       }}
                 >
                     {puzzle.grid.map((rowStr, r) => (
@@ -666,7 +667,7 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                                     key={`${r}-${c}`}
                                     onClick={() => handleCellClick(r, c)}
                                     className={cn(
-                                        "relative aspect-square flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 cursor-pointer",
+                                        "relative aspect-square flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 cursor-pointer border border-border",
                                         isBlack ? "bg-black" : "bg-white",
                                         isActive ? "bg-accent text-accent-foreground z-10" : "",
                                         !isActive && isInClue ? "bg-accent/30" : "",
