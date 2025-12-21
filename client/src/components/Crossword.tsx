@@ -4,15 +4,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Eye, RotateCcw, Upload, BookOpen, Menu, X, Trash2, Plus, ZoomIn, ZoomOut } from "lucide-react";
+import { Check, Eye, RotateCcw, Menu, X, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { puzzleStorage } from "@/lib/puzzle-storage";
 
 interface RecentSession {
@@ -31,8 +24,6 @@ interface CrosswordProps {
   onSessionSelect?: (sessionId: string) => void;
 }
 
-type Difficulty = "normal" | "easy" | "learner";
-
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
 export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSave, isCollaborative, recentSessions, onSessionSelect }: CrosswordProps) {
@@ -41,9 +32,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [activeCell, setActiveCell] = useState<Position | null>(null);
   const [direction, setDirection] = useState<"across" | "down">("across");
   const [showErrors, setShowErrors] = useState<boolean>(false);
-  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [puzzleLibrary, setPuzzleLibrary] = useState(puzzleStorage.getPuzzles());
   const [zoom, setZoom] = useState(1);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -339,49 +328,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       setTimeout(() => setShowErrors(false), 1500); 
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const json = JSON.parse(event.target?.result as string);
-        puzzleStorage.savePuzzle(json);
-        setPuzzleLibrary(puzzleStorage.getPuzzles());
-        setPuzzle(json);
-        setMenuOpen(false);
-        toast({
-          title: "Puzzle Loaded",
-          description: json.title,
-        });
-      } catch (err) {
-        toast({
-          title: "Error",
-          description: "Invalid JSON file",
-          variant: "destructive",
-        });
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const selectPuzzleFromLibrary = (puzzleId: string) => {
-    const p = puzzleStorage.getPuzzleById(puzzleId);
-    if (p) {
-      setPuzzle(p);
-      setMenuOpen(false);
-    }
-  };
-
-  const deletePuzzleFromLibrary = (puzzleId: string) => {
-    puzzleStorage.deletePuzzle(puzzleId);
-    setPuzzleLibrary(puzzleStorage.getPuzzles());
-    toast({
-      title: "Puzzle Deleted",
-      description: "The puzzle and its progress have been removed.",
-    });
-  };
   
   const isCellInActiveClue = (r: number, c: number) => {
       if (!activeClue) return false;
@@ -444,41 +390,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-serif font-bold">Cryptic Crossword</h1>
-          <p className="text-muted-foreground">Load or select a puzzle to begin</p>
+          <h1 className="text-4xl font-serif font-bold">No Puzzle Loaded</h1>
+          <p className="text-muted-foreground">Please select a puzzle from the dashboard</p>
         </div>
-
-        <div className="space-y-4 w-full max-w-sm">
-          <Button onClick={() => document.getElementById('file-upload')?.click()} className="w-full" size="lg">
-              <Upload className="mr-2 h-4 w-4" /> Load New Puzzle
-          </Button>
-
-          {puzzleLibrary.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Or continue a puzzle:</p>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {puzzleLibrary.map(stored => (
-                  <button
-                    key={stored.id}
-                    onClick={() => selectPuzzleFromLibrary(stored.id)}
-                    className="w-full text-left p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="font-medium">{stored.data.title}</div>
-                    <div className="text-xs text-muted-foreground">{stored.data.source.site}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <input 
-            id="file-upload" 
-            type="file" 
-            accept=".json" 
-            className="hidden" 
-            onChange={handleFileUpload}
-        />
       </div>
     );
   }
@@ -501,53 +415,41 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
             <div className="absolute right-0 top-full mt-2 w-72 bg-card border border-border rounded-lg shadow-lg z-50">
               <div className="p-4 space-y-4">
                 
-                {/* Difficulty */}
-                <div className="space-y-2">
-                  <label className="text-xs font-medium uppercase tracking-wide">Mode</label>
-                  <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="easy">Easy (Reveal)</SelectItem>
-                      <SelectItem value="learner">Learner (Hints)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Zoom Controls */}
-                <div className="space-y-2 pt-2 border-t border-border">
+                <div className="space-y-2">
                   <label className="text-xs font-medium uppercase tracking-wide">Zoom</label>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
-                      className="px-2"
+                      onClick={() => setZoom(Math.max(0.1, zoom - 0.1))}
+                      className="px-3"
                     >
-                      <ZoomOut className="h-3 w-3" />
+                      <ZoomOut className="h-4 w-4" />
                     </Button>
-                    <div className="flex-1 flex items-center gap-1">
-                      {[50, 75, 100, 125, 150].map((z) => (
-                        <Button
-                          key={z}
-                          variant={Math.round(zoom * 100) === z ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => setZoom(z / 100)}
-                          className="px-2 text-xs flex-1"
-                        >
-                          {z}%
-                        </Button>
-                      ))}
+                    <div className="flex items-center">
+                      <input
+                        type="number"
+                        min="10"
+                        max="200"
+                        value={Math.round(zoom * 100)}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!isNaN(val)) {
+                            setZoom(Math.max(0.1, Math.min(2, val / 100)));
+                          }
+                        }}
+                        className="w-16 text-center border border-border rounded px-2 py-1 text-sm"
+                      />
+                      <span className="ml-1 text-sm">%</span>
                     </div>
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => setZoom(Math.min(2, zoom + 0.1))}
-                      className="px-2"
+                      className="px-3"
                     >
-                      <ZoomIn className="h-3 w-3" />
+                      <ZoomIn className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -562,7 +464,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                     variant="secondary" 
                     size="sm" 
                     onClick={revealClue} 
-                    disabled={!activeClue || difficulty === "normal"} 
+                    disabled={!activeClue} 
                     className="w-full justify-start"
                   >
                     <Eye className="mr-2 h-4 w-4" /> Reveal Clue
@@ -576,7 +478,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                     variant="ghost" 
                     size="sm" 
                     onClick={revealPuzzle} 
-                    disabled={difficulty === "normal"}
                     className="w-full justify-start"
                   >
                     <RotateCcw className="mr-2 h-4 w-4" /> Reveal Puzzle
@@ -604,32 +505,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                   </div>
                 )}
 
-                {/* Puzzle Library */}
-                <div className="space-y-2 pt-2 border-t border-border max-h-64 overflow-y-auto">
-                  <p className="text-xs font-medium uppercase tracking-wide">Puzzles</p>
-                  <Button onClick={() => document.getElementById('file-upload-menu')?.click()} variant="outline" size="sm" className="w-full justify-start">
-                    <Plus className="mr-2 h-4 w-4" /> Load New
-                  </Button>
-                  
-                  <div className="space-y-1">
-                    {puzzleLibrary.map(stored => (
-                      <div key={stored.id} className="flex items-center gap-2 text-sm">
-                        <button
-                          onClick={() => selectPuzzleFromLibrary(stored.id)}
-                          className="flex-1 text-left p-2 rounded hover:bg-muted/50 transition-colors truncate"
-                        >
-                          {stored.data.title}
-                        </button>
-                        <button
-                          onClick={() => deletePuzzleFromLibrary(stored.id)}
-                          className="p-1 hover:bg-destructive/10 rounded transition-colors"
-                        >
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -778,28 +653,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
               </div>
             </div>
 
-            {/* Learner Mode Explanation */}
-            {(difficulty === "learner" && activeClue) && (
-                 <div className="w-full max-w-2xl bg-card p-6 rounded-lg border border-border shadow-sm">
-                     <div className="flex items-center gap-2 mb-2">
-                         <BookOpen className="w-5 h-5 text-primary" />
-                         <h3 className="font-semibold text-sm">{activeClue.number} {activeClue.direction}</h3>
-                     </div>
-                     <p className="text-sm italic text-muted-foreground border-l-4 border-accent pl-3">
-                         {activeClue.explanation || "No explanation provided."}
-                     </p>
-                 </div>
-            )}
         </div>
       </main>
 
-      <input 
-        id="file-upload-menu" 
-        type="file" 
-        accept=".json" 
-        className="hidden" 
-        onChange={handleFileUpload}
-      />
     </div>
   );
 }

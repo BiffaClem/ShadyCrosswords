@@ -120,7 +120,10 @@ export default function Home() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <BookOpen className="h-8 w-8 text-amber-800" />
-            <h1 className="text-2xl font-bold text-amber-900">Cryptic Crossword</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-amber-900">Shady Crosswords</h1>
+              <p className="text-xs text-amber-700 italic">It's a family thing...</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-amber-700" data-testid="text-username">
