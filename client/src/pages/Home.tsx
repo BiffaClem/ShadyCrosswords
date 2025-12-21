@@ -64,7 +64,7 @@ export default function Home() {
   const [selectedPuzzle, setSelectedPuzzle] = useState<PuzzleWithSessions | null>(null);
   const [sessionName, setSessionName] = useState("");
   const [isCollaborative, setIsCollaborative] = useState(false);
-  const [difficulty, setDifficulty] = useState<"normal" | "easy" | "learner">("normal");
+  const [difficulty, setDifficulty] = useState<"standard" | "beginner" | "expert">("standard");
   const [selectedInvitees, setSelectedInvitees] = useState<string[]>([]);
   
   const [activeTab, setActiveTab] = useState<"all" | "inprogress" | "invites">("all");
@@ -148,7 +148,7 @@ export default function Home() {
     setSelectedPuzzle(puzzle);
     setSessionName("");
     setIsCollaborative(false);
-    setDifficulty("normal");
+    setDifficulty("standard");
     setSelectedInvitees([]);
     setCreateSessionDialogOpen(true);
   };
@@ -457,18 +457,18 @@ export default function Home() {
 
             <div className="space-y-2">
               <Label>Difficulty</Label>
-              <RadioGroup value={difficulty} onValueChange={(v) => setDifficulty(v as "normal" | "easy" | "learner")}>
+              <RadioGroup value={difficulty} onValueChange={(v) => setDifficulty(v as "standard" | "beginner" | "expert")}>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="normal" id="normal" data-testid="radio-difficulty-normal" />
-                  <Label htmlFor="normal" className="font-normal">Normal</Label>
+                  <RadioGroupItem value="standard" id="standard" data-testid="radio-difficulty-standard" />
+                  <Label htmlFor="standard" className="font-normal">Standard</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="easy" id="easy" data-testid="radio-difficulty-easy" />
-                  <Label htmlFor="easy" className="font-normal">Easy (Reveal answers)</Label>
+                  <RadioGroupItem value="beginner" id="beginner" data-testid="radio-difficulty-beginner" />
+                  <Label htmlFor="beginner" className="font-normal">Beginner (Extra hints)</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="learner" id="learner" data-testid="radio-difficulty-learner" />
-                  <Label htmlFor="learner" className="font-normal">Learner (Hints enabled)</Label>
+                  <RadioGroupItem value="expert" id="expert" data-testid="radio-difficulty-expert" />
+                  <Label htmlFor="expert" className="font-normal">Expert (No assistance)</Label>
                 </div>
               </RadioGroup>
             </div>
