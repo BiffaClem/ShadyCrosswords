@@ -8,7 +8,10 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <BookOpen className="h-8 w-8 text-amber-800" />
-            <h1 className="text-2xl font-bold text-amber-900">Cryptic Crossword</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-amber-900">Shady Crosswords</h1>
+              <p className="text-xs text-amber-700 italic">It's a family thing...</p>
+            </div>
           </div>
           <Button 
             onClick={() => window.location.href = "/api/login"}
@@ -22,12 +25,21 @@ export default function Landing() {
 
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl font-bold text-amber-900 mb-6">
-            Solve Cryptic Crosswords Together
+          <h2 className="text-5xl font-bold text-amber-900 mb-4">
+            Shady Crosswords
           </h2>
+          <p className="text-2xl text-amber-700 italic mb-8">It's a family thing...</p>
+          
+          <div className="mb-12 flex justify-center">
+            <img 
+              src="/crossword-hero.png" 
+              alt="Crossword puzzle" 
+              className="max-w-md w-full rounded-lg shadow-lg border-4 border-amber-200"
+            />
+          </div>
+
           <p className="text-xl text-amber-700 mb-12 max-w-2xl mx-auto">
-            A classic newspaper-style crossword experience with modern multiplayer features. 
-            Solve puzzles solo or collaborate with friends in real-time.
+            Solve cryptic crosswords solo or collaborate with friends in real-time.
           </p>
 
           <Button 
@@ -45,9 +57,9 @@ export default function Landing() {
             <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
               <Puzzle className="h-6 w-6 text-amber-800" />
             </div>
-            <h3 className="text-xl font-semibold text-amber-900 mb-2">Upload Puzzles</h3>
+            <h3 className="text-xl font-semibold text-amber-900 mb-2">Curated Puzzles</h3>
             <p className="text-amber-700">
-              Import cryptic crosswords in standard formats. Build your personal puzzle library.
+              Access a library of cryptic crossword puzzles ready to solve.
             </p>
           </div>
 
@@ -74,7 +86,7 @@ export default function Landing() {
       </main>
 
       <footer className="border-t border-amber-200 mt-24 py-8 text-center text-amber-600">
-        <p>Classic crossword experience for the modern solver</p>
+        <p>It's a family thing...</p>
       </footer>
     </div>
   );
