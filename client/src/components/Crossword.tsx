@@ -42,8 +42,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [isMobile, setIsMobile] = useState(isMobileInitial);
   const [zoom, setZoom] = useState(isMobileInitial ? 0.5 : 1);
   const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
+  const [mobileClueHeight, setMobileClueHeight] = useState(180);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const dragStartY = useRef<number | null>(null);
+  const dragStartHeight = useRef<number>(180);
   
   // Detect mobile for layout purposes, but only set zoom once
   useEffect(() => {
@@ -420,6 +423,26 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       hiddenInputRef.current.focus();
     }
   };
+  
+  // Mobile clue panel drag handlers
+  const handleDragStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    dragStartY.current = clientY;
+    dragStartHeight.current = mobileClueHeight;
+  }, [mobileClueHeight]);
+  
+  const handleDragMove = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    if (dragStartY.current === null) return;
+    
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const delta = dragStartY.current - clientY;
+    const newHeight = Math.max(80, Math.min(400, dragStartHeight.current + delta));
+    setMobileClueHeight(newHeight);
+  }, []);
+  
+  const handleDragEnd = useCallback(() => {
+    dragStartY.current = null;
+  }, []);
 
   const checkPuzzle = () => {
     if (!puzzle) return;
@@ -688,15 +711,35 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       )}>
         
         {/* Clue List - Side on desktop, bottom drawer on mobile */}
-        <div className={cn(
-          "bg-card flex flex-col shrink-0",
-          isMobile 
-            ? "order-2 h-48 border-t border-border" 
-            : "w-80 h-full border-r border-border"
-        )}>
-            <div className="p-3 bg-muted/20 border-b border-border">
-                <h2 className="font-serif font-bold text-sm">Clues</h2>
-            </div>
+        <div 
+          className={cn(
+            "bg-card flex flex-col shrink-0",
+            isMobile 
+              ? "order-2 border-t border-border" 
+              : "w-80 h-full border-r border-border"
+          )}
+          style={isMobile ? { height: `${mobileClueHeight}px` } : undefined}
+        >
+            {/* Drag handle for mobile */}
+            {isMobile && (
+              <div 
+                className="flex justify-center items-center py-2 cursor-ns-resize touch-none bg-muted/30 border-b border-border"
+                onTouchStart={handleDragStart}
+                onTouchMove={handleDragMove}
+                onTouchEnd={handleDragEnd}
+                onMouseDown={handleDragStart}
+                onMouseMove={handleDragMove}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+              >
+                <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
+              </div>
+            )}
+            {!isMobile && (
+              <div className="p-3 bg-muted/20 border-b border-border">
+                  <h2 className="font-serif font-bold text-sm">Clues</h2>
+              </div>
+            )}
 
             <Tabs value={direction} onValueChange={(v) => setDirection(v as "across" | "down")} className="flex-1 flex flex-col overflow-hidden">
                 <div className="px-2 pt-2">
@@ -726,7 +769,8 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                             )}
                                           >
                                               <span className={cn(
-                                                  "font-bold font-mono w-5 shrink-0", 
+                                                  "font-bold font-mono shrink-0", 
+                                                  isMobile ? "w-6 text-sm" : "w-5 text-xs",
                                                   isActive ? "text-primary" : "text-muted-foreground/70",
                                                   isFilled && !isActive && "line-through opacity-50"
                                               )}>
@@ -734,13 +778,17 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                               </span>
                                               <div className="space-y-0.5 min-w-0 flex-1">
                                                   <span className={cn(
-                                                      "block leading-tight text-xs", 
+                                                      "block leading-tight", 
+                                                      isMobile ? "text-sm" : "text-xs",
                                                       isActive ? "font-medium" : "",
                                                       isFilled && !isActive && "line-through opacity-60"
                                                   )}>
                                                       {clue.text}
                                                   </span>
-                                                  <span className="text-[10px] text-muted-foreground/60">
+                                                  <span className={cn(
+                                                    "text-muted-foreground/60",
+                                                    isMobile ? "text-xs" : "text-[10px]"
+                                                  )}>
                                                       ({clue.enumeration})
                                                   </span>
                                                   {isSubmitted && clue.answer && (
@@ -770,8 +818,8 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
 
         {/* Grid Section - Top on mobile, right on desktop */}
         <div className={cn(
-          "flex-1 flex flex-col overflow-auto items-center justify-center",
-          isMobile ? "order-1 p-2 gap-2" : "p-4 gap-4"
+          "flex flex-col overflow-auto items-center",
+          isMobile ? "order-1 p-2 gap-1 shrink-0" : "flex-1 p-4 gap-4 justify-center"
         )}>
             {/* Mobile: Show active clue prominently */}
             {isMobile && activeClue && (
@@ -790,12 +838,18 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
             )}
             
             {/* Grid Container - Responsive with aspect ratio */}
-            <div className="flex-1 flex items-center justify-center min-w-0 w-full">
+            <div className={cn(
+              "flex items-center justify-center min-w-0 w-full",
+              isMobile ? "" : "flex-1"
+            )}>
               <div 
-                className="bg-card p-4 rounded-lg shadow-sm border border-border/50"
+                className={cn(
+                  "bg-card rounded-lg shadow-sm border border-border/50",
+                  isMobile ? "p-2" : "p-4"
+                )}
                 style={{
-                  width: '100%',
-                  height: '100%',
+                  width: isMobile ? 'fit-content' : '100%',
+                  height: isMobile ? 'fit-content' : '100%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
