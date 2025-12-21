@@ -204,12 +204,18 @@ export default function Session() {
             Back
           </Button>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {data.session.isCollaborative && (
               <>
-                <div className="flex items-center gap-2 text-amber-700">
-                  <Users className="h-4 w-4" />
-                  <span data-testid="text-active-users">{activeUsers.length + 1} online</span>
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="flex items-center gap-1.5 text-amber-700" title="Total participants">
+                    <Users className="h-4 w-4" />
+                    <span data-testid="text-participants">{data.participants.length + 1}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5" title="Active now">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-green-700" data-testid="text-active-users">{activeUsers.length + 1}</span>
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
@@ -219,7 +225,7 @@ export default function Session() {
                   data-testid="button-copy-link"
                 >
                   {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                  {copied ? "Copied!" : "Invite"}
+                  {copied ? "Copied!" : "Share"}
                 </Button>
               </>
             )}
