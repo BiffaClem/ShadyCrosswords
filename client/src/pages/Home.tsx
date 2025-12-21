@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -225,9 +225,8 @@ export default function Home() {
                     );
                     
                     return (
-                      <>
+                      <React.Fragment key={puzzle.id}>
                         <tr 
-                          key={puzzle.id} 
                           className="hover:bg-amber-50 cursor-pointer"
                           onClick={() => puzzle.sessions.length > 0 && togglePuzzleExpand(puzzle.id)}
                           data-testid={`row-puzzle-${puzzle.id}`}
@@ -310,7 +309,7 @@ export default function Home() {
                             </td>
                           </tr>
                         ))}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
