@@ -681,9 +681,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                   <div 
                       className="grid gap-0 select-none"
                       style={{
-                          gridTemplateColumns: `repeat(${puzzle.size.cols}, 1fr)`,
-                          width: 'fit-content',
-                          backgroundColor: '#999'
+                          gridTemplateColumns: `repeat(${puzzle.size.cols}, 32px)`,
+                          backgroundColor: '#1a1a1a',
+                          padding: '1px',
+                          gap: '1px'
                       }}
                 >
                     {puzzle.grid.map((rowStr, r) => (
@@ -701,18 +702,22 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                     key={`${r}-${c}`}
                                     onClick={() => handleCellClick(r, c)}
                                     className={cn(
-                                        "relative aspect-square flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 cursor-pointer border border-border",
+                                        "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 cursor-pointer",
                                         isBlack ? "bg-black" : "bg-white",
-                                        isActive ? "bg-accent text-accent-foreground z-10" : "",
-                                        !isActive && isInClue ? "bg-accent/30" : "",
-                                        isError ? "text-destructive bg-destructive/10" : ""
+                                        isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
+                                        !isActive && isInClue ? "bg-amber-100" : "",
+                                        isError ? "text-red-600 bg-red-50" : ""
                                     )}
-                                    style={{ fontSize: `${1.5 * zoom}rem` }}
+                                    style={{ 
+                                      width: '32px', 
+                                      height: '32px',
+                                      fontSize: '1.1rem'
+                                    }}
                                 >
                                     {!isBlack && number && (
                                         <span 
-                                          className="crossword-cell-number font-mono text-muted-foreground/80 absolute top-0.5 left-0.5"
-                                          style={{ fontSize: `${0.35 * zoom}rem` }}
+                                          className="font-mono text-gray-600 absolute"
+                                          style={{ fontSize: '9px', top: '1px', left: '2px' }}
                                         >
                                             {number}
                                         </span>

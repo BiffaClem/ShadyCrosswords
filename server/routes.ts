@@ -3,9 +3,83 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, registerAuthRoutes } from "./replit_integrations/auth";
+import fs from "fs";
+import path from "path";
 
 // Track active WebSocket connections per session
 const sessionConnections = new Map<string, Set<WebSocket>>();
+
+// Helper functions for calculating puzzle stats
+function countWhiteCells(grid: string[]): number {
+  return grid.reduce((count, row) => {
+    return count + row.split('').filter(c => c === '.').length;
+  }, 0);
+}
+
+function countFilledCells(grid: string[][]): number {
+  return grid.reduce((count, row) => {
+    return count + row.filter(c => c && c !== '').length;
+  }, 0);
+}
+
+function countCorrectCells(userGrid: string[][], puzzleData: any): number {
+  if (!userGrid.length || !puzzleData.clues) return 0;
+  
+  const correctCells = new Set<string>();
+  const clues = [...puzzleData.clues.across, ...puzzleData.clues.down];
+  
+  for (const clue of clues) {
+    for (let i = 0; i < clue.length; i++) {
+      const row = clue.direction === 'across' ? clue.row - 1 : clue.row - 1 + i;
+      const col = clue.direction === 'across' ? clue.col - 1 + i : clue.col - 1;
+      
+      if (userGrid[row] && userGrid[row][col]) {
+        const userVal = userGrid[row][col];
+        const expectedVal = clue.answer[i];
+        if (userVal === expectedVal) {
+          correctCells.add(`${row}-${col}`);
+        }
+      }
+    }
+  }
+  
+  return correctCells.size;
+}
+
+// Load puzzles from the puzzles folder into the database
+async function loadPuzzlesFromFolder() {
+  const puzzlesDir = path.join(process.cwd(), "puzzles");
+  
+  if (!fs.existsSync(puzzlesDir)) {
+    console.log("No puzzles folder found, skipping puzzle loading");
+    return;
+  }
+  
+  const files = fs.readdirSync(puzzlesDir).filter(f => f.endsWith(".json"));
+  console.log(`Found ${files.length} puzzle files to load`);
+  
+  for (const file of files) {
+    try {
+      const filePath = path.join(puzzlesDir, file);
+      const content = fs.readFileSync(filePath, "utf-8");
+      const puzzleData = JSON.parse(content);
+      
+      // Check if already exists
+      const existing = await storage.getPuzzleByPuzzleId(puzzleData.puzzleId);
+      if (!existing) {
+        await storage.createPuzzle({
+          puzzleId: puzzleData.puzzleId,
+          title: puzzleData.title || file.replace(".json", ""),
+          data: puzzleData,
+          uploadedBy: null,
+        });
+        console.log(`Loaded puzzle: ${puzzleData.title || file}`);
+      }
+    } catch (error) {
+      console.error(`Failed to load puzzle ${file}:`, error);
+    }
+  }
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -14,41 +88,47 @@ export async function registerRoutes(
   // Setup authentication
   await setupAuth(app);
   registerAuthRoutes(app);
+  
+  // Load puzzles from folder
+  await loadPuzzlesFromFolder();
 
-  // Get all puzzles
-  app.get("/api/puzzles", isAuthenticated, async (req, res) => {
+  // Get all puzzles with user's session stats
+  app.get("/api/puzzles", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const puzzles = await storage.getAllPuzzles();
-      res.json(puzzles);
+      const sessions = await storage.getUserSessions(userId);
+      
+      // Enrich puzzles with session info
+      const enrichedPuzzles = await Promise.all(puzzles.map(async (puzzle) => {
+        const puzzleSessions = sessions.filter(s => s.puzzleId === puzzle.id);
+        
+        // Calculate stats for each session
+        const sessionsWithStats = await Promise.all(puzzleSessions.map(async (session) => {
+          const progress = await storage.getProgress(session.id);
+          const puzzleData = puzzle.data as any;
+          const totalCells = countWhiteCells(puzzleData.grid);
+          const userGrid = (progress?.grid as string[][] | null) || [];
+          const filledCells = countFilledCells(userGrid);
+          const correctCells = countCorrectCells(userGrid, puzzleData);
+          
+          return {
+            ...session,
+            percentComplete: totalCells > 0 ? Math.round((filledCells / totalCells) * 100) : 0,
+            percentCorrect: filledCells > 0 ? Math.round((correctCells / filledCells) * 100) : 0,
+          };
+        }));
+        
+        return {
+          ...puzzle,
+          sessions: sessionsWithStats,
+        };
+      }));
+      
+      res.json(enrichedPuzzles);
     } catch (error) {
       console.error("Error fetching puzzles:", error);
       res.status(500).json({ message: "Failed to fetch puzzles" });
-    }
-  });
-
-  // Upload a puzzle
-  app.post("/api/puzzles", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const puzzleData = req.body;
-      
-      // Check if puzzle already exists
-      const existing = await storage.getPuzzleByPuzzleId(puzzleData.puzzleId);
-      if (existing) {
-        res.json(existing);
-        return;
-      }
-
-      const puzzle = await storage.createPuzzle({
-        puzzleId: puzzleData.puzzleId,
-        title: puzzleData.title,
-        data: puzzleData,
-        uploadedBy: userId,
-      });
-      res.json(puzzle);
-    } catch (error) {
-      console.error("Error creating puzzle:", error);
-      res.status(500).json({ message: "Failed to create puzzle" });
     }
   });
 
