@@ -8,7 +8,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -25,7 +24,6 @@ interface SessionWithStats {
   id: string;
   name: string;
   isCollaborative: boolean;
-  difficulty: string;
   createdAt: string;
   percentComplete: number;
   percentCorrect: number;
@@ -34,28 +32,11 @@ interface SessionWithStats {
 
 interface PuzzleWithSessions {
   id: string;
+  puzzleId: string;
   title: string;
   data: any;
   sessions: SessionWithStats[];
 }
-
-const DIFFICULTY_OPTIONS = [
-  {
-    value: "beginner",
-    label: "Beginner",
-    description: "Shows letter counts and allows checking individual answers"
-  },
-  {
-    value: "standard",
-    label: "Standard",
-    description: "Shows letter counts only, no answer checking"
-  },
-  {
-    value: "expert",
-    label: "Expert",
-    description: "No hints - pure solving experience"
-  }
-];
 
 export default function Home() {
   const { user } = useAuth();
@@ -63,13 +44,10 @@ export default function Home() {
   const queryClient = useQueryClient();
   
   const [createSessionDialogOpen, setCreateSessionDialogOpen] = useState(false);
-  const [selectedPuzzleId, setSelectedPuzzleId] = useState<string | null>(null);
-  const [selectedPuzzleTitle, setSelectedPuzzleTitle] = useState<string>("");
+  const [selectedPuzzle, setSelectedPuzzle] = useState<PuzzleWithSessions | null>(null);
   const [sessionName, setSessionName] = useState("");
   const [isCollaborative, setIsCollaborative] = useState(false);
-  const [difficulty, setDifficulty] = useState("standard");
 
-  // Refetch puzzles when component mounts (handles back navigation)
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
   }, [queryClient]);
@@ -83,7 +61,7 @@ export default function Home() {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean; difficulty: string }) => {
+    mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean }) => {
       const res = await apiRequest("POST", "/api/sessions", data);
       return res.json();
     },
@@ -102,22 +80,28 @@ export default function Home() {
     },
   });
 
-  const handleStartNewSession = (puzzleId: string, puzzleTitle: string) => {
-    setSelectedPuzzleId(puzzleId);
-    setSelectedPuzzleTitle(puzzleTitle);
+  const getPuzzleNumber = (puzzle: PuzzleWithSessions) => {
+    return puzzle.data?.puzzleNumber || puzzle.puzzleId || puzzle.title;
+  };
+
+  const handleStartNewSession = (puzzle: PuzzleWithSessions) => {
+    setSelectedPuzzle(puzzle);
     setSessionName("");
     setIsCollaborative(false);
-    setDifficulty("standard");
     setCreateSessionDialogOpen(true);
   };
 
   const handleCreateSession = () => {
-    if (!selectedPuzzleId) return;
+    if (!selectedPuzzle) return;
+    const puzzleNumber = getPuzzleNumber(selectedPuzzle);
+    const fullName = sessionName 
+      ? `${puzzleNumber} - ${sessionName}`
+      : `${puzzleNumber} - Session`;
+    
     createSessionMutation.mutate({
-      puzzleId: selectedPuzzleId,
-      name: sessionName || `${selectedPuzzleTitle} Session`,
+      puzzleId: selectedPuzzle.id,
+      name: fullName,
       isCollaborative,
-      difficulty,
     });
   };
 
@@ -182,7 +166,7 @@ export default function Home() {
                         </CardDescription>
                       </div>
                       <Button 
-                        onClick={() => handleStartNewSession(puzzle.id, puzzle.title)}
+                        onClick={() => handleStartNewSession(puzzle)}
                         className="bg-amber-700 hover:bg-amber-800"
                         data-testid={`button-new-session-${puzzle.id}`}
                       >
@@ -212,9 +196,6 @@ export default function Home() {
                                   {session.isCollaborative && (
                                     <Users className="h-4 w-4 text-amber-600 flex-shrink-0" />
                                   )}
-                                  <span className="text-xs px-2 py-0.5 bg-amber-200 text-amber-800 rounded capitalize">
-                                    {session.difficulty || 'standard'}
-                                  </span>
                                 </div>
                                 {session.participants.length > 0 && (
                                   <p className="text-xs text-amber-600 mt-1">
@@ -258,48 +239,26 @@ export default function Home() {
       <Dialog open={createSessionDialogOpen} onOpenChange={setCreateSessionDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Start Solving: {selectedPuzzleTitle}</DialogTitle>
+            <DialogTitle>Start Solving: {selectedPuzzle?.title}</DialogTitle>
             <DialogDescription>
               Create a new solving session
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-6 py-4">
+          <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="session-name">Session Name</Label>
-              <Input 
-                id="session-name" 
-                value={sessionName}
-                onChange={(e) => setSessionName(e.target.value)}
-                placeholder={`${selectedPuzzleTitle} Session`}
-                data-testid="input-session-name"
-              />
-            </div>
-            
-            <div className="space-y-3">
-              <Label>Difficulty Level</Label>
-              <RadioGroup value={difficulty} onValueChange={setDifficulty} className="space-y-3">
-                {DIFFICULTY_OPTIONS.map((option) => (
-                  <div 
-                    key={option.value}
-                    className="flex items-start space-x-3 p-3 rounded-lg border border-amber-200 hover:bg-amber-50 transition-colors"
-                  >
-                    <RadioGroupItem 
-                      value={option.value} 
-                      id={option.value}
-                      className="mt-0.5"
-                      data-testid={`radio-difficulty-${option.value}`}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor={option.value} className="font-medium cursor-pointer">
-                        {option.label}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {option.description}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </RadioGroup>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  {selectedPuzzle ? getPuzzleNumber(selectedPuzzle) : ''} -
+                </span>
+                <Input 
+                  id="session-name" 
+                  value={sessionName}
+                  onChange={(e) => setSessionName(e.target.value)}
+                  placeholder="Session"
+                  data-testid="input-session-name"
+                />
+              </div>
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg border border-amber-200">

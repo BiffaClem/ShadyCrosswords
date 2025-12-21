@@ -16,6 +16,12 @@ interface SessionData {
   participants: any[];
 }
 
+interface RecentSession {
+  id: string;
+  name: string;
+  puzzleTitle: string;
+}
+
 export default function Session() {
   const { id } = useParams();
   const [, navigate] = useLocation();
@@ -34,6 +40,22 @@ export default function Session() {
     },
     retry: false,
   });
+
+  const { data: allPuzzles } = useQuery<any[]>({
+    queryKey: ["/api/puzzles"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/puzzles");
+      return res.json();
+    },
+  });
+
+  const recentSessions: RecentSession[] = allPuzzles?.flatMap(puzzle => 
+    (puzzle.sessions ?? []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      puzzleTitle: puzzle.title,
+    }))
+  ).filter((s: RecentSession) => s.id !== id).slice(0, 5) || [];
 
   // Initialize grid from server progress
   useEffect(() => {
@@ -213,6 +235,8 @@ export default function Session() {
             onCellChange={handleCellChange}
             onSave={handleSaveProgress}
             isCollaborative={data.session.isCollaborative}
+            recentSessions={recentSessions}
+            onSessionSelect={(sessionId) => navigate(`/session/${sessionId}`)}
           />
         )}
       </main>

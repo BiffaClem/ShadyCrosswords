@@ -15,19 +15,27 @@ import {
 } from "@/components/ui/select";
 import { puzzleStorage } from "@/lib/puzzle-storage";
 
+interface RecentSession {
+  id: string;
+  name: string;
+  puzzleTitle: string;
+}
+
 interface CrosswordProps {
   initialPuzzle?: PuzzleData;
   initialGrid?: string[][];
   onCellChange?: (row: number, col: number, value: string, grid: string[][]) => void;
   onSave?: (grid: string[][]) => void;
   isCollaborative?: boolean;
+  recentSessions?: RecentSession[];
+  onSessionSelect?: (sessionId: string) => void;
 }
 
 type Difficulty = "normal" | "easy" | "learner";
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
-export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSave, isCollaborative }: CrosswordProps) {
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSave, isCollaborative, recentSessions, onSessionSelect }: CrosswordProps) {
   const [puzzle, setPuzzle] = useState<PuzzleData | null>(initialPuzzle || null);
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
@@ -508,6 +516,42 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                   </Select>
                 </div>
 
+                {/* Zoom Controls */}
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <label className="text-xs font-medium uppercase tracking-wide">Zoom</label>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
+                      className="px-2"
+                    >
+                      <ZoomOut className="h-3 w-3" />
+                    </Button>
+                    <div className="flex-1 flex items-center gap-1">
+                      {[50, 75, 100, 125, 150].map((z) => (
+                        <Button
+                          key={z}
+                          variant={Math.round(zoom * 100) === z ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setZoom(z / 100)}
+                          className="px-2 text-xs flex-1"
+                        >
+                          {z}%
+                        </Button>
+                      ))}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setZoom(Math.min(2, zoom + 0.1))}
+                      className="px-2"
+                    >
+                      <ZoomIn className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+
                 {/* Actions */}
                 <div className="space-y-2 pt-2 border-t border-border">
                   <Button variant="secondary" size="sm" onClick={checkClue} disabled={!activeClue} className="w-full justify-start">
@@ -538,6 +582,27 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                     <RotateCcw className="mr-2 h-4 w-4" /> Reveal Puzzle
                   </Button>
                 </div>
+
+                {/* Recent Sessions */}
+                {recentSessions && recentSessions.length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-border">
+                    <p className="text-xs font-medium uppercase tracking-wide">Recent Sessions</p>
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                      {recentSessions.map(session => (
+                        <button
+                          key={session.id}
+                          onClick={() => {
+                            setMenuOpen(false);
+                            onSessionSelect?.(session.id);
+                          }}
+                          className="w-full text-left p-2 rounded hover:bg-muted/50 transition-colors text-sm truncate"
+                        >
+                          {session.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Puzzle Library */}
                 <div className="space-y-2 pt-2 border-t border-border max-h-64 overflow-y-auto">
@@ -638,25 +703,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
 
         {/* Grid Section (Right) */}
         <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center gap-4">
-            {/* Zoom Controls */}
-            <div className="flex items-center gap-2 bg-card px-3 py-2 rounded-lg border border-border shadow-sm">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <span className="text-sm font-medium w-12 text-center">{Math.round(zoom * 100)}%</span>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setZoom(Math.min(2, zoom + 0.25))}
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-            </div>
-
             {/* Grid Container - Responsive with aspect ratio */}
             <div className="flex-1 flex items-center justify-center min-w-0 w-full">
               <div 
