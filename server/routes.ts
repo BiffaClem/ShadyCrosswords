@@ -77,11 +77,24 @@ export async function registerRoutes(
 
       // Check access
       const isOwner = session.ownerId === userId;
-      const isParticipant = await storage.isParticipant(session.id, userId);
+      let isParticipant = await storage.isParticipant(session.id, userId);
       
+      // Auto-join collaborative sessions
       if (!isOwner && !isParticipant) {
-        res.status(403).json({ message: "Access denied" });
-        return;
+        if (session.isCollaborative) {
+          try {
+            await storage.addParticipant({
+              sessionId: session.id,
+              userId,
+            });
+          } catch (e) {
+            // Ignore duplicate participant errors - user may already be added
+          }
+          isParticipant = true;
+        } else {
+          res.status(403).json({ message: "Access denied" });
+          return;
+        }
       }
 
       const puzzle = await storage.getPuzzle(session.puzzleId);

@@ -17,15 +17,19 @@ import { puzzleStorage } from "@/lib/puzzle-storage";
 
 interface CrosswordProps {
   initialPuzzle?: PuzzleData;
+  initialGrid?: string[][];
+  onCellChange?: (row: number, col: number, value: string, grid: string[][]) => void;
+  onSave?: (grid: string[][]) => void;
+  isCollaborative?: boolean;
 }
 
 type Difficulty = "normal" | "easy" | "learner";
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
-export default function Crossword({ initialPuzzle }: CrosswordProps) {
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSave, isCollaborative }: CrosswordProps) {
   const [puzzle, setPuzzle] = useState<PuzzleData | null>(initialPuzzle || null);
-  const [gridState, setGridState] = useState<string[][]>([]);
+  const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
   const [direction, setDirection] = useState<"across" | "down">("across");
   const [showErrors, setShowErrors] = useState<boolean>(false);
@@ -33,20 +37,30 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [puzzleLibrary, setPuzzleLibrary] = useState(puzzleStorage.getPuzzles());
   const [zoom, setZoom] = useState(1);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update grid when initialGrid prop changes (for real-time collaboration)
+  useEffect(() => {
+    if (initialGrid && initialGrid.length > 0) {
+      setGridState(initialGrid);
+    }
+  }, [initialGrid]);
 
   // Initialize grid state when puzzle loads
   useEffect(() => {
-    if (puzzle) {
+    if (puzzle && gridState.length === 0) {
       const rows = puzzle.size.rows;
       const cols = puzzle.size.cols;
       
-      // Try to load saved progress
-      const savedProgress = puzzleStorage.getProgress(puzzle.puzzleId);
-      if (savedProgress) {
-        setGridState(savedProgress);
-      } else {
-        const newGrid = Array(rows).fill(null).map(() => Array(cols).fill(""));
-        setGridState(newGrid);
+      // Try to load saved progress from localStorage (fallback for non-session mode)
+      if (!initialGrid) {
+        const savedProgress = puzzleStorage.getProgress(puzzle.puzzleId);
+        if (savedProgress) {
+          setGridState(savedProgress);
+        } else {
+          const newGrid = Array(rows).fill(null).map(() => Array(cols).fill(""));
+          setGridState(newGrid);
+        }
       }
       
       // Find first white square to select
@@ -59,14 +73,31 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
         }
       }
     }
-  }, [puzzle]);
+  }, [puzzle, initialGrid]);
 
-  // Save progress whenever grid changes
+  // Save progress whenever grid changes (with debounce for server saves)
   useEffect(() => {
     if (puzzle && gridState.length) {
+      // Always save to localStorage
       puzzleStorage.saveProgress(puzzle.puzzleId, gridState);
+      
+      // Debounce server saves
+      if (onSave) {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+        saveTimeoutRef.current = setTimeout(() => {
+          onSave(gridState);
+        }, 2000);
+      }
     }
-  }, [gridState, puzzle]);
+    
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [gridState, puzzle, onSave]);
 
   // Pre-calculate word boundaries
   const boundaryMap = useMemo(() => {
@@ -168,9 +199,10 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     }
 
     if (e.key === "Backspace" || e.key === "Delete") {
-      const newGrid = [...gridState];
+      const newGrid = gridState.map(r => [...r]);
       newGrid[row][col] = "";
       setGridState(newGrid);
+      if (onCellChange) onCellChange(row, col, "", newGrid);
       moveCursorTyping(-1);
       return;
     }
@@ -187,9 +219,11 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     }
 
     if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
-      const newGrid = [...gridState];
-      newGrid[row][col] = e.key.toUpperCase();
+      const newGrid = gridState.map(r => [...r]);
+      const value = e.key.toUpperCase();
+      newGrid[row][col] = value;
       setGridState(newGrid);
+      if (onCellChange) onCellChange(row, col, value, newGrid);
       moveCursorTyping(1);
       return;
     }
@@ -199,7 +233,7 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
     if (e.key === "ArrowLeft") moveSelectionByArrow(0, -1);
     if (e.key === "ArrowRight") moveSelectionByArrow(0, 1);
 
-  }, [puzzle, activeCell, gridState, direction, moveCursorTyping, moveSelectionByArrow, toggleDirection]);
+  }, [puzzle, activeCell, gridState, direction, moveCursorTyping, moveSelectionByArrow, toggleDirection, onCellChange]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
