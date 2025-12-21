@@ -42,11 +42,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [isMobile, setIsMobile] = useState(isMobileInitial);
   const [zoom, setZoom] = useState(isMobileInitial ? 0.5 : 1);
   const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
-  const [mobileClueHeight, setMobileClueHeight] = useState(180);
+  const [mobileClueHeight, setMobileClueHeight] = useState(220);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const dragStartY = useRef<number | null>(null);
-  const dragStartHeight = useRef<number>(180);
+  const dragStartHeight = useRef<number>(220);
   
   // Detect mobile for layout purposes, but only set zoom once
   useEffect(() => {
@@ -741,17 +741,17 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
               </div>
             )}
 
-            <Tabs value={direction} onValueChange={(v) => setDirection(v as "across" | "down")} className="flex-1 flex flex-col overflow-hidden">
-                <div className="px-2 pt-2">
-                    <TabsList className="w-full grid grid-cols-2">
-                        <TabsTrigger value="across">Across</TabsTrigger>
-                        <TabsTrigger value="down">Down</TabsTrigger>
+            <Tabs value={direction} onValueChange={(v) => setDirection(v as "across" | "down")} className="flex-1 flex flex-col overflow-hidden min-h-0">
+                <div className={cn("px-2", isMobile ? "pt-1" : "pt-2")}>
+                    <TabsList className={cn("w-full grid grid-cols-2", isMobile && "h-8")}>
+                        <TabsTrigger value="across" className={isMobile ? "text-xs py-1" : ""}>Across</TabsTrigger>
+                        <TabsTrigger value="down" className={isMobile ? "text-xs py-1" : ""}>Down</TabsTrigger>
                     </TabsList>
                 </div>
                 
                 {["across", "down"].map((dir) => (
-                    <TabsContent key={dir} value={dir} className="flex-1 overflow-hidden mt-2 p-0">
-                        <ScrollArea className="h-full clue-scroll">
+                    <TabsContent key={dir} value={dir} className="flex-1 overflow-hidden mt-1 p-0 min-h-0">
+                        <ScrollArea className="h-full">
                             <div className="px-2 pb-4 space-y-0.5">
                                 {puzzle.clues[dir as "across"|"down"].map((clue) => {
                                     const isActive = activeClue?.number === clue.number && activeClue?.direction === dir;
