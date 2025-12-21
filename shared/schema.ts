@@ -37,6 +37,7 @@ export const sessionParticipants = pgTable("session_participants", {
   sessionId: varchar("session_id").references(() => puzzleSessions.id).notNull(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   joinedAt: timestamp("joined_at").defaultNow(),
+  lastActivity: timestamp("last_activity").defaultNow(),
 }, (table) => [
   index("idx_session_user").on(table.sessionId, table.userId)
 ]);

@@ -32,6 +32,10 @@ export interface IStorage {
   saveProgress(progress: InsertProgress): Promise<PuzzleProgress>;
   updateProgress(sessionId: string, grid: any, updatedBy: string): Promise<PuzzleProgress | undefined>;
   
+  // Participant activity
+  getSessionParticipantsWithActivity(sessionId: string): Promise<Array<{id: string; firstName: string | null; email: string | null; lastActivity: Date | null; joinedAt: Date | null}>>;
+  updateParticipantActivity(sessionId: string, userId: string): Promise<void>;
+  
   // Invites
   createInvites(invites: InsertInvite[]): Promise<SessionInvite[]>;
   getInvitesForUser(userId: string): Promise<SessionInvite[]>;
@@ -108,6 +112,42 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(users, eq(sessionParticipants.userId, users.id))
       .where(eq(sessionParticipants.sessionId, sessionId));
     return results;
+  }
+
+  async getSessionParticipantsWithActivity(sessionId: string): Promise<Array<{id: string; firstName: string | null; email: string | null; lastActivity: Date | null; joinedAt: Date | null}>> {
+    const results = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        email: users.email,
+        lastActivity: sessionParticipants.lastActivity,
+        joinedAt: sessionParticipants.joinedAt,
+      })
+      .from(sessionParticipants)
+      .innerJoin(users, eq(sessionParticipants.userId, users.id))
+      .where(eq(sessionParticipants.sessionId, sessionId));
+    return results;
+  }
+
+  async updateParticipantActivity(sessionId: string, userId: string): Promise<void> {
+    // First try to update existing row
+    const result = await db
+      .update(sessionParticipants)
+      .set({ lastActivity: new Date() })
+      .where(and(eq(sessionParticipants.sessionId, sessionId), eq(sessionParticipants.userId, userId)))
+      .returning();
+    
+    // If no row was updated, insert one (handles legacy sessions where owner wasn't added as participant)
+    if (result.length === 0) {
+      await db
+        .insert(sessionParticipants)
+        .values({
+          sessionId,
+          userId,
+          lastActivity: new Date(),
+        })
+        .onConflictDoNothing();
+    }
   }
 
   async addParticipant(participant: InsertParticipant): Promise<SessionParticipant> {

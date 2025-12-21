@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import Crossword from "@/components/Crossword";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Users, Copy, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Loader2, ArrowLeft, Users, Copy, Check, Share2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/auth-utils";
@@ -22,6 +23,56 @@ interface RecentSession {
   puzzleTitle: string;
 }
 
+interface ParticipantWithActivity {
+  id: string;
+  firstName: string | null;
+  email: string | null;
+  lastActivity: string | null;
+  joinedAt: string | null;
+  isOwner: boolean;
+}
+
+interface ParticipantsData {
+  ownerId: string;
+  participants: ParticipantWithActivity[];
+}
+
+function getActivityStatus(lastActivity: string | null): { label: string; color: string; dotColor: string } {
+  if (!lastActivity) {
+    return { label: "No activity", color: "text-gray-400", dotColor: "bg-gray-300" };
+  }
+  
+  const now = new Date();
+  const activityDate = new Date(lastActivity);
+  const diffMs = now.getTime() - activityDate.getTime();
+  const diffHours = diffMs / (1000 * 60 * 60);
+  const diffDays = diffHours / 24;
+  
+  if (diffHours < 1) {
+    return { label: "Active now", color: "text-green-600", dotColor: "bg-green-500" };
+  } else if (diffDays < 1) {
+    return { label: "Today", color: "text-amber-600", dotColor: "bg-amber-500" };
+  } else if (diffDays < 7) {
+    return { label: "This week", color: "text-orange-600", dotColor: "bg-orange-500" };
+  } else {
+    return { label: "Inactive", color: "text-red-400", dotColor: "bg-red-400" };
+  }
+}
+
+function getActiveCount(participants: ParticipantWithActivity[]): number {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  return participants.filter(p => {
+    if (!p.lastActivity) return false;
+    return new Date(p.lastActivity) > oneHourAgo;
+  }).length;
+}
+
+function isActiveNow(lastActivity: string | null): boolean {
+  if (!lastActivity) return false;
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  return new Date(lastActivity) > oneHourAgo;
+}
+
 export default function Session() {
   const { id } = useParams();
   const [, navigate] = useLocation();
@@ -31,6 +82,7 @@ export default function Session() {
   const [copied, setCopied] = useState(false);
   const [gridState, setGridState] = useState<string[][] | null>(null);
   const [activeUsers, setActiveUsers] = useState<string[]>([]);
+  const [sharingOpen, setSharingOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery<SessionData>({
     queryKey: ["/api/sessions", id],
@@ -39,6 +91,16 @@ export default function Session() {
       return res.json();
     },
     retry: false,
+  });
+
+  const { data: participantsData, refetch: refetchParticipants } = useQuery<ParticipantsData>({
+    queryKey: ["/api/sessions", id, "participants"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/sessions/${id}/participants`);
+      return res.json();
+    },
+    enabled: !!id,
+    refetchInterval: 30000,
   });
 
   const { data: allPuzzles } = useQuery<any[]>({
@@ -57,14 +119,12 @@ export default function Session() {
     }))
   ).filter((s: RecentSession) => s.id !== id).slice(0, 5) || [];
 
-  // Initialize grid from server progress
   useEffect(() => {
     if (data?.progress?.grid) {
       setGridState(data.progress.grid);
     }
   }, [data?.progress?.grid]);
 
-  // WebSocket connection for real-time collaboration
   useEffect(() => {
     if (!data?.session?.isCollaborative || !user) return;
 
@@ -98,6 +158,7 @@ export default function Session() {
           return [...prev, message.userId];
         });
         toast({ title: "Someone joined the session" });
+        refetchParticipants();
       }
       
       if (message.type === "user_left") {
@@ -116,7 +177,7 @@ export default function Session() {
     return () => {
       ws.close();
     };
-  }, [data?.session?.isCollaborative, user, id]);
+  }, [data?.session?.isCollaborative, user, id, refetchParticipants]);
 
   const saveProgressMutation = useMutation({
     mutationFn: async (grid: string[][]) => {
@@ -134,7 +195,6 @@ export default function Session() {
   const handleCellChange = useCallback((row: number, col: number, value: string, newGrid: string[][]) => {
     setGridState(newGrid);
     
-    // Broadcast via WebSocket for collaborative sessions
     if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: "cell_update",
@@ -189,6 +249,12 @@ export default function Session() {
   }
 
   const puzzleData = data.puzzle?.data;
+  const totalParticipants = participantsData?.participants.length || 0;
+  const activeCount = participantsData ? getActiveCount(participantsData.participants) : 0;
+
+  const getDisplayName = (p: { firstName: string | null; email: string | null }) => {
+    return p.firstName || p.email?.split('@')[0] || 'User';
+  };
 
   return (
     <div className="min-h-screen bg-amber-50">
@@ -205,28 +271,69 @@ export default function Session() {
           </Button>
           
           <div className="flex items-center gap-3">
-            {data.session.isCollaborative && (
-              <div className="flex items-center gap-3 text-sm">
-                <div className="flex items-center gap-1.5 text-amber-700" title="Total participants">
+            <Popover open={sharingOpen} onOpenChange={setSharingOpen}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-amber-300 gap-2"
+                  data-testid="button-sharing"
+                >
                   <Users className="h-4 w-4" />
-                  <span data-testid="text-participants">{data.participants.length + 1}</span>
+                  <span className="text-amber-700">{totalParticipants}</span>
+                  <span className="w-2 h-2 rounded-full bg-green-500" />
+                  <span className="text-green-700">{activeCount}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">Session Participants</h4>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={copyInviteLink}
+                      className="gap-1"
+                    >
+                      {copied ? <Check className="h-3 w-3" /> : <Share2 className="h-3 w-3" />}
+                      {copied ? "Copied" : "Copy Link"}
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {participantsData?.participants.map((participant) => {
+                      const status = getActivityStatus(participant.lastActivity);
+                      return (
+                        <div key={participant.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-b-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${status.dotColor}`} />
+                            <span className={`text-sm ${participant.isOwner ? 'font-medium' : ''}`}>{getDisplayName(participant)}</span>
+                            {participant.isOwner && (
+                              <span className="text-xs text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">Owner</span>
+                            )}
+                          </div>
+                          <span className={`text-xs ${status.color}`}>{status.label}</span>
+                        </div>
+                      );
+                    })}
+                    
+                    {(!participantsData?.participants || participantsData.participants.length === 0) && (
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        No participants yet. Share the link to invite others!
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="pt-2 border-t border-gray-100 text-xs text-gray-500">
+                    <div className="flex items-center gap-4">
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500" /> Active now</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> Today</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500" /> This week</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5" title="Active now">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-green-700" data-testid="text-active-users">{activeUsers.length + 1}</span>
-                </div>
-              </div>
-            )}
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={copyInviteLink}
-              className="border-amber-300"
-              data-testid="button-copy-link"
-            >
-              {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-              {copied ? "Copied!" : "Share"}
-            </Button>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </header>

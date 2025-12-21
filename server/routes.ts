@@ -231,6 +231,12 @@ export async function registerRoutes(
         difficulty: sessionDifficulty,
       });
 
+      // Add owner as participant so their activity is tracked
+      await storage.addParticipant({
+        sessionId: session.id,
+        userId,
+      });
+
       // Initialize empty progress
       const rows = (puzzle.data as any).size.rows;
       const cols = (puzzle.data as any).size.cols;
@@ -319,6 +325,9 @@ export async function registerRoutes(
         updatedBy: userId,
       });
 
+      // Update participant activity
+      await storage.updateParticipantActivity(session.id, userId);
+
       // Broadcast to other participants via WebSocket
       broadcastToSession(session.id, {
         type: "progress_update",
@@ -330,6 +339,45 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error saving progress:", error);
       res.status(500).json({ message: "Failed to save progress" });
+    }
+  });
+
+  // Get session participants with activity info
+  app.get("/api/sessions/:id/participants", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const session = await storage.getSession(req.params.id);
+
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+
+      // Check access
+      const isOwner = session.ownerId === userId;
+      const isParticipant = await storage.isParticipant(session.id, userId);
+      
+      if (!isOwner && !isParticipant) {
+        res.status(403).json({ message: "Access denied" });
+        return;
+      }
+
+      // Get all participants with activity (includes owner since they're added as participant)
+      const participants = await storage.getSessionParticipantsWithActivity(session.id);
+      
+      // Mark which one is the owner
+      const enrichedParticipants = participants.map(p => ({
+        ...p,
+        isOwner: p.id === session.ownerId,
+      }));
+      
+      res.json({
+        ownerId: session.ownerId,
+        participants: enrichedParticipants,
+      });
+    } catch (error) {
+      console.error("Error fetching participants:", error);
+      res.status(500).json({ message: "Failed to fetch participants" });
     }
   });
 
