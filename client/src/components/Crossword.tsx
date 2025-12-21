@@ -670,9 +670,7 @@ export default function Crossword({ initialPuzzle }: CrosswordProps) {
                                         isBlack ? "bg-black" : "bg-white",
                                         isActive ? "bg-accent text-accent-foreground z-10" : "",
                                         !isActive && isInClue ? "bg-accent/30" : "",
-                                        isError ? "text-destructive bg-destructive/10" : "",
-                                        boundary?.right ? "border-r-4 border-r-border/80" : "",
-                                        boundary?.bottom ? "border-b-4 border-b-border/80" : ""
+                                        isError ? "text-destructive bg-destructive/10" : ""
                                     )}
                                     style={{ fontSize: `${1.5 * zoom}rem` }}
                                 >
