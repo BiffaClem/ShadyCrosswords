@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight, ChevronDown, Check, X, Mail } from "lucide-react";
+import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight, ChevronDown } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/auth-utils";
@@ -39,22 +39,6 @@ interface PuzzleWithSessions {
   sessions: SessionWithStats[];
 }
 
-interface Invite {
-  id: string;
-  sessionId: string;
-  status: string;
-  sessionName: string;
-  puzzleTitle: string;
-  puzzleId: string;
-  createdAt: string;
-}
-
-interface User {
-  id: string;
-  firstName: string | null;
-  email: string | null;
-}
-
 export default function Home() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
@@ -65,15 +49,13 @@ export default function Home() {
   const [sessionName, setSessionName] = useState("");
   const [isCollaborative, setIsCollaborative] = useState(false);
   const [difficulty, setDifficulty] = useState<"standard" | "beginner" | "expert">("standard");
-  const [selectedInvitees, setSelectedInvitees] = useState<string[]>([]);
   
-  const [activeTab, setActiveTab] = useState<"all" | "inprogress" | "invites">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "inprogress">("all");
   const [hideCompleted, setHideCompleted] = useState(false);
   const [expandedPuzzles, setExpandedPuzzles] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/invites"] });
   }, [queryClient]);
 
   const { data: puzzles, isLoading } = useQuery<PuzzleWithSessions[]>({
@@ -84,24 +66,8 @@ export default function Home() {
     },
   });
 
-  const { data: invites } = useQuery<Invite[]>({
-    queryKey: ["/api/invites"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/invites");
-      return res.json();
-    },
-  });
-
-  const { data: allUsers } = useQuery<User[]>({
-    queryKey: ["/api/users"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/users");
-      return res.json();
-    },
-  });
-
   const createSessionMutation = useMutation({
-    mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean; difficulty: string; invitees: string[] }) => {
+    mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean; difficulty: string }) => {
       const res = await apiRequest("POST", "/api/sessions", data);
       return res.json();
     },
@@ -120,26 +86,6 @@ export default function Home() {
     },
   });
 
-  const respondInviteMutation = useMutation({
-    mutationFn: async ({ inviteId, status }: { inviteId: string; status: string }) => {
-      const res = await apiRequest("POST", `/api/invites/${inviteId}/respond`, { status });
-      return res.json();
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invites"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
-      toast({ title: variables.status === "accepted" ? "Invite accepted!" : "Invite declined" });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({ title: "Session expired", description: "Logging in again...", variant: "destructive" });
-        setTimeout(() => { window.location.href = "/api/login"; }, 500);
-      } else {
-        toast({ title: "Failed to respond to invite", variant: "destructive" });
-      }
-    },
-  });
-
   const getPuzzleNumber = (puzzle: PuzzleWithSessions) => {
     return puzzle.data?.puzzleNumber || puzzle.puzzleId || puzzle.title;
   };
@@ -149,7 +95,6 @@ export default function Home() {
     setSessionName("");
     setIsCollaborative(false);
     setDifficulty("standard");
-    setSelectedInvitees([]);
     setCreateSessionDialogOpen(true);
   };
 
@@ -165,7 +110,6 @@ export default function Home() {
       name: fullName,
       isCollaborative,
       difficulty,
-      invitees: selectedInvitees,
     });
   };
 
@@ -181,15 +125,11 @@ export default function Home() {
     });
   };
 
-  const toggleInvitee = (userId: string) => {
-    setSelectedInvitees(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
+  const getLatestSessionDate = (puzzle: PuzzleWithSessions): Date => {
+    if (puzzle.sessions.length === 0) return new Date(0);
+    const dates = puzzle.sessions.map(s => new Date(s.createdAt));
+    return new Date(Math.max(...dates.map(d => d.getTime())));
   };
-
-  const pendingInvites = invites?.filter(i => i.status === "pending") || [];
 
   const filteredPuzzles = puzzles?.filter(puzzle => {
     if (activeTab === "inprogress") {
@@ -201,6 +141,12 @@ export default function Home() {
     }
     return true;
   }) || [];
+
+  const sortedPuzzles = [...filteredPuzzles].sort((a, b) => {
+    const dateA = getLatestSessionDate(a);
+    const dateB = getLatestSessionDate(b);
+    return dateB.getTime() - dateA.getTime();
+  });
 
   return (
     <div className="min-h-screen bg-amber-50 font-serif">
@@ -237,80 +183,24 @@ export default function Home() {
               <TabsList>
                 <TabsTrigger value="all" data-testid="tab-all">All Puzzles</TabsTrigger>
                 <TabsTrigger value="inprogress" data-testid="tab-inprogress">In Progress</TabsTrigger>
-                <TabsTrigger value="invites" data-testid="tab-invites" className="relative">
-                  Invites
-                  {pendingInvites.length > 0 && (
-                    <span className="ml-1 bg-amber-600 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px]">
-                      {pendingInvites.length}
-                    </span>
-                  )}
-                </TabsTrigger>
               </TabsList>
             </Tabs>
             
-            {activeTab !== "invites" && (
-              <label className="flex items-center gap-2 text-sm text-amber-700 cursor-pointer">
-                <Checkbox 
-                  checked={hideCompleted} 
-                  onCheckedChange={(c) => setHideCompleted(!!c)}
-                  data-testid="checkbox-hide-completed"
-                />
-                Hide completed
-              </label>
-            )}
+            <label className="flex items-center gap-2 text-sm text-amber-700 cursor-pointer">
+              <Checkbox 
+                checked={hideCompleted} 
+                onCheckedChange={(c) => setHideCompleted(!!c)}
+                data-testid="checkbox-hide-completed"
+              />
+              Hide completed
+            </label>
           </div>
           
-          {activeTab === "invites" ? (
-            <div className="bg-white rounded-lg border border-amber-200 overflow-hidden">
-              {pendingInvites.length === 0 ? (
-                <div className="py-12 text-center text-amber-600">
-                  <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No pending invites</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-amber-100">
-                  {pendingInvites.map((invite) => (
-                    <div 
-                      key={invite.id} 
-                      className="flex items-center justify-between p-4 hover:bg-amber-50"
-                      data-testid={`invite-${invite.id}`}
-                    >
-                      <div>
-                        <p className="font-medium text-amber-900">{invite.sessionName}</p>
-                        <p className="text-sm text-amber-600">{invite.puzzleTitle}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => respondInviteMutation.mutate({ inviteId: invite.id, status: "declined" })}
-                          disabled={respondInviteMutation.isPending}
-                          data-testid={`button-decline-${invite.id}`}
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Decline
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="bg-amber-700 hover:bg-amber-800"
-                          onClick={() => respondInviteMutation.mutate({ inviteId: invite.id, status: "accepted" })}
-                          disabled={respondInviteMutation.isPending}
-                          data-testid={`button-accept-${invite.id}`}
-                        >
-                          <Check className="h-4 w-4 mr-1" />
-                          Accept
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : isLoading ? (
+          {isLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-amber-700" />
             </div>
-          ) : filteredPuzzles.length === 0 ? (
+          ) : sortedPuzzles.length === 0 ? (
             <div className="bg-white rounded-lg border border-amber-200 py-12 text-center">
               <p className="text-amber-600">No puzzles found.</p>
             </div>
@@ -327,7 +217,7 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-100">
-                  {filteredPuzzles.map((puzzle) => {
+                  {sortedPuzzles.map((puzzle) => {
                     const isExpanded = expandedPuzzles.has(puzzle.id);
                     const bestSession = puzzle.sessions.reduce((best, s) => 
                       s.percentComplete > (best?.percentComplete || 0) ? s : best, 
@@ -476,7 +366,7 @@ export default function Home() {
             <div className="flex items-center justify-between p-3 rounded-lg border border-amber-200">
               <div>
                 <Label htmlFor="collaborative">Collaborative Mode</Label>
-                <p className="text-sm text-muted-foreground">Allow others to join and solve together</p>
+                <p className="text-sm text-muted-foreground">Share link to solve together</p>
               </div>
               <Switch 
                 id="collaborative"
@@ -485,29 +375,6 @@ export default function Home() {
                 data-testid="switch-collaborative"
               />
             </div>
-
-            {isCollaborative && allUsers && allUsers.length > 0 && (
-              <div className="space-y-2">
-                <Label>Invite Users</Label>
-                <div className="max-h-32 overflow-y-auto border border-amber-200 rounded-lg divide-y divide-amber-100">
-                  {allUsers.map((u) => (
-                    <label 
-                      key={u.id} 
-                      className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-amber-50"
-                    >
-                      <Checkbox 
-                        checked={selectedInvitees.includes(u.id)}
-                        onCheckedChange={() => toggleInvitee(u.id)}
-                        data-testid={`checkbox-invite-${u.id}`}
-                      />
-                      <span className="text-sm text-amber-800">
-                        {u.firstName || u.email?.split('@')[0] || 'User'}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateSessionDialogOpen(false)}>

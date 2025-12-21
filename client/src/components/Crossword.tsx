@@ -520,7 +520,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                 <h2 className="font-serif font-bold text-sm">Clues</h2>
             </div>
 
-            <Tabs defaultValue="across" className="flex-1 flex flex-col overflow-hidden">
+            <Tabs value={direction} onValueChange={(v) => setDirection(v as "across" | "down")} className="flex-1 flex flex-col overflow-hidden">
                 <div className="px-2 pt-2">
                     <TabsList className="w-full grid grid-cols-2">
                         <TabsTrigger value="across">Across</TabsTrigger>
