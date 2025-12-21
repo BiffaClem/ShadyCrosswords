@@ -704,48 +704,35 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         aria-label="Crossword input"
       />
 
-      {/* Main Content - Responsive layout */}
-      <main className={cn(
-        "flex flex-1 overflow-hidden",
-        isMobile ? "flex-col" : "flex-row"
-      )}>
+      {/* Main Content - CSS-based responsive layout */}
+      <main className="flex flex-1 overflow-hidden flex-col md:flex-row">
         
-        {/* Clue List - Side on desktop, bottom drawer on mobile */}
+        {/* Clue List - Bottom on mobile, left side on desktop */}
         <div 
-          className={cn(
-            "bg-card flex flex-col shrink-0",
-            isMobile 
-              ? "order-2 border-t border-border" 
-              : "w-80 h-full border-r border-border"
-          )}
-          style={isMobile ? { height: `${mobileClueHeight}px` } : undefined}
+          className="bg-card flex flex-col shrink-0 order-2 md:order-1 border-t md:border-t-0 md:border-r border-border h-56 md:h-full md:w-80"
         >
             {/* Drag handle for mobile */}
-            {isMobile && (
-              <div 
-                className="flex justify-center items-center py-2 cursor-ns-resize touch-none bg-muted/30 border-b border-border"
-                onTouchStart={handleDragStart}
-                onTouchMove={handleDragMove}
-                onTouchEnd={handleDragEnd}
-                onMouseDown={handleDragStart}
-                onMouseMove={handleDragMove}
-                onMouseUp={handleDragEnd}
-                onMouseLeave={handleDragEnd}
-              >
-                <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
-              </div>
-            )}
-            {!isMobile && (
-              <div className="p-3 bg-muted/20 border-b border-border">
-                  <h2 className="font-serif font-bold text-sm">Clues</h2>
-              </div>
-            )}
+            <div 
+              className="flex md:hidden justify-center items-center py-2 cursor-ns-resize touch-none bg-muted/30 border-b border-border"
+              onTouchStart={handleDragStart}
+              onTouchMove={handleDragMove}
+              onTouchEnd={handleDragEnd}
+              onMouseDown={handleDragStart}
+              onMouseMove={handleDragMove}
+              onMouseUp={handleDragEnd}
+              onMouseLeave={handleDragEnd}
+            >
+              <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
+            </div>
+            <div className="hidden md:block p-3 bg-muted/20 border-b border-border">
+                <h2 className="font-serif font-bold text-sm">Clues</h2>
+            </div>
 
             <Tabs value={direction} onValueChange={(v) => setDirection(v as "across" | "down")} className="flex-1 flex flex-col overflow-hidden min-h-0">
-                <div className={cn("px-2", isMobile ? "pt-1" : "pt-2")}>
-                    <TabsList className={cn("w-full grid grid-cols-2", isMobile && "h-8")}>
-                        <TabsTrigger value="across" className={isMobile ? "text-xs py-1" : ""}>Across</TabsTrigger>
-                        <TabsTrigger value="down" className={isMobile ? "text-xs py-1" : ""}>Down</TabsTrigger>
+                <div className="px-2 pt-1 md:pt-2">
+                    <TabsList className="w-full grid grid-cols-2 h-8 md:h-10">
+                        <TabsTrigger value="across" className="text-xs md:text-sm py-1">Across</TabsTrigger>
+                        <TabsTrigger value="down" className="text-xs md:text-sm py-1">Down</TabsTrigger>
                     </TabsList>
                 </div>
                 
@@ -762,15 +749,14 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                           <button
                                             onClick={() => handleClueClick(clue)}
                                             className={cn(
-                                                "w-full text-left p-2 rounded-md text-xs transition-all flex items-start gap-2 group relative",
+                                                "w-full text-left p-2 rounded-md transition-all flex items-start gap-2 group relative",
                                                 isActive 
                                                     ? "bg-accent/40 text-foreground" 
                                                     : "hover:bg-muted/50 text-muted-foreground"
                                             )}
                                           >
                                               <span className={cn(
-                                                  "font-bold font-mono shrink-0", 
-                                                  isMobile ? "w-6 text-sm" : "w-5 text-xs",
+                                                  "font-bold font-mono shrink-0 w-6 text-sm md:w-5 md:text-xs",
                                                   isActive ? "text-primary" : "text-muted-foreground/70",
                                                   isFilled && !isActive && "line-through opacity-50"
                                               )}>
@@ -778,17 +764,13 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                               </span>
                                               <div className="space-y-0.5 min-w-0 flex-1">
                                                   <span className={cn(
-                                                      "block leading-tight", 
-                                                      isMobile ? "text-sm" : "text-xs",
+                                                      "block leading-tight text-sm md:text-xs",
                                                       isActive ? "font-medium" : "",
                                                       isFilled && !isActive && "line-through opacity-60"
                                                   )}>
                                                       {clue.text}
                                                   </span>
-                                                  <span className={cn(
-                                                    "text-muted-foreground/60",
-                                                    isMobile ? "text-xs" : "text-[10px]"
-                                                  )}>
+                                                  <span className="text-xs md:text-[10px] text-muted-foreground/60">
                                                       ({clue.enumeration})
                                                   </span>
                                                   {isSubmitted && clue.answer && (
@@ -817,14 +799,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         </div>
 
         {/* Grid Section - Top on mobile, right on desktop */}
-        <div className={cn(
-          "flex flex-col overflow-auto items-center",
-          isMobile ? "order-1 p-2 gap-1 shrink-0" : "flex-1 p-4 gap-4 justify-center"
-        )}>
+        <div className="flex flex-col overflow-auto items-center order-1 md:order-2 p-2 md:p-4 gap-1 md:gap-4 shrink-0 md:shrink md:flex-1 md:justify-center">
             {/* Mobile: Show active clue prominently */}
-            {isMobile && activeClue && (
+            {activeClue && (
               <div 
-                className="w-full bg-amber-50 border border-amber-200 rounded-lg px-3 py-2"
+                className="w-full bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 md:hidden"
                 onClick={() => hiddenInputRef.current?.focus()}
               >
                 <div className="flex items-start gap-2">
@@ -838,18 +817,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
             )}
             
             {/* Grid Container - Responsive with aspect ratio */}
-            <div className={cn(
-              "flex items-center justify-center min-w-0 w-full",
-              isMobile ? "" : "flex-1"
-            )}>
+            <div className="flex items-center justify-center min-w-0 w-full md:flex-1">
               <div 
-                className={cn(
-                  "bg-card rounded-lg shadow-sm border border-border/50",
-                  isMobile ? "p-2" : "p-4"
-                )}
+                className="bg-card rounded-lg shadow-sm border border-border/50 p-2 md:p-4"
                 style={{
-                  width: isMobile ? 'fit-content' : '100%',
-                  height: isMobile ? 'fit-content' : '100%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
