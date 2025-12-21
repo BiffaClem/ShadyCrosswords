@@ -298,6 +298,71 @@ export async function registerRoutes(
     }
   });
 
+  // Delete a session (owner only)
+  app.delete("/api/sessions/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const session = await storage.getSession(req.params.id);
+
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+
+      if (session.ownerId !== userId) {
+        res.status(403).json({ message: "Only the session owner can delete this session" });
+        return;
+      }
+
+      await storage.deleteSession(session.id);
+      res.json({ message: "Session deleted" });
+    } catch (error) {
+      console.error("Error deleting session:", error);
+      res.status(500).json({ message: "Failed to delete session" });
+    }
+  });
+
+  // Submit a session (marks it as complete)
+  app.post("/api/sessions/:id/submit", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const session = await storage.getSession(req.params.id);
+
+      if (!session) {
+        res.status(404).json({ message: "Session not found" });
+        return;
+      }
+
+      // Check access
+      const isOwner = session.ownerId === userId;
+      const isParticipant = await storage.isParticipant(session.id, userId);
+      
+      if (!isOwner && !isParticipant) {
+        res.status(403).json({ message: "Access denied" });
+        return;
+      }
+
+      // Check if already submitted
+      const existingProgress = await storage.getProgress(session.id);
+      if (existingProgress?.submittedAt) {
+        res.status(400).json({ message: "Already submitted" });
+        return;
+      }
+
+      const progress = await storage.submitSession(session.id);
+      
+      // Broadcast to other participants via WebSocket
+      broadcastToSession(session.id, {
+        type: "session_submitted",
+      });
+
+      res.json(progress);
+    } catch (error) {
+      console.error("Error submitting session:", error);
+      res.status(500).json({ message: "Failed to submit session" });
+    }
+  });
+
   // Save progress
   app.post("/api/sessions/:id/progress", isAuthenticated, async (req: any, res) => {
     try {
@@ -315,6 +380,13 @@ export async function registerRoutes(
       
       if (!isOwner && !isParticipant) {
         res.status(403).json({ message: "Access denied" });
+        return;
+      }
+
+      // Check if already submitted
+      const existingProgress = await storage.getProgress(session.id);
+      if (existingProgress?.submittedAt) {
+        res.status(403).json({ message: "Cannot update submitted crossword" });
         return;
       }
 

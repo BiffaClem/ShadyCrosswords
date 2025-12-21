@@ -5,7 +5,8 @@ import { useAuth } from "@/hooks/use-auth";
 import Crossword from "@/components/Crossword";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, ArrowLeft, Users, Copy, Check, Share2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Loader2, ArrowLeft, Users, Check, Share2, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/auth-utils";
@@ -192,6 +193,35 @@ export default function Session() {
     }
   });
 
+  const deleteSessionMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", `/api/sessions/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Session deleted" });
+      queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
+      navigate("/");
+    },
+    onError: (error) => {
+      toast({ title: "Failed to delete session", variant: "destructive" });
+    }
+  });
+
+  const submitSessionMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/sessions/${id}/submit`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Crossword submitted!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", id] });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to submit", variant: "destructive" });
+    }
+  });
+
   const handleCellChange = useCallback((row: number, col: number, value: string, newGrid: string[][]) => {
     setGridState(newGrid);
     
@@ -334,6 +364,38 @@ export default function Session() {
                 </div>
               </PopoverContent>
             </Popover>
+            
+            {data.session.ownerId === user?.id && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-red-300 text-red-600 hover:bg-red-50"
+                    data-testid="button-delete-session"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Session?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this session and all progress. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteSessionMutation.mutate()}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
       </header>
@@ -345,6 +407,8 @@ export default function Session() {
             initialGrid={gridState || undefined}
             onCellChange={handleCellChange}
             onSave={handleSaveProgress}
+            onSubmit={() => submitSessionMutation.mutate()}
+            isSubmitted={!!data.progress?.submittedAt}
             isCollaborative={data.session.isCollaborative}
             recentSessions={recentSessions}
             onSessionSelect={(sessionId) => navigate(`/session/${sessionId}`)}

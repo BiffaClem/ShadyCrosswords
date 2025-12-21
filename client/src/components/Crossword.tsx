@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Eye, RotateCcw, Menu, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Check, Eye, RotateCcw, Menu, X, ZoomIn, ZoomOut, Send, HelpCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { puzzleStorage } from "@/lib/puzzle-storage";
 
@@ -19,6 +19,8 @@ interface CrosswordProps {
   initialGrid?: string[][];
   onCellChange?: (row: number, col: number, value: string, grid: string[][]) => void;
   onSave?: (grid: string[][]) => void;
+  onSubmit?: () => void;
+  isSubmitted?: boolean;
   isCollaborative?: boolean;
   recentSessions?: RecentSession[];
   onSessionSelect?: (sessionId: string) => void;
@@ -26,7 +28,7 @@ interface CrosswordProps {
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
-export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSave, isCollaborative, recentSessions, onSessionSelect }: CrosswordProps) {
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSave, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect }: CrosswordProps) {
   const [puzzle, setPuzzle] = useState<PuzzleData | null>(initialPuzzle || null);
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
@@ -129,6 +131,63 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     processClues(puzzle.clues.down, "down");
     return map;
   }, [puzzle]);
+
+  // Compute the complete answer grid from clues
+  const answerGrid = useMemo(() => {
+    if (!puzzle) return [];
+    const grid: string[][] = Array(puzzle.size.rows).fill(null).map(() => 
+      Array(puzzle.size.cols).fill("")
+    );
+    
+    const fillClue = (clue: Clue) => {
+      if (!clue.answer) return;
+      const answer = clue.answer.toUpperCase();
+      let r = clue.row - 1;
+      let c = clue.col - 1;
+      
+      for (let i = 0; i < answer.length && i < clue.length; i++) {
+        const char = answer[i];
+        if (char.match(/[A-Z]/)) {
+          grid[r][c] = char;
+        }
+        if (clue.direction === "across") c++;
+        else r++;
+      }
+    };
+    
+    puzzle.clues.across.forEach(fillClue);
+    puzzle.clues.down.forEach(fillClue);
+    return grid;
+  }, [puzzle]);
+
+  // Get cell status for submitted crossword
+  const getCellSubmittedStatus = (r: number, c: number): { isMissing: boolean; isIncorrect: boolean } => {
+    if (!isSubmitted || !puzzle || puzzle.grid[r][c] === "#") {
+      return { isMissing: false, isIncorrect: false };
+    }
+    
+    const userValue = (gridState[r]?.[c] || "").toUpperCase();
+    const correctValue = (answerGrid[r]?.[c] || "").toUpperCase();
+    
+    if (!userValue && correctValue) {
+      return { isMissing: true, isIncorrect: false };
+    }
+    if (userValue && correctValue && userValue !== correctValue) {
+      return { isMissing: false, isIncorrect: true };
+    }
+    return { isMissing: false, isIncorrect: false };
+  };
+
+  // Get display value for submitted crossword (fills in missing answers)
+  const getDisplayValue = (r: number, c: number): string => {
+    if (!puzzle || puzzle.grid[r][c] === "#") return "";
+    
+    const userValue = gridState[r]?.[c] || "";
+    if (isSubmitted && !userValue) {
+      return answerGrid[r]?.[c] || "";
+    }
+    return userValue;
+  };
 
   const moveSelectionByArrow = useCallback((dRow: number, dCol: number) => {
     if (!puzzle || !activeCell) return;
@@ -482,6 +541,24 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                   >
                     <RotateCcw className="mr-2 h-4 w-4" /> Reveal Puzzle
                   </Button>
+                  
+                  {onSubmit && !isSubmitted && (
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={onSubmit}
+                      className="w-full justify-start bg-green-600 hover:bg-green-700 mt-2"
+                      data-testid="button-submit-crossword"
+                    >
+                      <Send className="mr-2 h-4 w-4" /> Submit
+                    </Button>
+                  )}
+                  
+                  {isSubmitted && (
+                    <div className="text-sm text-green-600 font-medium text-center py-2 bg-green-50 rounded mt-2">
+                      Submitted
+                    </div>
+                  )}
                 </div>
 
                 {/* Recent Sessions */}
@@ -537,36 +614,50 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                     const isFilled = isClueFilled(clue);
                                     
                                     return (
-                                        <button
-                                        key={getClueId(clue)}
-                                        onClick={() => handleClueClick(clue)}
-                                        className={cn(
-                                            "w-full text-left p-2 rounded-md text-xs transition-all flex items-start gap-2 group relative",
-                                            isActive 
-                                                ? "bg-accent/40 text-foreground" 
-                                                : "hover:bg-muted/50 text-muted-foreground"
-                                        )}
-                                        >
-                                            <span className={cn(
-                                                "font-bold font-mono w-5 shrink-0", 
-                                                isActive ? "text-primary" : "text-muted-foreground/70",
-                                                isFilled && !isActive && "line-through opacity-50"
-                                            )}>
-                                                {clue.number}
-                                            </span>
-                                            <div className="space-y-0.5 min-w-0 flex-1">
-                                                <span className={cn(
-                                                    "block leading-tight text-xs", 
-                                                    isActive ? "font-medium" : "",
-                                                    isFilled && !isActive && "line-through opacity-60"
-                                                )}>
-                                                    {clue.text}
-                                                </span>
-                                                <span className="text-[10px] text-muted-foreground/60">
-                                                    ({clue.enumeration})
-                                                </span>
+                                        <div key={getClueId(clue)} className="space-y-1">
+                                          <button
+                                            onClick={() => handleClueClick(clue)}
+                                            className={cn(
+                                                "w-full text-left p-2 rounded-md text-xs transition-all flex items-start gap-2 group relative",
+                                                isActive 
+                                                    ? "bg-accent/40 text-foreground" 
+                                                    : "hover:bg-muted/50 text-muted-foreground"
+                                            )}
+                                          >
+                                              <span className={cn(
+                                                  "font-bold font-mono w-5 shrink-0", 
+                                                  isActive ? "text-primary" : "text-muted-foreground/70",
+                                                  isFilled && !isActive && "line-through opacity-50"
+                                              )}>
+                                                  {clue.number}
+                                              </span>
+                                              <div className="space-y-0.5 min-w-0 flex-1">
+                                                  <span className={cn(
+                                                      "block leading-tight text-xs", 
+                                                      isActive ? "font-medium" : "",
+                                                      isFilled && !isActive && "line-through opacity-60"
+                                                  )}>
+                                                      {clue.text}
+                                                  </span>
+                                                  <span className="text-[10px] text-muted-foreground/60">
+                                                      ({clue.enumeration})
+                                                  </span>
+                                                  {isSubmitted && clue.answer && (
+                                                    <span className="block text-[11px] font-medium text-green-700 mt-1">
+                                                      {clue.answer}
+                                                    </span>
+                                                  )}
+                                              </div>
+                                          </button>
+                                          {isSubmitted && clue.explanation && (
+                                            <div className="ml-7 mr-2 p-2 bg-blue-50 border border-blue-100 rounded text-[10px] text-blue-800 leading-relaxed">
+                                              <div className="flex items-start gap-1">
+                                                <HelpCircle className="h-3 w-3 mt-0.5 shrink-0 text-blue-500" />
+                                                <span>{clue.explanation}</span>
+                                              </div>
                                             </div>
-                                        </button>
+                                          )}
+                                        </div>
                                     );
                                 })}
                             </div>
@@ -614,20 +705,24 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                             const isActive = activeCell?.row === r && activeCell?.col === c;
                             const isInClue = !isBlack && isCellInActiveClue(r, c);
                             const number = puzzle.numbers[r][c];
-                            const value = gridState[r]?.[c] || "";
+                            const displayValue = getDisplayValue(r, c);
                             const isError = isCellError(r, c);
                             const boundary = boundaryMap[`${r}-${c}`];
+                            const submittedStatus = getCellSubmittedStatus(r, c);
 
                             return (
                                 <div 
                                     key={`${r}-${c}`}
-                                    onClick={() => handleCellClick(r, c)}
+                                    onClick={() => !isSubmitted && handleCellClick(r, c)}
                                     className={cn(
-                                        "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 cursor-pointer",
+                                        "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75",
+                                        isSubmitted ? "cursor-default" : "cursor-pointer",
                                         isBlack ? "bg-black" : "bg-white",
-                                        isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
-                                        !isActive && isInClue ? "bg-amber-100" : "",
-                                        isError ? "text-red-600 bg-red-50" : ""
+                                        !isSubmitted && isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
+                                        !isSubmitted && !isActive && isInClue ? "bg-amber-100" : "",
+                                        !isSubmitted && isError ? "text-red-600 bg-red-50" : "",
+                                        submittedStatus.isMissing ? "text-blue-600" : "",
+                                        submittedStatus.isIncorrect ? "text-red-600" : ""
                                     )}
                                     style={{ 
                                       width: '32px', 
@@ -643,7 +738,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                             {number}
                                         </span>
                                     )}
-                                    {!isBlack && value}
+                                    {!isBlack && displayValue}
                                 </div>
                             );
                         })
