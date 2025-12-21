@@ -378,7 +378,9 @@ export default function Home() {
                               {puzzle.sessions.length > 0 && (
                                 <ChevronDown className={`h-4 w-4 text-amber-500 transition-transform flex-shrink-0 ${isExpanded ? '' : '-rotate-90'}`} />
                               )}
-                              <span className="font-medium text-amber-900 text-sm sm:text-base truncate">{puzzle.title}</span>
+                              {/* Show just puzzle number on mobile, full title on desktop */}
+                              <span className="font-medium text-amber-900 text-sm truncate sm:hidden">#{getPuzzleNumber(puzzle)}</span>
+                              <span className="font-medium text-amber-900 text-base truncate hidden sm:inline">{puzzle.title}</span>
                             </div>
                           </td>
                           <td className="px-2 sm:px-4 py-3 text-center text-amber-700 text-sm hidden sm:table-cell">
@@ -423,14 +425,14 @@ export default function Home() {
                               onClick={() => navigate(`/session/${session.id}`)}
                               data-testid={`session-${session.id}`}
                             >
-                              <td className="px-2 sm:px-4 py-2 pl-6 sm:pl-10">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-amber-800 text-sm truncate">{session.name}</span>
+                              <td className="px-2 sm:px-4 py-2 pl-6 sm:pl-10" colSpan={1}>
+                                <div className="flex items-center gap-1 sm:gap-2">
+                                  <span className="text-amber-800 text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{session.name}</span>
                                   {session.isCollaborative && (
-                                    <Users className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                                    <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-600 flex-shrink-0" />
                                   )}
                                   {session.submittedAt && (
-                                    <CheckCircle className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
+                                    <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-green-600 flex-shrink-0" />
                                   )}
                                 </div>
                               </td>
@@ -441,8 +443,8 @@ export default function Home() {
                               </td>
                               <td className="px-2 sm:px-4 py-2 hidden md:table-cell"></td>
                               <td className="px-2 sm:px-4 py-2 text-center">
-                                <div className="flex items-center justify-center gap-1 sm:gap-2">
-                                  <div className="w-12 sm:w-20 h-1.5 bg-amber-200 rounded-full overflow-hidden">
+                                <div className="flex items-center justify-center gap-1">
+                                  <div className="w-10 sm:w-20 h-1.5 bg-amber-200 rounded-full overflow-hidden">
                                     <div 
                                       className={`h-full rounded-full ${session.submittedAt ? 'bg-green-600' : 'bg-amber-600'}`}
                                       style={{ width: `${session.percentComplete}%` }}
@@ -451,8 +453,8 @@ export default function Home() {
                                   <span className="text-xs text-amber-600">{session.percentComplete}%</span>
                                 </div>
                               </td>
-                              <td className="px-2 sm:px-4 py-2 text-right">
-                                <div className="flex items-center justify-end gap-1 sm:gap-2">
+                              <td className="px-1 sm:px-4 py-2 text-right">
+                                <div className="flex items-center justify-end gap-0 sm:gap-2">
                                   {isOwner && (
                                     <button
                                       onClick={(e) => { e.stopPropagation(); setDeleteSessionId(session.id); }}
@@ -460,10 +462,10 @@ export default function Home() {
                                       title="Delete session"
                                       data-testid={`button-delete-session-${session.id}`}
                                     >
-                                      <Trash2 className="h-4 w-4" />
+                                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                                     </button>
                                   )}
-                                  <ChevronRight className="h-4 w-4 text-amber-400" />
+                                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-amber-400" />
                                 </div>
                               </td>
                             </tr>
