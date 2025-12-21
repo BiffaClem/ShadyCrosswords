@@ -1,6 +1,7 @@
 {
   "puzzleId": "1375",
-  "title": "Times Jumbo Cryptic Crossword 1375",
+  "title": "Times Jumbo Cryptic Crossword 1375 (2019-04-14)",
+  "date": "2019-04-14",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1375/"
@@ -1661,7 +1662,7 @@
         "direction": "down",
         "text": "Jogger encountered on the Champs Elysées?",
         "enumeration": "4-7",
-        "answer": "AIDEMMOIRE",
+        "answer": "AIDEMÉMOIRE",
         "explanation": "AIDE-MÉMOIRE, which is a reminder or something that “jogs” the memory. Solution riffs on how this is a French phrase, as hinted at by “on the Champs Elysées”.",
         "row": 1,
         "col": 21,
@@ -2193,9 +2194,8 @@
   "sanityChecks": {
     "unmappedClues": [],
     "unmappedGridRuns": [],
-    "lengthMismatches": [
-      "Down 11: Answer length 10 doesn't match enumeration 11"
-    ],
-    "gridConflicts": []
+    "lengthMismatches": [],
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

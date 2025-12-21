@@ -1,6 +1,7 @@
 {
   "puzzleId": "1376",
-  "title": "Times Jumbo Cryptic Crossword 1376",
+  "title": "Times Jumbo Cryptic Crossword 1376 (2019-04-21)",
+  "date": "2019-04-21",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1376/"
@@ -2144,6 +2145,7 @@
     "unmappedClues": [],
     "unmappedGridRuns": [],
     "lengthMismatches": [],
-    "gridConflicts": []
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

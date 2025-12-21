@@ -1,0 +1,2201 @@
+{
+  "puzzleId": "1596",
+  "title": "Times Jumbo Cryptic Crossword 1596 (2023-01-21)",
+  "date": "2023-01-21",
+  "source": {
+    "site": "lucianpoll.com",
+    "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1596/"
+  },
+  "size": {
+    "rows": 23,
+    "cols": 23
+  },
+  "grid": [
+    ".........#.......#.....",
+    ".#.#.#.#.#.#.#.#.#.#.#.",
+    ".......#.......#.......",
+    ".#.#.#.#.#.#.#.#.#.#.#.",
+    "...................#...",
+    ".###.#.#.#.#.#.#.#.#.#.",
+    "......#......#.........",
+    ".#.#.#.#.###.#.###.#.##",
+    "#..........#...........",
+    ".#.#.#.#.#.#.#.#.#.###.",
+    ".....#........#........",
+    ".#.###.#.#.#.#.#.###.#.",
+    "........#........#.....",
+    ".###.#.#.#.#.#.#.#.#.#.",
+    "...........#..........#",
+    "##.#.###.#.###.#.#.#.#.",
+    ".........#......#......",
+    ".#.#.#.#.#.#.#.#.#.###.",
+    "...#...................",
+    ".#.#.#.#.#.#.#.#.#.#.#.",
+    ".......#.......#.......",
+    ".#.#.#.#.#.#.#.#.#.#.#.",
+    ".....#.......#........."
+  ],
+  "numbers": [
+    [
+      1,
+      null,
+      2,
+      null,
+      3,
+      null,
+      4,
+      null,
+      5,
+      null,
+      6,
+      null,
+      7,
+      null,
+      8,
+      null,
+      9,
+      null,
+      10,
+      null,
+      11,
+      null,
+      12
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      13,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      14,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      15,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      16,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      17,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      18,
+      null,
+      19,
+      null,
+      null,
+      null,
+      null,
+      20,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      21,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      22,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      null,
+      23,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      24,
+      null,
+      25,
+      null,
+      null,
+      null,
+      26,
+      null,
+      null,
+      null,
+      null,
+      null,
+      27
+    ],
+    [
+      28,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      29,
+      null,
+      null,
+      null,
+      null,
+      null,
+      30,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      31,
+      null,
+      null,
+      null,
+      null,
+      32,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      33,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      34,
+      null,
+      null,
+      null,
+      35,
+      null,
+      null,
+      null,
+      null,
+      36,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      37,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      38,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      39,
+      null,
+      40,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      41,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      42
+    ],
+    [
+      43,
+      null,
+      null,
+      null,
+      null,
+      null,
+      44,
+      null,
+      null,
+      null,
+      45,
+      null,
+      46,
+      null,
+      null,
+      null,
+      null,
+      47,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      48,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      49,
+      null,
+      null,
+      null,
+      50,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      51,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      52,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      53,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      54,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      55,
+      null,
+      null,
+      null,
+      null,
+      null,
+      56,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      57,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  ],
+  "clues": {
+    "across": [
+      {
+        "number": 1,
+        "direction": "across",
+        "text": "Shape of playing area a complication",
+        "enumeration": "9",
+        "answer": "RECTANGLE",
+        "explanation": "RECTANGLE(i.e. “shape”). Solution is REC (i.e. “playing area”, short for a recreation ground) followed by TANGLE (i.e. “a complication”).",
+        "row": 1,
+        "col": 1,
+        "length": 9,
+        "wordBoundaries": [
+          9
+        ],
+        "start": {
+          "row": 1,
+          "col": 1
+        },
+        "end": {
+          "row": 1,
+          "col": 9
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 6,
+        "direction": "across",
+        "text": "Recovered and exchanged shots",
+        "enumeration": "7",
+        "answer": "RALLIED",
+        "explanation": "RALLIED. Solution satisfies “recovered” and “exchanged shots” in a game of tennis.",
+        "row": 1,
+        "col": 11,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 1,
+          "col": 11
+        },
+        "end": {
+          "row": 1,
+          "col": 17
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 10,
+        "direction": "across",
+        "text": "One whistling loudly back, drowning one military bandsman?",
+        "enumeration": "5",
+        "answer": "FIFER",
+        "explanation": "FIFER(i.e. “military bandsman”). Solution is REF (i.e. “one whistling”, short for a referee) and F (i.e. “loudly”, specifically a recognised abbreviation of “fortissimo” used in musical lingo) all reversed (indicated by “back”) and wrapped around or “drowning” I (i.e. “[Roman numeral] one”), like so: F-(I)-FER.",
+        "row": 1,
+        "col": 19,
+        "length": 5,
+        "wordBoundaries": [
+          5
+        ],
+        "start": {
+          "row": 1,
+          "col": 19
+        },
+        "end": {
+          "row": 1,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 13,
+        "direction": "across",
+        "text": "Lead pipe fitted on the right",
+        "enumeration": "7",
+        "answer": "CONDUCT",
+        "explanation": "CONDUCT(i.e. “lead” an orchestra). Solution is DUCT (i.e. “pipe”) placed “on” or after CON (i.e. “the right”, being a recognised abbreviation of the Conservative party), like so: CON-DUCT.",
+        "row": 3,
+        "col": 1,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 3,
+          "col": 1
+        },
+        "end": {
+          "row": 3,
+          "col": 7
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 14,
+        "direction": "across",
+        "text": "Feeling light-headed in the saddle? Get along!",
+        "enumeration": "5-2",
+        "answer": "GIDDYUP",
+        "explanation": "GIDDY-UP(i.e. “get along”). Solution is GIDDY (i.e. “feeling light-headed”) followed by UP (i.e. on horseback or “in the saddle”).",
+        "row": 3,
+        "col": 9,
+        "length": 7,
+        "wordBoundaries": [
+          5,
+          7
+        ],
+        "start": {
+          "row": 3,
+          "col": 9
+        },
+        "end": {
+          "row": 3,
+          "col": 15
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 15,
+        "direction": "across",
+        "text": "Provisional home – limited period one is in occupation",
+        "enumeration": "7",
+        "answer": "INTERIM",
+        "explanation": "INTERIM(i.e. “provisional”). Solution is IN (i.e. “home”) followed by TERM (i.e. “limited period”) once wrapped around or “occupied” by I (i.e. “[Roman numeral] one”, again), like so: IN-TER(I)M.",
+        "row": 3,
+        "col": 17,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 3,
+          "col": 17
+        },
+        "end": {
+          "row": 3,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 16,
+        "direction": "across",
+        "text": "Break the ice and lead off first dance, drunk",
+        "enumeration": "5,3,4,7",
+        "answer": "STARTTHEBALLROLLING",
+        "explanation": "START THE BALL ROLLING(i.e. “break the ice”). Solution is START THE BALL (i.e. “lead off first dance”) followed by ROLLING (i.e. “drunk”).",
+        "row": 5,
+        "col": 1,
+        "length": 19,
+        "wordBoundaries": [
+          5,
+          8,
+          12,
+          19
+        ],
+        "start": {
+          "row": 5,
+          "col": 1
+        },
+        "end": {
+          "row": 5,
+          "col": 19
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 17,
+        "direction": "across",
+        "text": "Barbarian ending chase early",
+        "enumeration": "3",
+        "answer": "HUN",
+        "explanation": "HUN(i.e. “barbarian”). Solution is HUNT (i.e. “chase”) with the last letter removed (indicated by “ending…early”).",
+        "row": 5,
+        "col": 21,
+        "length": 3,
+        "wordBoundaries": [
+          3
+        ],
+        "start": {
+          "row": 5,
+          "col": 21
+        },
+        "end": {
+          "row": 5,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 18,
+        "direction": "across",
+        "text": "Skips exercise, sitting in carriages",
+        "enumeration": "6",
+        "answer": "CAPERS",
+        "explanation": "CAPERS(i.e. “skips”). Solution is PE (i.e. “exercise”, or Physical Education) placed “in” CARS (i.e. “carriages”), like so: CA(PE)RS.",
+        "row": 7,
+        "col": 1,
+        "length": 6,
+        "wordBoundaries": [
+          6
+        ],
+        "start": {
+          "row": 7,
+          "col": 1
+        },
+        "end": {
+          "row": 7,
+          "col": 6
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 20,
+        "direction": "across",
+        "text": "The German war machine makes an explosive return with grand incursion",
+        "enumeration": "6",
+        "answer": "ENIGMA",
+        "explanation": "ENIGMA(i.e. “the German war machine”). Solution is A MINE (i.e. “an explosive”) reversed (indicated by “return”) and wrapped around (indicated by “with…incursion”) of G (a recognised abbreviation of “grand”), like so: ENI(G)M-A.",
+        "row": 7,
+        "col": 8,
+        "length": 6,
+        "wordBoundaries": [
+          6
+        ],
+        "start": {
+          "row": 7,
+          "col": 8
+        },
+        "end": {
+          "row": 7,
+          "col": 13
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 21,
+        "direction": "across",
+        "text": "Created row, eating last of chocolate cake",
+        "enumeration": "9",
+        "answer": "MADELEINE",
+        "explanation": "MADELEINE(i.e. “cake”). Solution is MADE (i.e. “created”) and LINE (i.e. “row”) once wrapped around or “eating” E (i.e. “last [letter] of chocolate”), like so: MADE-L(E)INE. A very similar clue appeared only a few weeks ago, making this a much easier get. The curse of the GridFill 4000™ strikes again…",
+        "row": 7,
+        "col": 15,
+        "length": 9,
+        "wordBoundaries": [
+          9
+        ],
+        "start": {
+          "row": 7,
+          "col": 15
+        },
+        "end": {
+          "row": 7,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 23,
+        "direction": "across",
+        "text": "Pudding was observed to follow",
+        "enumeration": "7,3",
+        "answer": "SPOTTEDDOG",
+        "explanation": "SPOTTED DOG(i.e. “pudding”, more commonly known as spotted dick). Solution is SPOTTED (i.e. “observed”) followed by DOG (i.e. “to follow”).",
+        "row": 9,
+        "col": 2,
+        "length": 10,
+        "wordBoundaries": [
+          7,
+          10
+        ],
+        "start": {
+          "row": 9,
+          "col": 2
+        },
+        "end": {
+          "row": 9,
+          "col": 11
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 25,
+        "direction": "across",
+        "text": "Fancy Mrs Gandhi touring a new royal estate",
+        "enumeration": "11",
+        "answer": "SANDRINGHAM",
+        "explanation": "SANDRINGHAM(i.e. a “royal estate”). “Fancy” indicates anagram. Solution is an anagram (indicated by “fancy”) of MRS GANDHI wrapped around or “touring” A and N (a recognised abbreviation of “new”), like so: S(A-N)DRINGHAM.",
+        "row": 9,
+        "col": 13,
+        "length": 11,
+        "wordBoundaries": [
+          11
+        ],
+        "start": {
+          "row": 9,
+          "col": 13
+        },
+        "end": {
+          "row": 9,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 29,
+        "direction": "across",
+        "text": "Asked, was against leaving work",
+        "enumeration": "5",
+        "answer": "POSED",
+        "explanation": "POSED(i.e. “asked” a question). Solution is OPPOSED (i.e. “was against”) with the OP removed (indicated by “leaving work” – OP being a recognised abbreviation of “opus”).",
+        "row": 11,
+        "col": 1,
+        "length": 5,
+        "wordBoundaries": [
+          5
+        ],
+        "start": {
+          "row": 11,
+          "col": 1
+        },
+        "end": {
+          "row": 11,
+          "col": 5
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 30,
+        "direction": "across",
+        "text": "Ruthless leader reversing corruption among detectives",
+        "enumeration": "8",
+        "answer": "DICTATOR",
+        "explanation": "DICTATOR(i.e. “ruthless leader”). Solution is ROT AT CID (i.e. “corruption among detectives” – CID being the Criminal Investigation Department of the police) all “reversed”. Nicely worked.",
+        "row": 11,
+        "col": 7,
+        "length": 8,
+        "wordBoundaries": [
+          8
+        ],
+        "start": {
+          "row": 11,
+          "col": 7
+        },
+        "end": {
+          "row": 11,
+          "col": 14
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 31,
+        "direction": "across",
+        "text": "Gibbon perhaps eating bit of melon with frenzy for amount of juice",
+        "enumeration": "8",
+        "answer": "AMPERAGE",
+        "explanation": "AMPERAGE(i.e. “amount of juice”, slang for electricity). Solution is APE (i.e. “gibbon perhaps” – other flavours of ape are available) wrapped around or “eating” M (i.e. “bit of melon”, specifically its first letter) and followed by RAGE (i.e. “frenzy”), like so: A(M)PE-RAGE.",
+        "row": 11,
+        "col": 16,
+        "length": 8,
+        "wordBoundaries": [
+          8
+        ],
+        "start": {
+          "row": 11,
+          "col": 16
+        },
+        "end": {
+          "row": 11,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 34,
+        "direction": "across",
+        "text": "Relevant software round web pages",
+        "enumeration": "8",
+        "answer": "APPOSITE",
+        "explanation": "APPOSITE(i.e. “relevant”). Solution is APP (i.e. “software”) followed by O (i.e. “round”) and SITE (i.e. “web pages”).",
+        "row": 13,
+        "col": 1,
+        "length": 8,
+        "wordBoundaries": [
+          8
+        ],
+        "start": {
+          "row": 13,
+          "col": 1
+        },
+        "end": {
+          "row": 13,
+          "col": 8
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 36,
+        "direction": "across",
+        "text": "Side unfortunate after hard battle",
+        "enumeration": "8",
+        "answer": "EDGEHILL",
+        "explanation": "EDGEHILL(i.e. a “battle” of the first English Civil War). Solution is EDGE (i.e. “side”) followed by ILL (i.e. “unfortunate”) once placed “after” H (a recognised abbreviation of “hard”), like so: EDGE-((H)-ILL).",
+        "row": 13,
+        "col": 10,
+        "length": 8,
+        "wordBoundaries": [
+          8
+        ],
+        "start": {
+          "row": 13,
+          "col": 10
+        },
+        "end": {
+          "row": 13,
+          "col": 17
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 37,
+        "direction": "across",
+        "text": "Keats’s pot boy, son in bar for cricketers",
+        "enumeration": "5",
+        "answer": "BASIL",
+        "explanation": "BASIL(i.e. “Keats’s pot boy”, apparently from his poemIsabella, or the Pot of Basil. No, me neither). Solution is S (a recognised abbreviation of “son”) placed “in” BAIL (i.e. “bar for cricketers”, sitting atop the stumps), like so: BA(S)IL.",
+        "row": 13,
+        "col": 19,
+        "length": 5,
+        "wordBoundaries": [
+          5
+        ],
+        "start": {
+          "row": 13,
+          "col": 19
+        },
+        "end": {
+          "row": 13,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 39,
+        "direction": "across",
+        "text": "No profit on so-called fish? Not often",
+        "enumeration": "3,3,5",
+        "answer": "NOWANDAGAIN",
+        "explanation": "NOW AND AGAIN(i.e. “not often”). Solution is NO followed by GAIN (i.e. “profit”) once first placed “on” or after WANDA (i.e. “so-called fish”, after the 1988 comedy movieA Fish Called Wanda), like so: NO-(WANDA)-GAIN.",
+        "row": 15,
+        "col": 1,
+        "length": 11,
+        "wordBoundaries": [
+          3,
+          6,
+          11
+        ],
+        "start": {
+          "row": 15,
+          "col": 1
+        },
+        "end": {
+          "row": 15,
+          "col": 11
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 41,
+        "direction": "across",
+        "text": "“Chicken heart” maybe a “foul” reprimand",
+        "enumeration": "6,4",
+        "answer": "YELLOWCARD",
+        "explanation": "YELLOW CARD(i.e. “a ‘foul’ reprimand” in a number of sports). Solution is YELLOW (i.e. cowardly or “chicken”) followed by CARD (i.e. “heart maybe” – other playing card suits are available).",
+        "row": 15,
+        "col": 13,
+        "length": 10,
+        "wordBoundaries": [
+          6,
+          10
+        ],
+        "start": {
+          "row": 15,
+          "col": 13
+        },
+        "end": {
+          "row": 15,
+          "col": 22
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 43,
+        "direction": "across",
+        "text": "Given back, restore centre of room perhaps",
+        "enumeration": "9",
+        "answer": "FIREPLACE",
+        "explanation": "FIREPLACE(i.e. “centre of room perhaps”). Solution is IF (i.e. assuming or “given”) reversed (indicated by “back”) and followed by REPLACE (i.e. “restore”), like so: FI-REPLACE.",
+        "row": 17,
+        "col": 1,
+        "length": 9,
+        "wordBoundaries": [
+          9
+        ],
+        "start": {
+          "row": 17,
+          "col": 1
+        },
+        "end": {
+          "row": 17,
+          "col": 9
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 45,
+        "direction": "across",
+        "text": "Stump I replace, partly removed?",
+        "enumeration": "6",
+        "answer": "UMPIRE",
+        "explanation": "UMPIRE. Solution satisfies “stump I replace”, playfully – a cricket umpire may do this from time to time – but “partly removed” also indicates the solution has been hidden in the clue, like so: ST(UMP-I-RE)PLACE.",
+        "row": 17,
+        "col": 11,
+        "length": 6,
+        "wordBoundaries": [
+          6
+        ],
+        "start": {
+          "row": 17,
+          "col": 11
+        },
+        "end": {
+          "row": 17,
+          "col": 16
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 47,
+        "direction": "across",
+        "text": "Put down in writing refusal of the French flag",
+        "enumeration": "6",
+        "answer": "PENNON",
+        "explanation": "PENNON(i.e. “flag”). Solution is PEN (i.e. “put down in writing”) followed by NON (i.e. “refusal of the French”, i.e. the French for “no”).",
+        "row": 17,
+        "col": 18,
+        "length": 6,
+        "wordBoundaries": [
+          6
+        ],
+        "start": {
+          "row": 17,
+          "col": 18
+        },
+        "end": {
+          "row": 17,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 49,
+        "direction": "across",
+        "text": "Bill’s companion’s surprised expression",
+        "enumeration": "3",
+        "answer": "COO",
+        "explanation": "COO. Solution satisfies “bill’s companion” – a reference to the phrase to ‘bill and coo’: “(of lovers) to kiss and talk intimately together”(Chambers)– and a “surprised expression”.",
+        "row": 19,
+        "col": 1,
+        "length": 3,
+        "wordBoundaries": [
+          3
+        ],
+        "start": {
+          "row": 19,
+          "col": 1
+        },
+        "end": {
+          "row": 19,
+          "col": 3
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 50,
+        "direction": "across",
+        "text": "Shocking remark broadcast presents provocation",
+        "enumeration": "12,7",
+        "answer": "CONVERSATIONSTOPPER",
+        "explanation": "CONVERSATION STOPPER(i.e. “shocking remark”). “Broadcast” indicates anagram. Solution is an anagram of PRESENTS PROVOCATION. Another nicely worked clue.",
+        "row": 19,
+        "col": 5,
+        "length": 19,
+        "wordBoundaries": [
+          12,
+          19
+        ],
+        "start": {
+          "row": 19,
+          "col": 5
+        },
+        "end": {
+          "row": 19,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 52,
+        "direction": "across",
+        "text": "Having longer limbs, man recruited to enter race – no saint",
+        "enumeration": "7",
+        "answer": "LEGGIER",
+        "explanation": "LEGGIER(i.e. “having longer limbs”). Solution is GI (i.e. “man recruited” in the US army) placed in or “entering” ST LEGER (i.e. a famous horse “race”) once the ST has been removed (indicated by “no saint” – ST being a recognised abbreviation of “saint”), like so: LEG(GI)ER.",
+        "row": 21,
+        "col": 1,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 21,
+          "col": 1
+        },
+        "end": {
+          "row": 21,
+          "col": 7
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 53,
+        "direction": "across",
+        "text": "Windier, becoming braver as time advances",
+        "enumeration": "7",
+        "answer": "GUTSIER",
+        "explanation": "GUTSIER(i.e. “braver”). Solution is GUSTIER (i.e. “windier”) with the T (a recognised abbreviation of “time”) moved a notch (indicated by “advances”), like so: GUS(T)IER => GU(T)SIER.",
+        "row": 21,
+        "col": 9,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 21,
+          "col": 9
+        },
+        "end": {
+          "row": 21,
+          "col": 15
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 54,
+        "direction": "across",
+        "text": "One snooker shot secures quiet stalemate",
+        "enumeration": "7",
+        "answer": "IMPASSE",
+        "explanation": "IMPASSE(i.e. “stalemate”). Solution is I (i.e. “[Roman numeral] one” again) followed by MASSE (i.e. “snooker shot”, a curve shot) once wrapped around or “securing” P (i.e. “quiet”, specifically a recognised abbreviation of “piano” in musical lingo), like so: I-M(P)ASSE.",
+        "row": 21,
+        "col": 17,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 21,
+          "col": 17
+        },
+        "end": {
+          "row": 21,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 55,
+        "direction": "across",
+        "text": "Small spray of flowers, a number out of season",
+        "enumeration": "5",
+        "answer": "SPRIG",
+        "explanation": "SPRIG(i.e. “small spray of flowers”). Solution is SPRING (i.e. “season”) with the N removed (indicated by “a number out of…” – in mathematics, N is used to denote any number).",
+        "row": 23,
+        "col": 1,
+        "length": 5,
+        "wordBoundaries": [
+          5
+        ],
+        "start": {
+          "row": 23,
+          "col": 1
+        },
+        "end": {
+          "row": 23,
+          "col": 5
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 56,
+        "direction": "across",
+        "text": "Record relating to part of the digestive system",
+        "enumeration": "7",
+        "answer": "ENTERON",
+        "explanation": "ENTERON(i.e. “part of the digestive system”, the alimentary canal). Solution is ENTER (i.e. to “record” information) followed by ON (i.e. “relating to”). One remembered from a previous Jumbo, if I’m honest.",
+        "row": 23,
+        "col": 7,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 23,
+          "col": 7
+        },
+        "end": {
+          "row": 23,
+          "col": 13
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 57,
+        "direction": "across",
+        "text": "After exercise they dread becoming dry",
+        "enumeration": "9",
+        "answer": "DEHYDRATE",
+        "explanation": "DEHYDRATE(i.e. to “dry”). “After exercise” indicates anagram. Solution is an anagram of THEY DREAD.",
+        "row": 23,
+        "col": 15,
+        "length": 9,
+        "wordBoundaries": [
+          9
+        ],
+        "start": {
+          "row": 23,
+          "col": 15
+        },
+        "end": {
+          "row": 23,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      }
+    ],
+    "down": [
+      {
+        "number": 1,
+        "direction": "down",
+        "text": "Holder going on back in fight to cause devastation",
+        "enumeration": "8",
+        "answer": "RUCKSACK",
+        "explanation": "RUCKSACK(i.e. “holder going on back”). Solution is RUCK (i.e. “fight”) followed by SACK (i.e. “to cause devastation”).",
+        "row": 1,
+        "col": 1,
+        "length": 8,
+        "wordBoundaries": [
+          8
+        ],
+        "start": {
+          "row": 1,
+          "col": 1
+        },
+        "end": {
+          "row": 8,
+          "col": 1
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 2,
+        "direction": "down",
+        "text": "Against finally joining a line dance",
+        "enumeration": "5",
+        "answer": "CONGA",
+        "explanation": "CONGA(i.e. “line dance”). Solution is CON (i.e. “against”, as in pros and cons) followed by G (i.e. “finally joining”, i.e. the last letter of “joining”), then A.",
+        "row": 1,
+        "col": 3,
+        "length": 5,
+        "wordBoundaries": [
+          5
+        ],
+        "start": {
+          "row": 1,
+          "col": 3
+        },
+        "end": {
+          "row": 5,
+          "col": 3
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 3,
+        "direction": "down",
+        "text": "Meaning of X once maintaining drug is “cut”",
+        "enumeration": "11",
+        "answer": "ADULTERATED",
+        "explanation": "ADULTERATED(i.e. “cut” with a foreign substance). Solution is ADULT RATED (i.e. “meaning of X once”, referring to firm certification) wrapped around or “maintaining” E (a slang name for the “drug” ecstasy), like so: ADULT-(E)-RATED.",
+        "row": 1,
+        "col": 5,
+        "length": 11,
+        "wordBoundaries": [
+          11
+        ],
+        "start": {
+          "row": 1,
+          "col": 5
+        },
+        "end": {
+          "row": 11,
+          "col": 5
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 4,
+        "direction": "down",
+        "text": "Been given tea? You’ve been tricked!",
+        "enumeration": "6",
+        "answer": "GOTCHA",
+        "explanation": "GOTCHA(i.e. “you’ve been tricked!”). Solution is GOT (i.e. “been given”) followed by CHA (slang for “tea”).",
+        "row": 1,
+        "col": 7,
+        "length": 6,
+        "wordBoundaries": [
+          6
+        ],
+        "start": {
+          "row": 1,
+          "col": 7
+        },
+        "end": {
+          "row": 6,
+          "col": 7
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 5,
+        "direction": "down",
+        "text": "Encourages saying of grace, leaving one working breakfast in America?",
+        "enumeration": "4,8",
+        "answer": "EGGSBENEDICT",
+        "explanation": "EGGS BENEDICT(i.e. “breakfast in America”, being “a slice of ham and a poached egg placed on a slice of toast and covered with hollandaise sauce”(Chambers)– I’ll pass, thanks). Solution is EGGS (i.e. “encourages”) followed by BENEDICTION (i.e. “saying of grace”) once the I (i.e. “[Roman numeral] one”, again) and ON (i.e. operational or “working”) at the end have been removed (indicated by “leaving”).",
+        "row": 1,
+        "col": 9,
+        "length": 12,
+        "wordBoundaries": [
+          4,
+          12
+        ],
+        "start": {
+          "row": 1,
+          "col": 9
+        },
+        "end": {
+          "row": 12,
+          "col": 9
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 6,
+        "direction": "down",
+        "text": "Left flyer advancing the progress of the nascent car industry?",
+        "enumeration": "3,4",
+        "answer": "REDFLAG",
+        "explanation": "RED FLAG. In the early days of motoring, cars had to travel behind someone carrying a red flag to warn others of its approach. Clue also plays on those politically on the “left” being referred to as REDs and FLAGs being things that are flown. You get the idea.",
+        "row": 1,
+        "col": 11,
+        "length": 7,
+        "wordBoundaries": [
+          3,
+          7
+        ],
+        "start": {
+          "row": 1,
+          "col": 11
+        },
+        "end": {
+          "row": 7,
+          "col": 11
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 7,
+        "direction": "down",
+        "text": "Greatly value hypermarket in small car park",
+        "enumeration": "3,5,5,2",
+        "answer": "LAYGREATSTOREBY",
+        "explanation": "LAY GREAT STORE BY(i.e. “greatly value”). Solution is GREAT STORE (i.e. a large store or “hypermarket”) placed “in” LAYBY (i.e. “small car park”). I suspect this will be edited before it gets reprinted in the annual Jumbo Cryptic book. Having “greatly” in the clue and GREAT in the solution isn’t… er… great.",
+        "row": 1,
+        "col": 13,
+        "length": 15,
+        "wordBoundaries": [
+          3,
+          8,
+          13,
+          15
+        ],
+        "start": {
+          "row": 1,
+          "col": 13
+        },
+        "end": {
+          "row": 15,
+          "col": 13
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 8,
+        "direction": "down",
+        "text": "Naughty child with mild illness heard spitting",
+        "enumeration": "10",
+        "answer": "IMPALEMENT",
+        "explanation": "IMPALEMENT(i.e. “spitting”). Solution is IMP (i.e. “naughty child”) followed by a homophone (indicated by “heard”) of AILMENT (i.e. “mild illness”), like so: IMP-ALEMENT.",
+        "row": 1,
+        "col": 15,
+        "length": 10,
+        "wordBoundaries": [
+          10
+        ],
+        "start": {
+          "row": 1,
+          "col": 15
+        },
+        "end": {
+          "row": 10,
+          "col": 15
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 9,
+        "direction": "down",
+        "text": "Made an idol facing in two directions",
+        "enumeration": "7",
+        "answer": "DEIFIED",
+        "explanation": "DEIFIED(i.e. “made an idol”). The remainder of the clue plays on the solution being a palindrome.",
+        "row": 1,
+        "col": 17,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 1,
+          "col": 17
+        },
+        "end": {
+          "row": 7,
+          "col": 17
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 10,
+        "direction": "down",
+        "text": "Work such as Watteau’s seen surprisingly in teenage flat",
+        "enumeration": "4,7",
+        "answer": "FÊTEGALANTE",
+        "explanation": "FÊTE GALANTE(i.e. “work such as Watteau’s”, eighteenth-century dreamlike paintings of aristos in lush settings). “Surprisingly” indicates anagram. Solution is an anagram of TEENAGE FLAT. Okay, everyone relax. The French Elder Gods have been satisfied for another week. Good work, setter.",
+        "row": 1,
+        "col": 19,
+        "length": 11,
+        "wordBoundaries": [
+          4,
+          11
+        ],
+        "start": {
+          "row": 1,
+          "col": 19
+        },
+        "end": {
+          "row": 11,
+          "col": 19
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 11,
+        "direction": "down",
+        "text": "We hear out of place jokes at hotel straightaway",
+        "enumeration": "9",
+        "answer": "FORTHWITH",
+        "explanation": "FORTHWITH(i.e. “straightaway”). Solution is a homophone (indicated by “we hear”) of FOURTH (i.e. “out of place”, referring to placings in a race) followed by WIT (i.e. “jokes”) and H (“hotel” in the phonetic alphabet), like so: FORTH-WIT-H.",
+        "row": 1,
+        "col": 21,
+        "length": 9,
+        "wordBoundaries": [
+          9
+        ],
+        "start": {
+          "row": 1,
+          "col": 21
+        },
+        "end": {
+          "row": 9,
+          "col": 21
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 12,
+        "direction": "down",
+        "text": "Tale of chivalry from Catholic church",
+        "enumeration": "7",
+        "answer": "ROMANCE",
+        "explanation": "ROMANCE(i.e. “tale of chivalry”). Solution is ROMAN (i.e. “Catholic”) followed by CE (i.e. “church”, specifically the Church of England).",
+        "row": 1,
+        "col": 23,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 1,
+          "col": 23
+        },
+        "end": {
+          "row": 7,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 19,
+        "direction": "down",
+        "text": "Interjects “Something to smoke and drink?”",
+        "enumeration": "5,2",
+        "answer": "PIPESUP",
+        "explanation": "PIPES UP(i.e. “interjects”). Solution is PIPE (i.e. “something to smoke”) followed by SUP (i.e. to “drink”).",
+        "row": 7,
+        "col": 3,
+        "length": 7,
+        "wordBoundaries": [
+          5,
+          7
+        ],
+        "start": {
+          "row": 7,
+          "col": 3
+        },
+        "end": {
+          "row": 13,
+          "col": 3
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 22,
+        "direction": "down",
+        "text": "Surgeon accepts death, thanks to bad blood",
+        "enumeration": "8",
+        "answer": "VENDETTA",
+        "explanation": "VENDETTA(i.e. “bad blood”). Solution is VET (i.e. “surgeon”) wrapped around or “accepting” END (i.e. “death”) and followed by TA (i.e. “thanks”), like so: V(END)ET-TA.",
+        "row": 8,
+        "col": 7,
+        "length": 8,
+        "wordBoundaries": [
+          8
+        ],
+        "start": {
+          "row": 8,
+          "col": 7
+        },
+        "end": {
+          "row": 15,
+          "col": 7
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 24,
+        "direction": "down",
+        "text": "Heresy hunter once resorted to ordaining right squit",
+        "enumeration": "5,10",
+        "answer": "GRANDINQUISITOR",
+        "explanation": "GRAND INQUISITOR(i.e. “heresy hunter once”). Solution is an anagram (indicated by “resorted”) of ORDAINING, R (a recognised abbreviation of “right”) and SQUIT. Hmm, I wasn’t expecting that…",
+        "row": 9,
+        "col": 11,
+        "length": 15,
+        "wordBoundaries": [
+          5,
+          15
+        ],
+        "start": {
+          "row": 9,
+          "col": 11
+        },
+        "end": {
+          "row": 23,
+          "col": 11
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 26,
+        "direction": "down",
+        "text": "Quietly persist with mule, born wild",
+        "enumeration": "6,2",
+        "answer": "RUMBLEON",
+        "explanation": "RUMBLE ON(i.e. “quietly persist”). “Wild” indicates anagram. Solution is an anagram of MULE BORN.",
+        "row": 9,
+        "col": 17,
+        "length": 8,
+        "wordBoundaries": [
+          6,
+          8
+        ],
+        "start": {
+          "row": 9,
+          "col": 17
+        },
+        "end": {
+          "row": 16,
+          "col": 17
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 27,
+        "direction": "down",
+        "text": "Every few days, head apparently turning around submissively here",
+        "enumeration": "6",
+        "answer": "MEEKLY",
+        "explanation": "MEEKLY(i.e. “submissively”). Solution is WEEKLY (i.e. “every few days”) with the W “turned around” 180 degrees to make an M, like so: (W)EEKLY => (M)EEKLY.",
+        "row": 9,
+        "col": 23,
+        "length": 6,
+        "wordBoundaries": [
+          6
+        ],
+        "start": {
+          "row": 9,
+          "col": 23
+        },
+        "end": {
+          "row": 14,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 28,
+        "direction": "down",
+        "text": "Artist interrupting what Turner does? That’s a wrench",
+        "enumeration": "6",
+        "answer": "SPRAIN",
+        "explanation": "SPRAIN(i.e. “wrench”). Solution is RA (i.e. “artist”, specifically a Royal Academician) placed in or “interrupting” SPIN (i.e. “what turner does” – ignore the misleading capitalisation), like so: SP(RA)IN.",
+        "row": 10,
+        "col": 1,
+        "length": 6,
+        "wordBoundaries": [
+          6
+        ],
+        "start": {
+          "row": 10,
+          "col": 1
+        },
+        "end": {
+          "row": 15,
+          "col": 1
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 32,
+        "direction": "down",
+        "text": "Too controlled, one not earning any prizes",
+        "enumeration": "4-3",
+        "answer": "ALSORAN",
+        "explanation": "ALSO-RAN(i.e. “one not earning any prizes”). Solution is ALSO (i.e. “too”) followed by RAN (i.e. “controlled”, say, an organisation).",
+        "row": 11,
+        "col": 21,
+        "length": 7,
+        "wordBoundaries": [
+          4,
+          7
+        ],
+        "start": {
+          "row": 11,
+          "col": 21
+        },
+        "end": {
+          "row": 17,
+          "col": 21
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 33,
+        "direction": "down",
+        "text": "Column fought across river in the shade",
+        "enumeration": "6-3,3",
+        "answer": "PILLARBOXRED",
+        "explanation": "PILLAR-BOX RED(i.e. colour or “shade”). Solution is PILLAR (i.e. “column”) followed by BOXED (i.e. “fought”) once wrapped around or placed “across” R (a recognised abbreviation of “river”), like so: PILLAR-BOX(R)ED.",
+        "row": 12,
+        "col": 15,
+        "length": 12,
+        "wordBoundaries": [
+          6,
+          9,
+          12
+        ],
+        "start": {
+          "row": 12,
+          "col": 15
+        },
+        "end": {
+          "row": 23,
+          "col": 15
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 35,
+        "direction": "down",
+        "text": "Roughly dismissed to prepare for holiday?",
+        "enumeration": "4,7",
+        "answer": "SENTPACKING",
+        "explanation": "SENT PACKING(i.e. “roughly dismissed”). Clue also plays on how one PACKS for “holidays”. You get the idea.",
+        "row": 13,
+        "col": 5,
+        "length": 11,
+        "wordBoundaries": [
+          4,
+          11
+        ],
+        "start": {
+          "row": 13,
+          "col": 5
+        },
+        "end": {
+          "row": 23,
+          "col": 5
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 37,
+        "direction": "down",
+        "text": "Clapboard he fitted to small home?",
+        "enumeration": "8,3",
+        "answer": "BACHELORPAD",
+        "explanation": "BACHELOR PAD(i.e. “small home”). “Fitted” indicates anagram. Solution is an anagram of CLAPBOARD HE.",
+        "row": 13,
+        "col": 19,
+        "length": 11,
+        "wordBoundaries": [
+          8,
+          11
+        ],
+        "start": {
+          "row": 13,
+          "col": 19
+        },
+        "end": {
+          "row": 23,
+          "col": 19
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 38,
+        "direction": "down",
+        "text": "Unimportant person having to shed pounds to qualify for bout?",
+        "enumeration": "10",
+        "answer": "MAKEWEIGHT",
+        "explanation": "MAKEWEIGHT(i.e. “unimportant person”). When written as MAKE WEIGHT the solution also satisfies “to shed pounds to qualify for bout”.",
+        "row": 14,
+        "col": 9,
+        "length": 10,
+        "wordBoundaries": [
+          10
+        ],
+        "start": {
+          "row": 14,
+          "col": 9
+        },
+        "end": {
+          "row": 23,
+          "col": 9
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 40,
+        "direction": "down",
+        "text": "Aggressor is angry over ass losing area",
+        "enumeration": "9",
+        "answer": "WARMONGER",
+        "explanation": "WARMONGER(i.e. “aggressor”). Solution is WARM (i.e. “is angry”) followed by ONAGER (i.e. “ass” or donkey) once the A has been removed (indicated by “losing area” – A being a recognised abbreviation of “area”), like so: WARM-ONGER.",
+        "row": 15,
+        "col": 3,
+        "length": 9,
+        "wordBoundaries": [
+          9
+        ],
+        "start": {
+          "row": 15,
+          "col": 3
+        },
+        "end": {
+          "row": 23,
+          "col": 3
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 42,
+        "direction": "down",
+        "text": "Recalls to prison, do you say? Relent!",
+        "enumeration": "8",
+        "answer": "UNFREEZE",
+        "explanation": "UNFREEZE(i.e. “relent”). “Do you say” indicates homophone. The solution is a playful homophone of UNFREES (i.e. “recalls to prison”). The riddly question mark is a tacit admission this is a word you’re not likely to find in a dictionary, at least in verb form.",
+        "row": 16,
+        "col": 23,
+        "length": 8,
+        "wordBoundaries": [
+          8
+        ],
+        "start": {
+          "row": 16,
+          "col": 23
+        },
+        "end": {
+          "row": 23,
+          "col": 23
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 43,
+        "direction": "down",
+        "text": "Concentration, not universal, on the French decks",
+        "enumeration": "7",
+        "answer": "FOCSLES",
+        "explanation": "FO’C’SLES(i.e. “decks”, a contracted form of FORECASTLE, a small raised deck at the front of some ships). Solution is FOCUS (i.e. “concentration”) with the U removed (indicated by “not universal” – U being a recognised abbreviation of “universal” used in film certification) and the remainder followed by LES (i.e. “the French”, i.e. the French for “the”, collectively), like so: FOCS-LES.",
+        "row": 17,
+        "col": 1,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 17,
+          "col": 1
+        },
+        "end": {
+          "row": 23,
+          "col": 1
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 44,
+        "direction": "down",
+        "text": "Course of Arabic for starters that’s got off the ground?",
+        "enumeration": "7",
+        "answer": "AINTREE",
+        "explanation": "AINTREE(i.e. race “course”). Solution is A (i.e. “Arabic for starters”, i.e. the first letter of “Arabic”) followed by IN TREE (suggestive of having “got off the ground”).",
+        "row": 17,
+        "col": 7,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 17,
+          "col": 7
+        },
+        "end": {
+          "row": 23,
+          "col": 7
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 46,
+        "direction": "down",
+        "text": "Prophesy extremely slight, receiving answer of the oracle",
+        "enumeration": "7",
+        "answer": "PYTHIAN",
+        "explanation": "PYTHIAN(i.e. “of the oracle”. Over to Chambers: “of Delphi, the oracle there, the priestess, or the games held nearby”). Solution is PY (i.e. “prophesy extremely”, i.e. the word “prophesy” with all its middle letters removed) followed by THIN (i.e. “slight”) once wrapped around or “receiving” A (a recognised abbreviation of “answer”, as in Q&A), like so: PY-THI(A)N.",
+        "row": 17,
+        "col": 13,
+        "length": 7,
+        "wordBoundaries": [
+          7
+        ],
+        "start": {
+          "row": 17,
+          "col": 13
+        },
+        "end": {
+          "row": 23,
+          "col": 13
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 48,
+        "direction": "down",
+        "text": "Plum character parking son with German husband",
+        "enumeration": "6",
+        "answer": "PSMITH",
+        "explanation": "PSMITH(i.e. “Plum character”, or a character in a number of novels by P.G. Wodehouse. The author’s nickname, meanwhile, was “Plum”). Solution is P (a recognised abbreviation of “parking” used on signage) followed by S (a recognised abbreviation of “son”), then MIT (i.e. “with German”, i.e. the German for “with”) and H (a recognised abbreviation of “husband”).",
+        "row": 18,
+        "col": 17,
+        "length": 6,
+        "wordBoundaries": [
+          6
+        ],
+        "start": {
+          "row": 18,
+          "col": 17
+        },
+        "end": {
+          "row": 23,
+          "col": 17
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      },
+      {
+        "number": 51,
+        "direction": "down",
+        "text": "Cop ashamed to arrest Ottoman officer",
+        "enumeration": "5",
+        "answer": "PASHA",
+        "explanation": "PASHA(i.e. “Ottoman officer”). “To arrest” indicates the solution has been hidden in the clue, like so: CO(P ASHA)MED. One nailed solely from the wordplay.",
+        "row": 19,
+        "col": 21,
+        "length": 5,
+        "wordBoundaries": [
+          5
+        ],
+        "start": {
+          "row": 19,
+          "col": 21
+        },
+        "end": {
+          "row": 23,
+          "col": 21
+        },
+        "sanity": {
+          "crossingConflicts": []
+        }
+      }
+    ]
+  },
+  "sanityChecks": {
+    "unmappedClues": [],
+    "unmappedGridRuns": [],
+    "lengthMismatches": [],
+    "gridConflicts": [],
+    "cellCountMismatch": null
+  }
+}

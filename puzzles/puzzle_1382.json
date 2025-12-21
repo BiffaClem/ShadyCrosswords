@@ -1,6 +1,7 @@
 {
   "puzzleId": "1382",
-  "title": "Times Jumbo Cryptic Crossword 1382",
+  "title": "Times Jumbo Cryptic Crossword 1382 (2019-05-19)",
+  "date": "2019-05-19",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1382/"
@@ -2132,6 +2133,7 @@
     "unmappedClues": [],
     "unmappedGridRuns": [],
     "lengthMismatches": [],
-    "gridConflicts": []
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

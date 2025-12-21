@@ -1,6 +1,7 @@
 {
   "puzzleId": "1377",
-  "title": "Times Jumbo Cryptic Crossword 1377",
+  "title": "Times Jumbo Cryptic Crossword 1377 (2019-04-22)",
+  "date": "2019-04-22",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1377/"
@@ -2140,6 +2141,7 @@
     "unmappedClues": [],
     "unmappedGridRuns": [],
     "lengthMismatches": [],
-    "gridConflicts": []
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

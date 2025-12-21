@@ -1,6 +1,7 @@
 {
   "puzzleId": "1372",
-  "title": "Times Jumbo Cryptic Crossword 1372",
+  "title": "Times Jumbo Cryptic Crossword 1372 (2019-03-24)",
+  "date": "2019-03-24",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1372/"
@@ -2149,6 +2150,7 @@
     "unmappedClues": [],
     "unmappedGridRuns": [],
     "lengthMismatches": [],
-    "gridConflicts": []
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

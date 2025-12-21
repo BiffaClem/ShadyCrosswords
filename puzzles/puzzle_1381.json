@@ -1,6 +1,7 @@
 {
   "puzzleId": "1381",
-  "title": "Times Jumbo Cryptic Crossword 1381",
+  "title": "Times Jumbo Cryptic Crossword 1381 (2019-05-11)",
+  "date": "2019-05-11",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1381/"
@@ -2149,6 +2150,7 @@
     "unmappedClues": [],
     "unmappedGridRuns": [],
     "lengthMismatches": [],
-    "gridConflicts": []
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

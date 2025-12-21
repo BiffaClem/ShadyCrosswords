@@ -1,6 +1,7 @@
 {
   "puzzleId": "1388",
-  "title": "Times Jumbo Cryptic Crossword 1388",
+  "title": "Times Jumbo Cryptic Crossword 1388 (2019-06-22)",
+  "date": "2019-06-22",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1388/"
@@ -2193,6 +2194,7 @@
     "unmappedClues": [],
     "unmappedGridRuns": [],
     "lengthMismatches": [],
-    "gridConflicts": []
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

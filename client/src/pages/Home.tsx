@@ -64,6 +64,7 @@ export default function Home() {
   const [hideCompleted, setHideCompleted] = useState(false);
   const [expandedPuzzles, setExpandedPuzzles] = useState<Set<string>>(new Set());
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string>("all");
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
@@ -170,7 +171,20 @@ export default function Home() {
     return new Date(Math.max(...dates.map(d => d.getTime())));
   };
 
+  const getPuzzleYear = (puzzle: PuzzleWithSessions): string => {
+    const dateStr = puzzle.data?.date;
+    if (dateStr) {
+      return dateStr.substring(0, 4);
+    }
+    return "Unknown";
+  };
+
+  const availableYears = Array.from(new Set(puzzles?.map(getPuzzleYear) || [])).sort((a, b) => b.localeCompare(a));
+
   const filteredPuzzles = puzzles?.filter(puzzle => {
+    if (selectedYear !== "all" && getPuzzleYear(puzzle) !== selectedYear) {
+      return false;
+    }
     if (activeTab === "inprogress") {
       return puzzle.sessions.some(s => s.percentComplete > 0 && s.percentComplete < 100);
     }
@@ -182,10 +196,16 @@ export default function Home() {
   }) || [];
 
   const sortedPuzzles = [...filteredPuzzles].sort((a, b) => {
-    const dateA = getLatestSessionDate(a);
-    const dateB = getLatestSessionDate(b);
-    return dateB.getTime() - dateA.getTime();
+    const dateA = a.data?.date || "";
+    const dateB = b.data?.date || "";
+    return dateB.localeCompare(dateA);
   });
+  
+  const formatDate = (dateStr: string | undefined): string => {
+    if (!dateStr) return "-";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  };
 
   // Compute metrics
   const allSessions = puzzles?.flatMap(p => p.sessions) || [];
@@ -286,13 +306,30 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mb-4">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-              <TabsList>
-                <TabsTrigger value="all" data-testid="tab-all">All Puzzles</TabsTrigger>
-                <TabsTrigger value="inprogress" data-testid="tab-inprogress">In Progress</TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+            <div className="flex items-center gap-4">
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+                <TabsList>
+                  <TabsTrigger value="all" data-testid="tab-all">All Puzzles</TabsTrigger>
+                  <TabsTrigger value="inprogress" data-testid="tab-inprogress">In Progress</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-amber-700">Year:</span>
+                <select 
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="text-sm border border-amber-200 rounded px-2 py-1 bg-white text-amber-800"
+                  data-testid="select-year"
+                >
+                  <option value="all">All Years</option>
+                  {availableYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
             
             <label className="flex items-center gap-2 text-sm text-amber-700 cursor-pointer">
               <Checkbox 
@@ -318,7 +355,7 @@ export default function Home() {
                 <thead className="bg-amber-100 text-left text-sm text-amber-800">
                   <tr>
                     <th className="px-4 py-3 font-medium">Puzzle</th>
-                    <th className="px-4 py-3 font-medium text-center">Size</th>
+                    <th className="px-4 py-3 font-medium text-center">Date</th>
                     <th className="px-4 py-3 font-medium text-center">Sessions</th>
                     <th className="px-4 py-3 font-medium text-center">Best Progress</th>
                     <th className="px-4 py-3"></th>
@@ -348,7 +385,7 @@ export default function Home() {
                             </div>
                           </td>
                           <td className="px-4 py-3 text-center text-amber-700 text-sm">
-                            {puzzle.data?.size?.rows}x{puzzle.data?.size?.cols}
+                            {formatDate(puzzle.data?.date)}
                           </td>
                           <td className="px-4 py-3 text-center text-amber-700 text-sm">
                             {puzzle.sessions.length}

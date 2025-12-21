@@ -1,6 +1,7 @@
 {
   "puzzleId": "1374",
-  "title": "Times Jumbo Cryptic Crossword 1374",
+  "title": "Times Jumbo Cryptic Crossword 1374 (2019-04-06)",
+  "date": "2019-04-06",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1374/"
@@ -2082,7 +2083,7 @@
         "direction": "down",
         "text": "Capital in company affected by inflation?",
         "enumeration": "5",
-        "answer": CAIRO,
+        "answer": "CAIRO",
         "explanation": "CAIRO (i.e. “capital [of Egypt]”). Solution is CO (a recognised abbreviation of “company”) with AIR placed inside (i.e. “affected by inflation”, like filling a balloon), like so: C(AIR)O. Another one that made me smile when I figured it out.",
         "row": 19,
         "col": 1,
@@ -2130,11 +2131,10 @@
     ]
   },
   "sanityChecks": {
-    "unmappedClues": [
-      "Down 47: No answer found"
-    ],
+    "unmappedClues": [],
     "unmappedGridRuns": [],
     "lengthMismatches": [],
-    "gridConflicts": []
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

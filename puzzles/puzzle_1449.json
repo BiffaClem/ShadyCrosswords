@@ -1,9 +1,10 @@
 {
-  "puzzleId": "1385",
-  "title": "Times Jumbo Cryptic Crossword 1385",
+  "puzzleId": "1449",
+  "title": "Times Jumbo Cryptic Crossword 1449 (2020-07-11)",
+  "date": "2020-07-11",
   "source": {
     "site": "lucianpoll.com",
-    "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1385/"
+    "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1449/"
   },
   "size": {
     "rows": 23,
@@ -616,10 +617,10 @@
       {
         "number": 1,
         "direction": "across",
-        "text": "Break even in other school at first",
+        "text": "Short couple returning pawnbroker’s gem",
         "enumeration": "9",
-        "answer": "ELEVENSES",
-        "explanation": "ELEVENSES(i.e. “break”). Solution is EVEN placed “in” ELSE (i.e. “other”) and then followed by S (i.e. “school at first”), like so: EL(EVEN)SE-S.",
+        "answer": "CARBUNCLE",
+        "explanation": "CARBUNCLE(i.e. “gem”). Solution is BRACE (i.e. “couple”) with the last letter removed (indicated by “short”) and the remainder reversed (indicated by “returning”), followed by UNCLE (a slang word for a “pawnbroker”), like so: CARB-UNCLE.",
         "row": 1,
         "col": 1,
         "length": 9,
@@ -641,17 +642,15 @@
       {
         "number": 6,
         "direction": "across",
-        "text": "Old fogey’s current article into flak and slander",
-        "enumeration": "5-2-3-3",
-        "answer": "STICKINTHEMUD",
-        "explanation": "STICK IN THE MUD(i.e. “old fogey”). Solution is IN (i.e. “current”) and THE (i.e. “article”) placed between or “into” STICK (i.e. “flak”, as in “taking stick from someone”) “and” MUD (i.e. “slander”), like so: STICK-(IN-THE)-MUD.",
+        "text": "Including a feature with note passed across counter",
+        "enumeration": "6,7",
+        "answer": "ADDINGMACHINE",
+        "explanation": "ADDING MACHINE(i.e. “counter”). Solution is ADDING (i.e. “including”) followed ME (i.e. “note” in the doh-ray-me notation) once it has been wrapped around or “passed across” A and CHIN (i.e. “[facial] feature”), like so: ADDING-M(A-CHIN)E.",
         "row": 1,
         "col": 11,
         "length": 13,
         "wordBoundaries": [
-          5,
-          7,
-          10,
+          6,
           13
         ],
         "start": {
@@ -669,10 +668,10 @@
       {
         "number": 13,
         "direction": "across",
-        "text": "Girl in Ginsberg poem a male spurned",
+        "text": "Rowed and yelled, losing head",
         "enumeration": "5",
-        "answer": "ERICA",
-        "explanation": "ERICA(i.e. “girl”). Solution is AMERICA (i.e. “Ginsberg poem”) with the A and M removed from the beginning (indicated by “a male spurned” – M being a recognised abbreviation of “male”).",
+        "answer": "OARED",
+        "explanation": "OARED(i.e. “rowed”). Solution is ROARED (i.e. “yelled”) with the first letter removed (indicated by “losing head”).",
         "row": 3,
         "col": 1,
         "length": 5,
@@ -694,17 +693,14 @@
       {
         "number": 14,
         "direction": "across",
-        "text": "Follow ark in travels? It’s possible but unlikely",
-        "enumeration": "3,3,1,4",
-        "answer": "FORALLIKNOW",
-        "explanation": "FOR ALL I KNOW(i.e. “it’s possible but unlikely”). “Travels” indicates anagram. Solution is an anagram of FOLLOW ARK IN.",
+        "text": "Imagined names to cover old area one’s set in",
+        "enumeration": "11",
+        "answer": "NONEXISTENT",
+        "explanation": "NONEXISTENT(i.e. “imagined”). Solution is N and N (both recognised abbreviations of “name”) wrapped around or “covering” O (a recognised abbreviation of “old”) and followed by EXTENT (i.e. “area”) once I’S (i.e. “[Roman numeral] one’s”) been “set in”, like so: N(O)N-EX(I’S)TENT.",
         "row": 3,
         "col": 7,
         "length": 11,
         "wordBoundaries": [
-          3,
-          6,
-          7,
           11
         ],
         "start": {
@@ -722,10 +718,10 @@
       {
         "number": 15,
         "direction": "across",
-        "text": "British working with American commission",
+        "text": "Assign many, about 50",
         "enumeration": "5",
-        "answer": "BONUS",
-        "explanation": "BONUS(i.e. “commission”). Solution is B (a recognised abbreviation of “British”) followed by ON (i.e. “working”) and US (i.e. “American”).",
+        "answer": "ALLOT",
+        "explanation": "ALLOT(i.e. “assign”). Solution is A LOT (i.e. “many”) wrapped “about” L (i.e. “[Roman numeral] fifty), like so: A-(L)-LOT.",
         "row": 3,
         "col": 19,
         "length": 5,
@@ -747,15 +743,14 @@
       {
         "number": 16,
         "direction": "across",
-        "text": "One may appear in September morns to have changed somewhat",
-        "enumeration": "7,4",
-        "answer": "HARVESTMOON",
-        "explanation": "HARVEST MOON(i.e. “one may appear in September”). “Changed somewhat” indicates anagram. Solution is an anagram of MORNS TO HAVE.",
+        "text": "Love being in a strip club, dancing, hot and humid?",
+        "enumeration": "11",
+        "answer": "SUBTROPICAL",
+        "explanation": "SUBTROPICAL(i.e. “hot and humid”). Solution is O (i.e. “love”, being a zero score in tennis) placed “in” an anagram (indicated by “dancing”) of STRIP CLUB, like so: SUBTR(O)PICAL.",
         "row": 5,
         "col": 1,
         "length": 11,
         "wordBoundaries": [
-          7,
           11
         ],
         "start": {
@@ -773,16 +768,15 @@
       {
         "number": 17,
         "direction": "across",
-        "text": "In my case, stand at the front for hymn",
-        "enumeration": "5,4,2",
-        "answer": "ABIDEWITHME",
-        "explanation": "ABIDE WITH ME(i.e. “hymn”). Solution is WITH ME (i.e. “in my case”) with ABIDE (i.e. to bear or “stand”) placed “at the front”.",
+        "text": "One female detected hole in a jug, a Paris icon",
+        "enumeration": "6,5",
+        "answer": "EIFFELTOWER",
+        "explanation": "EIFFEL TOWER(i.e. “a Paris icon”). Solution is I (i.e. “[Roman numeral] one”), F (a recognised abbreviation of “female”), FELT (i.e. “detected”) and O (i.e. “hole” – as in the letter’s resemblance to one) all placed “in” EWER (i.e. “jug”), like so: E(I-F-FELT-O)WER.",
         "row": 5,
         "col": 13,
         "length": 11,
         "wordBoundaries": [
-          5,
-          9,
+          6,
           11
         ],
         "start": {
@@ -800,10 +794,10 @@
       {
         "number": 18,
         "direction": "across",
-        "text": "Figure Greek character right to interrupt repast",
+        "text": "Alluring type in charge of cutting record",
         "enumeration": "7",
-        "answer": "NUMERAL",
-        "explanation": "NUMERAL(i.e. “figure”). Solution is NU (i.e. “Greek character”, specifically the thirteenth letter of the Greek alphabet) followed by R (a recognised abbreviation of “right”) once it has been placed in or “interrupting” MEAL (i.e. “repast”), like so: NU-ME(R)AL.",
+        "answer": "ENTICER",
+        "explanation": "ENTICER(i.e. “alluring type”). Solution is IC (a recognised abbreviation of “in charge”) placed in or “cutting” ENTER (i.e. “[to] record”), like so: ENT(IC)ER.",
         "row": 7,
         "col": 1,
         "length": 7,
@@ -825,10 +819,10 @@
       {
         "number": 20,
         "direction": "across",
-        "text": "Retired professors from Cambridge ultimately deserve one",
+        "text": "Mole spotted everyone grabbing European",
         "enumeration": "7",
-        "answer": "EMERITI",
-        "explanation": "EMERITI(i.e. “retired professors”). Solution is E (i.e. “Cambridge ultimately”, i.e. the last letter of “Cambridge”) followed by MERIT (i.e. “deserve”) and I (Roman numeral “one”).",
+        "answer": "SEAWALL",
+        "explanation": "SEAWALL(i.e. “mole” – one of the various meanings of the word is “a massive breakwater”). Solution is SAW (i.e. “spotted”) and ALL (i.e. “everyone”) wrapped around or “grabbing European”), like so: S(E)AW-ALL.",
         "row": 7,
         "col": 9,
         "length": 7,
@@ -850,10 +844,10 @@
       {
         "number": 21,
         "direction": "across",
-        "text": "Court at the end presented with motive for crime",
+        "text": "A river by old US city yields gold ring",
         "enumeration": "7",
-        "answer": "TREASON",
-        "explanation": "TREASON(i.e. “crime”). Solution is T (i.e. “court at the end”, i.e. the last letter of “court”) followed by REASON (i.e. “motive”).",
+        "answer": "AUREOLA",
+        "explanation": "AUREOLA(i.e. a halo, corona or “gold ring”). Solution is A followed by URE (i.e. “river”), then O (a recognised abbreviation of “old”) and LA (i.e. “US city”, specifically Los Angeles).",
         "row": 7,
         "col": 17,
         "length": 7,
@@ -875,15 +869,15 @@
       {
         "number": 23,
         "direction": "across",
-        "text": "Two honourable guys employing singular valet",
-        "enumeration": "10,9",
-        "answer": "GENTLEMANSGENTLEMAN",
-        "explanation": "GENTLEMAN’S GENTLEMAN(i.e. “valet”). Solution is GENTLEMAN twice (i.e. “two honourable guys”) “employing” or surrounding S (a recognised abbreviation of “singular”), like so: GENTLEMAN-(S)-GENTLEMAN.",
+        "text": "Implying convoluted legal nicety, maybe controversially engineered?",
+        "enumeration": "11,8",
+        "answer": "GENETICALLYMODIFIED",
+        "explanation": "GENETICALLY MODIFIED(i.e. “maybe controversially engineered”). Solution cryptically satisfies “implying convoluted legal nicety”, in that “legal nicety” is an anagram or MODIFIED form of GENETICALLY.",
         "row": 9,
         "col": 1,
         "length": 19,
         "wordBoundaries": [
-          10,
+          11,
           19
         ],
         "start": {
@@ -901,10 +895,10 @@
       {
         "number": 27,
         "direction": "across",
-        "text": "Primate’s practical joke judge ignored",
+        "text": "One who admires fine article",
         "enumeration": "3",
-        "answer": "APE",
-        "explanation": "APE(i.e. “primate”). Solution is JAPE (i.e. “practical joke”) with the initial J removed (indicated by “judge ignored” – J being a recognised abbreviation of “judge”).",
+        "answer": "FAN",
+        "explanation": "FAN(i.e. “one who admires”). Solution is F (a recognised abbreviation of “fine” used in grading pencils) followed by AN (i.e. “article”, being a word like a, an or the).",
         "row": 9,
         "col": 21,
         "length": 3,
@@ -926,14 +920,15 @@
       {
         "number": 28,
         "direction": "across",
-        "text": "Belief unacceptable across India",
-        "enumeration": "6",
-        "answer": "NOTION",
-        "explanation": "NOTION(i.e. “belief”). Solution is NOT ON (i.e. “unacceptable”) surrounding or placed “across” I (“India” in the phonetic alphabet), like so: NOT-(I)-ON.",
+        "text": "What some casual readers do? Take drugs",
+        "enumeration": "3-3",
+        "answer": "DOGEAR",
+        "explanation": "DOG-EAR. Solution satisfies “what some casual readers do” – referring to the abhorrent practice of folding the corner of a page to mark one’s place in a book – and, when written as DO GEAR, also satisfies “take drugs”.",
         "row": 11,
         "col": 1,
         "length": 6,
         "wordBoundaries": [
+          3,
           6
         ],
         "start": {
@@ -951,10 +946,10 @@
       {
         "number": 29,
         "direction": "across",
-        "text": "Passage which includes short argument",
+        "text": "Yell “Clear off!”, seizing tablet",
         "enumeration": "6",
-        "answer": "THROAT",
-        "explanation": "THROAT(i.e. “passage”). Solution is THAT (i.e. “which”) wrapped around or “including” ROW (i.e. “argument”) with the last letter removed (indicated by “short”), like so: TH(RO)AT.",
+        "answer": "SCREAM",
+        "explanation": "SCREAM(i.e. “yell”). Solution is SCRAM (i.e. “clear off!”) wrapped around E (street name of the drug ecstasy, often taken in “tablet” form), like so: SCR(E)AM.",
         "row": 11,
         "col": 8,
         "length": 6,
@@ -976,14 +971,15 @@
       {
         "number": 31,
         "direction": "across",
-        "text": "Female worker getting help, we hear, for a Walter Mitty type?",
-        "enumeration": "9",
-        "answer": "FANTASIST",
-        "explanation": "FANTASIST(i.e. “Walter Mitty type”). Solution is F (a recognised abbreviation of “female”) followed by ANT (i.e. “worker”) and ASIST (i.e. “help, we hear”, i.e. a homophone of “assist” – I’ve said this before, I know, but this is cheap of the setter. In my view, said homophone should exist in the dictionary.(Rages impotently at the sky.))",
+        "text": "Actor’s exit stumped old men packing circle",
+        "enumeration": "5,4",
+        "answer": "STAGEDOOR",
+        "explanation": "STAGE DOOR(i.e. “actor’s exit”). Solution is ST (a recognised abbreviation of “stumped” used in cricket) followed by AGED (i.e. “old”) and OR (i.e. “men”, specifically the Other Ranks of the British Army) wrapped around or “packing” O (i.e. “circle”), like so: ST-AGED-(O)-OR.",
         "row": 11,
         "col": 15,
         "length": 9,
         "wordBoundaries": [
+          5,
           9
         ],
         "start": {
@@ -1001,14 +997,15 @@
       {
         "number": 34,
         "direction": "across",
-        "text": "Old soldiers work after hours in place employing cheap labour",
-        "enumeration": "9",
-        "answer": "SWEATSHOP",
-        "explanation": "SWEATSHOP(i.e. “place employing cheap labour”). Solution is SWEATS (i.e. an “old” slang word for “soldiers”) followed by OP (i.e. “work”, short for “operation”) once it has been placed “after” H (a recognised abbreviation of “hours”) like so: SWEATS-(H)-OP.",
+        "text": "Crossing lake, supports pale Oz bird",
+        "enumeration": "5,4",
+        "answer": "BLACKSWAN",
+        "explanation": "BLACK SWAN(i.e. “Oz bird”). Solution is BACKS (i.e. “supports”) wrapped around or “crossed” by L (a recognised abbreviation of “lake”) and followed by WAN (i.e. “pale”), like so: B(L)ACKS-WAN.",
         "row": 13,
         "col": 1,
         "length": 9,
         "wordBoundaries": [
+          5,
           9
         ],
         "start": {
@@ -1026,10 +1023,10 @@
       {
         "number": 35,
         "direction": "across",
-        "text": "Notorious bar, mostly clean",
+        "text": "Muscle oil company’s used to guard diamonds",
         "enumeration": "6",
-        "answer": "PUBLIC",
-        "explanation": "PUBLIC(i.e. “notorious”). Solution is PUB (i.e. “bar”) followed by LICK (i.e. “[to] clean”) with the final letter removed (indicated by “mostly”).",
+        "answer": "BICEPS",
+        "explanation": "BICEPS(i.e. “muscle”). Solution is BP’S (i.e. “oil company’s”, specifically British Petroleum, made possessive) wrapped around or “guarding” ICE (i.e. “diamonds”), like so: B(ICE)P’S.",
         "row": 13,
         "col": 11,
         "length": 6,
@@ -1051,10 +1048,10 @@
       {
         "number": 36,
         "direction": "across",
-        "text": "Gluttonous type in car fed by girl",
+        "text": "With bottle of mineral knocked back, resultant sound going about?",
         "enumeration": "6",
-        "answer": "GANNET",
-        "explanation": "GANNET(i.e. “gluttonous type”). Solution is GT (i.e. “car”, short for Gran Turismo) placed around or “fed by” ANNE (i.e. “girl”), like so: G(ANNE)T.",
+        "answer": "HEROIC",
+        "explanation": "HEROIC(i.e. “with bottle”). Solution is ORE (i.e. “mineral”) reversed (indicated by “knocked back”) and placed in, or having “about”, HIC (i.e. “resultant sound”, i.e. a hiccup, the implication being one has knocked something back a little too quickly), like so: H(ERO)IC.",
         "row": 13,
         "col": 18,
         "length": 6,
@@ -1076,10 +1073,10 @@
       {
         "number": 39,
         "direction": "across",
-        "text": "Eggs in surplus, according to report",
+        "text": "Community gathering endless drink",
         "enumeration": "3",
-        "answer": "OVA",
-        "explanation": "OVA(i.e. “eggs”). “According to report” indicates homophone. Solution is a homophone of OVER (i.e. “in surplus”).",
+        "answer": "BEE",
+        "explanation": "BEE(i.e. “community gathering”, like a sewing bee). Solution is BEER (i.e. “drink”) with its last letter removed (indicated by “endless”).",
         "row": 15,
         "col": 1,
         "length": 3,
@@ -1101,17 +1098,16 @@
       {
         "number": 40,
         "direction": "across",
-        "text": "What’s required to play Poohsticks, a prior issue now resolved?",
-        "enumeration": "5,5,3,6",
-        "answer": "WATERUNDERTHEBRIDGE",
-        "explanation": "WATER UNDER THE BRIDGE. Solution satisfies “what’s required to play Poohsticks” and “a prior issue now resolved”.",
+        "text": "Everything under discussion I’ve used with our forensics nuts",
+        "enumeration": "8,2,9",
+        "answer": "UNIVERSEOFDISCOURSE",
+        "explanation": "UNIVERSE OF DISCOURSE(i.e. “everything under discussion”). “Nuts” indicates anagram. Solution is an anagram of I’VE USED and OUR FORENSICS.",
         "row": 15,
         "col": 5,
         "length": 19,
         "wordBoundaries": [
-          5,
+          8,
           10,
-          13,
           19
         ],
         "start": {
@@ -1129,10 +1125,10 @@
       {
         "number": 42,
         "direction": "across",
-        "text": "Girl in that place sat endlessly",
+        "text": "Popular teams showing guts",
         "enumeration": "7",
-        "answer": "THERESA",
-        "explanation": "THERESA(i.e. “girl”). Solution is THERE (i.e. “in that place”) followed by SAT with the last letter removed (indicated by “endlessly”).",
+        "answer": "INSIDES",
+        "explanation": "INSIDES(i.e. “guts”). Solution is IN (i.e. “popular”) followed by SIDES (i.e. “teams”).",
         "row": 17,
         "col": 1,
         "length": 7,
@@ -1154,10 +1150,10 @@
       {
         "number": 43,
         "direction": "across",
-        "text": "Passionate us after a second run out",
+        "text": "Playwright’s very large book, one gripping queen",
         "enumeration": "7",
-        "answer": "AMOROUS",
-        "explanation": "AMOROUS(i.e. “passionate”). Solution is US placed “after” A then MO (i.e. “second”, as in “just a mo, please”) then RO (a recognised abbreviation of “run out” used in some ball games), like so: A-MO-RO-US.",
+        "answer": "OSBORNE",
+        "explanation": "JohnOSBORNE(i.e. “playwright”). Solution is OS (i.e. “very large”, specifically a recognised abbreviation of “outsize”) followed by B (a recognised abbreviation of “book”) and ONE once it has been wrapped around or “gripping” R (a recognised abbreviation of Regina, Latin for “queen”), like so: OS-B-O(R)NE.",
         "row": 17,
         "col": 9,
         "length": 7,
@@ -1179,10 +1175,10 @@
       {
         "number": 45,
         "direction": "across",
-        "text": "Backache? Penny must leave plant",
+        "text": "Weeds grow wild, eaten by rodent",
         "enumeration": "7",
-        "answer": "LUMBAGO",
-        "explanation": "LUMBAGO(i.e. “backache”). Solution is PLUMBAGO (i.e. “plant”) with the P removed (indicated by “penny must leave”, P being a recognised abbreviation for “penny”). A weird case of me getting the clue from the solution.",
+        "answer": "RAGWORT",
+        "explanation": "RAGWORT(i.e. “weeds”). Solution is an anagram (indicated by “wild”) of GROW placed on or “eaten by” RAT (i.e. “rodent”), like so: RA(GWOR)T.",
         "row": 17,
         "col": 17,
         "length": 7,
@@ -1204,15 +1200,14 @@
       {
         "number": 47,
         "direction": "across",
-        "text": "Sodium, for instance, contaminated a lake at mill",
-        "enumeration": "6,5",
-        "answer": "ALKALIMETAL",
-        "explanation": "ALKALI METAL(i.e. “sodium, for instance”). “Contaminated” indicates anagram. Solution is an anagram of A LAKE AT MILL. A clue that scans rather well.",
+        "text": "Second service stops religious breaking with tradition",
+        "enumeration": "11",
+        "answer": "MODERNISTIC",
+        "explanation": "MODERNISTIC(i.e. “breaking with tradition”). Solution is MO (shortened form of “moment”, i.e. “second”) followed by RN (i.e. “[armed] service”, specifically the Royal Navy) once it has been placed in or “stopping” DEISTIC (i.e. “religious”), like so: MO-DE(RN)ISTIC.",
         "row": 19,
         "col": 1,
         "length": 11,
         "wordBoundaries": [
-          6,
           11
         ],
         "start": {
@@ -1230,15 +1225,14 @@
       {
         "number": 49,
         "direction": "across",
-        "text": "Charles Pooter’s kid? One not easily deceived",
-        "enumeration": "7,4",
-        "answer": "NOBODYSFOOL",
-        "explanation": "NOBODY’S FOOL(i.e. “one not easily deceived”). Solution is NOBODY’S (i.e. “Charles Pooter’s” – Pooter being the main character of George and Weedon Grossmith’s comic novel of 1892The Diary of a Nobody. No, me neither) followed by FOOL (i.e. “[to] kid”). Another one where I got the clue from the solution.",
+        "text": "Title associated with range in US, I’d say?",
+        "enumeration": "11",
+        "answer": "APPELLATION",
+        "explanation": "APPELLATION(i.e. “title”). “I’d say” indicates homophone. Solution is a homophone of the APPALACHIAN mountain “range in US”.",
         "row": 19,
         "col": 13,
         "length": 11,
         "wordBoundaries": [
-          7,
           11
         ],
         "start": {
@@ -1256,10 +1250,10 @@
       {
         "number": 51,
         "direction": "across",
-        "text": "Wee drink ahead of a play",
+        "text": "Hotel in Med resort designed for specific market",
         "enumeration": "5",
-        "answer": "DRAMA",
-        "explanation": "DRAMA(i.e. “play”). Solution is DRAM (i.e. “wee drink” – no, not that kind of… never mind) followed by A.",
+        "answer": "NICHE",
+        "explanation": "NICHE(i.e. “designed for specific market”). Solution is H (“Hotel” in the phonetic alphabet) placed “in” NICE (i.e. “Med resort”), like so: NIC(H)E.",
         "row": 21,
         "col": 1,
         "length": 5,
@@ -1281,10 +1275,10 @@
       {
         "number": 52,
         "direction": "across",
-        "text": "Notice character in establishment, heading off",
+        "text": "Encouraging cool strong drink in gallons",
         "enumeration": "11",
-        "answer": "RESIGNATION",
-        "explanation": "RESIGNATION(i.e. “[handing in one’s] notice”). Solution is SIGN (i.e. “character”) placed “in” CREATION (i.e. “establishment”) once the first letter has been removed (indicated by “heading off”), like so: RE(SIGN)ATION.",
+        "answer": "INSPIRITING",
+        "explanation": "INSPIRITING(i.e. “encouraging”). Solution is IN (i.e. “cool” or popular) followed by SPIRIT (i.e. “strong drink”), then IN and G (a recognised abbreviation of “gallons”).",
         "row": 21,
         "col": 7,
         "length": 11,
@@ -1306,10 +1300,10 @@
       {
         "number": 53,
         "direction": "across",
-        "text": "Girl taking in Italian show",
+        "text": "Irish oddly acquit Arab",
         "enumeration": "5",
-        "answer": "EVITA",
-        "explanation": "EVITA(i.e. “show”). Solution is EVA (i.e. “girl”) “taking in” IT (a recognised abbreviation of “Italian”), like so: EV(IT)A.",
+        "answer": "IRAQI",
+        "explanation": "IRAQI(i.e. “Arab”). Solution is IR (a recognised abbreviation of “Irish”) followed by every other letter (indicated by “oddly”) ofACQUIT, like so: IR-AQI.",
         "row": 21,
         "col": 19,
         "length": 5,
@@ -1331,15 +1325,14 @@
       {
         "number": 54,
         "direction": "across",
-        "text": "Jazzman liked long tune, syncopated",
-        "enumeration": "4,9",
-        "answer": "DUKEELLINGTON",
-        "explanation": "DUKE ELLINGTON(i.e. “jazzman”). “Syncopated” indicates anagram. Solution is an anagram of LIKED LONG TUNE.",
+        "text": "A girl into maths briefly disputed term in it",
+        "enumeration": "13",
+        "answer": "ANTILOGARITHM",
+        "explanation": "ANTILOGARITHM(i.e. “term in [maths]”). Solution is an anagram (indicated by “disputed”) of A GIRL INTO and MATHS once its last letter has been removed (indicated by “briefly”).",
         "row": 23,
         "col": 1,
         "length": 13,
         "wordBoundaries": [
-          4,
           13
         ],
         "start": {
@@ -1357,10 +1350,10 @@
       {
         "number": 55,
         "direction": "across",
-        "text": "Greek takes off with illegally obtained ammunition",
+        "text": "County dismisses charter",
         "enumeration": "9",
-        "answer": "GRAPESHOT",
-        "explanation": "GRAPESHOT(i.e. “ammunition”). Solution is GR (a recognised abbreviation of “Greek”) followed by APES (i.e. imitates or “takes off”) and HOT (i.e. “illegally obtained”).",
+        "answer": "YORKSHIRE",
+        "explanation": "YORKSHIRE(i.e. “county”). Solution is YORKS (i.e. “dismisses” a batsman in cricket with a yorker, a specific type of delivery) followed by HIRE (i.e. “[to] charter”).",
         "row": 23,
         "col": 15,
         "length": 9,
@@ -1384,15 +1377,15 @@
       {
         "number": 1,
         "direction": "down",
-        "text": "Rifle one always to remember? Good French one",
-        "enumeration": "8,3",
-        "answer": "ELEPHANTGUN",
-        "explanation": "ELEPHANT GUN(i.e. “rifle”). Solution is ELEPHANT (i.e. “one always to remember”, as in the old phrase “an elephant never forgets”) followed by G (a recognised abbreviation of “good”) and UN (i.e. “French [for] one”).",
+        "text": "Like relaxed Buddhist, thwarted touring large cell",
+        "enumeration": "5-6",
+        "answer": "CROSSLEGGED",
+        "explanation": "CROSS-LEGGED(i.e. “like relaxed Buddhist”). Solution is CROSSED (i.e. “thwarted”) wrapped around or “touring” L (a recognised abbreviation of “large”) and EGG (i.e. “cell”), like so: CROSS(L-EGG)ED.",
         "row": 1,
         "col": 1,
         "length": 11,
         "wordBoundaries": [
-          8,
+          5,
           11
         ],
         "start": {
@@ -1410,10 +1403,10 @@
       {
         "number": 2,
         "direction": "down",
-        "text": "English farm animals causing witty comment",
+        "text": "Two groups of soldiers chewed toastie",
         "enumeration": "7",
-        "answer": null,
-        "explanation": null,
+        "answer": "RAREBIT",
+        "explanation": "RAREBIT(i.e. “toastie”). Solution is RA and RE (i.e. “two groups of soldiers”, specifically the Royal Artillery and Royal Engineers of the British Army) followed by BIT (i.e. “chewed”).",
         "row": 1,
         "col": 3,
         "length": 7,
@@ -1435,10 +1428,10 @@
       {
         "number": 3,
         "direction": "down",
-        "text": "Delete article in Irish Gaelic",
+        "text": "Jack doesn’t start to shake milk container",
         "enumeration": "5",
-        "answer": "ERASE",
-        "explanation": "ERASE(i.e. “delete”). Solution is ERSE (i.e. “Irish Gaelic”) with A (i.e. “article”) placed “inside”, like so: ER(A)SE.",
+        "answer": "UDDER",
+        "explanation": "UDDER(i.e. “milk container”). Solution is JUDDER (i.e. “shake”) with the J removed (indicated by “Jack doesn’t start” – J is a recognised abbreviation of “Jack” used in playing cards).",
         "row": 1,
         "col": 5,
         "length": 5,
@@ -1460,15 +1453,14 @@
       {
         "number": 4,
         "direction": "down",
-        "text": "Playmates stupidly hiding fine lighter of mine?",
-        "enumeration": "6,4",
-        "answer": "SAFETYLAMP",
-        "explanation": "SAFETY LAMP(i.e. “lighter of mine”). Solution is an anagram (indicated by “stupidly”) of PLAYMATES placed around or “hiding” F (a recognised abbreviation of “fine”), like so: SA(F)ETYLAMP.",
+        "text": "Plot against second main crime",
+        "enumeration": "10",
+        "answer": "CONSPIRACY",
+        "explanation": "CONSPIRACY(i.e. “plot”). Solution is CON (i.e. “against”, as in pros and cons) followed by S (a recognised abbreviation of “second”) and PIRACY (i.e. “main crime” – setters love referring to the sea as “main”).",
         "row": 1,
         "col": 7,
         "length": 10,
         "wordBoundaries": [
-          6,
           10
         ],
         "start": {
@@ -1486,10 +1478,10 @@
       {
         "number": 5,
         "direction": "down",
-        "text": "Skinflint’s self-esteem evil goblins lifted",
+        "text": "Sultan’s guards regularly return such bananas",
         "enumeration": "7",
-        "answer": "SCROOGE",
-        "explanation": "SCROOGE(i.e. “skinflint”). Solution is EGO (i.e. “self-esteem”) and ORCS (i.e. “evil goblins”) all reversed (indicated by “lifted”, this being a down clue), like so: SCRO-OGE.",
+        "answer": "EUNUCHS",
+        "explanation": "EUNUCHS(i.e. “Sultan’s guards”). Solution is every other letter (indicated by “regularly”) of RETURNfollowed by an anagram (indicated by “bananas”) of SUCH, like so: EUN-UCHS.",
         "row": 1,
         "col": 9,
         "length": 7,
@@ -1511,15 +1503,15 @@
       {
         "number": 6,
         "direction": "down",
-        "text": "Breakaway movement Preston girl re-formed at university",
-        "enumeration": "8,5",
-        "answer": "SPLINTERGROUP",
-        "explanation": "SPLINTER GROUP(i.e. “breakaway movement”). Solution is an anagram (indicated by “re-formed”) of PRESTON GIRL followed by UP (which, among its many meanings, is “in residence at school or college”, i.e. “at university”).",
+        "text": "Will should have three examples of this",
+        "enumeration": "9,4",
+        "answer": "AUXILIARYVERB",
+        "explanation": "AUXILIARY VERB. “Three examples of this” are the auxiliary verbs “will”, “should” and “have”. These are verbs which add function or grammatical meaning to a clause, e.g. “shewilldo something”, “sheshoulddo something” or “theyhavedone something”.",
         "row": 1,
         "col": 11,
         "length": 13,
         "wordBoundaries": [
-          8,
+          9,
           13
         ],
         "start": {
@@ -1537,10 +1529,10 @@
       {
         "number": 7,
         "direction": "down",
-        "text": "Check, having lost top copy",
+        "text": "Outlaw some French and English in gallery",
         "enumeration": "9",
-        "answer": "IMITATION",
-        "explanation": "IMITATION(i.e. “copy”). Solution is LIMITATION (i.e. “check”) with its first letter removed (indicated by “lost top”).",
+        "answer": "DESPERADO",
+        "explanation": "DESPERADO(i.e. “outlaw”). Solution is DES (i.e. “some French”, i.e. the French for “some”) followed by E (a recognised abbreviation of “English”) once it has been placed “in” PRADO (i.e. Spain’s national art “gallery”), like so: DES-P(E)RADO.",
         "row": 1,
         "col": 13,
         "length": 9,
@@ -1562,15 +1554,14 @@
       {
         "number": 8,
         "direction": "down",
-        "text": "Tackle aboard in fine revolutionary raft",
-        "enumeration": "3-4",
-        "answer": "KONTIKI",
-        "explanation": "KON-TIKI(i.e. “raft” – The Kon-Tiki expedition was a 1947 journey by raft across the Pacific Ocean). This took some getting, but the solution is KIT (i.e. “tackle”) placed “aboard” or inside of IN and then followed by OK (i.e. “fine”, as in okay). The whole is reversed (indicated by “revolutionary”), like so: KO-N(TIK)I.",
+        "text": "End fuel supply that’s essential",
+        "enumeration": "7",
+        "answer": "NEEDFUL",
+        "explanation": "NEEDFUL(i.e. “essential”). “Supply” indicates anagram, as in something being supple – sneaky, eh? Solution is an anagram of END FUEL.",
         "row": 1,
         "col": 15,
         "length": 7,
         "wordBoundaries": [
-          3,
           7
         ],
         "start": {
@@ -1588,15 +1579,14 @@
       {
         "number": 9,
         "direction": "down",
-        "text": "Proof, after novel, a collection of religious books",
-        "enumeration": "3,9",
-        "answer": "NEWTESTAMENT",
-        "explanation": "NEW TESTAMENT(i.e. “a collection of religious books”). Solution is TESTAMENT (i.e. “proof”) placed “after” NEW (i.e. “novel”).",
+        "text": "Rigorous man abridged inspiring article about subject",
+        "enumeration": "12",
+        "answer": "MATHEMATICAL",
+        "explanation": "MATHEMATICAL(i.e. “rigorous”). Solution is MALE (i.e. “man”) with the last letter removed (indicated by “abridged”) and the remainder wrapped around or “inspiring” A (i.e. “article”, as in a word like a, an or the) and THEMATIC (i.e. “subject”), like so: M(A-THEMATIC)AL.",
         "row": 1,
         "col": 17,
         "length": 12,
         "wordBoundaries": [
-          3,
           12
         ],
         "start": {
@@ -1614,10 +1604,10 @@
       {
         "number": 10,
         "direction": "down",
-        "text": "Male bishop on Rhode Island, churchman from the Western Isles",
+        "text": "Like some accountants about to be drafted outside",
         "enumeration": "9",
-        "answer": "HEBRIDEAN",
-        "explanation": "HEBRIDEAN(i.e. “from the Western Isles”). Solution is HE (i.e. “male”) followed by B (a recognised abbreviation of “bishop”) then RI (ditto “Rhode Island”) and DEAN (i.e. “churchman”).",
+        "answer": "CHARTERED",
+        "explanation": "CHARTERED(i.e. “like some accountants”). Solution is RE (i.e. “about” – think email replies) with CHARTED (i.e. “drafted”) placed “outside” of it, like so: CHARTE(RE)D.",
         "row": 1,
         "col": 19,
         "length": 9,
@@ -1639,14 +1629,15 @@
       {
         "number": 11,
         "direction": "down",
-        "text": "Insect found round north in May, perhaps",
-        "enumeration": "5",
-        "answer": "MONTH",
-        "explanation": "MONTH(i.e. “May, perhaps”). Solution is MOTH (i.e. “insect”) placed “round” N (a recognised abbreviation of “north”), like so: MO(N)TH.",
+        "text": "Relative’s trendy wife bagging French article",
+        "enumeration": "2-3",
+        "answer": "INLAW",
+        "explanation": "IN-LAW(i.e. “relative”). Solution is IN (i.e. “trendy”) and W (a recognised abbreviation of “wife”) wrapped around or “bagging” LA (i.e. “French article”, i.e. the French for “the”), like so: IN-(LA)-W.",
         "row": 1,
         "col": 21,
         "length": 5,
         "wordBoundaries": [
+          2,
           5
         ],
         "start": {
@@ -1664,10 +1655,10 @@
       {
         "number": 12,
         "direction": "down",
-        "text": "Faulty cistern – mend showing perspicacity",
+        "text": "Register English church composer without top performer",
         "enumeration": "11",
-        "answer": "DISCERNMENT",
-        "explanation": "DISCERNMENT(i.e. “perspicacity”). “Faulty” indicates anagram. Solution is an anagram of CISTERN MEND.",
+        "answer": "ENTERTAINER",
+        "explanation": "ENTERTAINER(i.e. “performer”). Solution is ENTER (i.e. “register”) followed by Sir John STAINER (i.e. “English church composer” – no, me neither. Chalk one to my Bradfords here) with the first letter removed (indicated by “without top”), like so: ENTER-TAINER.",
         "row": 1,
         "col": 23,
         "length": 11,
@@ -1689,15 +1680,15 @@
       {
         "number": 19,
         "direction": "down",
-        "text": "Order abroad to get discount",
-        "enumeration": "4,3",
-        "answer": "RULEOUT",
-        "explanation": "RULE OUT(i.e. “[to] discount”). Solution is RULE (i.e. “order”) followed by OUT (i.e. “abroad”).",
+        "text": "Trim copper heading to seize book",
+        "enumeration": "3,4",
+        "answer": "CUTBACK",
+        "explanation": "CUT BACK(i.e. “trim”). Solution is CU (chemical symbol of “copper”) followed by TACK (i.e. “heading” or course) wrapped around or “seizing” B (a recognised abbreviation of “book”), like so: CU-T(B)ACK.",
         "row": 7,
         "col": 5,
         "length": 7,
         "wordBoundaries": [
-          4,
+          3,
           7
         ],
         "start": {
@@ -1715,14 +1706,15 @@
       {
         "number": 22,
         "direction": "down",
-        "text": "“Posted”, one working inside said",
-        "enumeration": "9",
-        "answer": "STATIONED",
-        "explanation": "STATIONED(i.e. “posted”). Solution is I (Roman numeral “one”) followed by ON (i.e. “working”) both placed “inside” STATED (i.e. “said”), like so: STAT(I-ON)ED.",
+        "text": "Sick of quartet entertaining officer",
+        "enumeration": "3,6",
+        "answer": "OFFCOLOUR",
+        "explanation": "OFF COLOUR(i.e. “sick”). Solution is OF followed by FOUR (i.e. “quartet”) wrapped around or “entertaining” COL (i.e. “officer”, specifically a recognised abbreviation of a colonel), like so: OF-F(COL)OUR.",
         "row": 7,
         "col": 21,
         "length": 9,
         "wordBoundaries": [
+          3,
           9
         ],
         "start": {
@@ -1740,15 +1732,16 @@
       {
         "number": 24,
         "direction": "down",
-        "text": "No wine to be taken into flat in sacred building",
-        "enumeration": "5,4",
-        "answer": "NOTREDAME",
-        "explanation": "NOTRE DAME(i.e. “sacred building”). Solution is NO then RED (i.e. “wine”) which is “taken into” TAME (i.e. “flat”) like so: NO-T(RED)AME.",
+        "text": "Restricted zones in Genoa or Siena, extremely mysterious",
+        "enumeration": "2-2,5",
+        "answer": "NOGOAREAS",
+        "explanation": "NO-GO AREAS(i.e. “restricted zones”). Solution is an anagram (indicated by “mysterious”) of GENOA OR and SA (i.e. “Siena, extremely”, i.e. the first and last letters of “Siena”).",
         "row": 9,
         "col": 3,
         "length": 9,
         "wordBoundaries": [
-          5,
+          2,
+          4,
           9
         ],
         "start": {
@@ -1766,15 +1759,14 @@
       {
         "number": 25,
         "direction": "down",
-        "text": "Number on old piano penned by that woman, a definite loser",
-        "enumeration": "2-5",
-        "answer": "NOHOPER",
-        "explanation": "NO-HOPER(i.e. “a definite loser”). Solution is NO (a recognised abbreviation of “number”) followed by O (ditto “old”) and P (ditto “piano”) once they have been “penned by” HER (i.e. “that woman”), like so: NO-H(O-P)ER.",
+        "text": "Permit fifty-one churches to keep name",
+        "enumeration": "7",
+        "answer": "LICENCE",
+        "explanation": "LICENCE(i.e. “permit”). Solution is LI (i.e. “fifty-one” in Roman numerals) followed by CE and CE (i.e. “churches”, specifically the Church of England) wrapped around or “keeping” N (a recognised abbreviation of “name”), like so: LI-CE-(N)-CE.",
         "row": 9,
         "col": 9,
         "length": 7,
         "wordBoundaries": [
-          2,
           7
         ],
         "start": {
@@ -1792,10 +1784,10 @@
       {
         "number": 26,
         "direction": "down",
-        "text": "Socialist supporter quit first?",
+        "text": "On reflection, sauce is not ideal at first, being tasteless",
         "enumeration": "7",
-        "answer": "LEFTIST",
-        "explanation": "LEFTIST(i.e. “socialist supporter”). Solution is LEFT (i.e. “quit”) and IST (i.e. “first” – I representing 1).",
+        "answer": "INSIPID",
+        "explanation": "INSIPID(i.e. “tasteless”). Solution is DIP (i.e. “sauce”) followed by IS, then N and I (i.e. “not ideal at first”, i.e. the first letters of “not” and “ideal”). The whole is then reversed (indicated by “on reflection”), like so: I-N-SI-PID.",
         "row": 9,
         "col": 15,
         "length": 7,
@@ -1817,10 +1809,10 @@
       {
         "number": 30,
         "direction": "down",
-        "text": "I overlook South African city chart placed on stack",
-        "enumeration": "5,8",
-        "answer": "TABLEMOUNTAIN",
-        "explanation": "TABLE MOUNTAIN(i.e. “I overlook South African city” – in this case Cape Town). Solution is TABLE (i.e. “chart”) “placed on” top of MOUNTAIN (i.e. “stack”), this being a down clue.",
+        "text": "Grim CIA morons spread spore maybe",
+        "enumeration": "5-8",
+        "answer": "MICROORGANISM",
+        "explanation": "MICRO-ORGANISM(i.e. “spore maybe”). “Spread” indicates anagram. Solution is an anagram of GRIM CIA MORONS.",
         "row": 11,
         "col": 13,
         "length": 13,
@@ -1843,10 +1835,10 @@
       {
         "number": 32,
         "direction": "down",
-        "text": "“An Indian city attracting millions” – sort of clue",
+        "text": "Spanish article about golf catches on soon",
         "enumeration": "7",
-        "answer": "ANAGRAM",
-        "explanation": "ANAGRAM(i.e. “sort of [cryptic crossword] clue”). Solution is AN followed by AGRA (i.e. “Indian city”) and M (a recognised abbreviation of “millions”).",
+        "answer": "ERELONG",
+        "explanation": "ERELONG(i.e. “soon”). Solution is EL (for “Spanish article”, i.e. the Spanish for “the”), ON (i.e. “about”) and G (“golf” in the phonetic alphabet) all wrapped about or “catching” RE (i.e. “on” or about – think email replies), like so: E(RE)L-ON-G. I’ve twisted over this one for a while, and this seems the best solution I can get, but I’m not exactly cock-a-hoop about it. Using ON for “about” only to then use RE for “on” feels weirdly off, like a circular reference in a spreadsheet or something.[Reads that back.]Bloody hell, I’m such a nerd…",
         "row": 11,
         "col": 19,
         "length": 7,
@@ -1868,15 +1860,15 @@
       {
         "number": 33,
         "direction": "down",
-        "text": "Warmth, ideal I suspect for a butterfly",
-        "enumeration": "5,7",
-        "answer": "WHITEADMIRAL",
-        "explanation": "WHITE ADMIRAL. “Suspect” indicates anagram. Solution is an anagram of WARMTH IDEAL I. Not being terribly up on my lepidopterology, I was quite pleased to quickly see ADMIRAL in the letters of the clue. The rest easily followed from there.",
+        "text": "Hoping to drink German wine that’s sublime",
+        "enumeration": "3-9",
+        "answer": "AWEINSPIRING",
+        "explanation": "AWE-INSPIRING(i.e. “sublime”). Solution is ASPIRING (i.e. “hoping”) wrapped around or “drinking” WEIN (i.e. “German [for] wine”), like so: A(WEIN)SPIRING.",
         "row": 12,
         "col": 7,
         "length": 12,
         "wordBoundaries": [
-          5,
+          3,
           12
         ],
         "start": {
@@ -1894,15 +1886,14 @@
       {
         "number": 34,
         "direction": "down",
-        "text": "Style of writing supported by editor in need of more staff",
-        "enumeration": "5-6",
-        "answer": "SHORTHANDED",
-        "explanation": "SHORT-HANDED(i.e. “in need of more staff”). Solution is SHORTHAND (i.e. “style of writing”) followed by ED (a recognised abbreviation of “editor”).",
+        "text": "I’m in Bilbao crazily nursing a passion for shelf-stacking?",
+        "enumeration": "11",
+        "answer": "BIBLIOMANIA",
+        "explanation": "BIBLIOMANIA(i.e. “passion for shelf-stacking”, as in having a thing for books). Solution is an anagram (indicated by “crazily”) of I’M IN BILBAO wrapped around or “nursing” A, like so: BIBLIOM(A)NIA.",
         "row": 13,
         "col": 1,
         "length": 11,
         "wordBoundaries": [
-          5,
           11
         ],
         "start": {
@@ -1920,16 +1911,14 @@
       {
         "number": 37,
         "direction": "down",
-        "text": "Boxing belt – another lost",
-        "enumeration": "3,5,3",
-        "answer": "THENOBLEART",
-        "explanation": "THE NOBLE ART(i.e. “boxing”). “Lost” indicates anagram. Solution is a rather fitting anagram of BELT ANOTHER.",
+        "text": "Helm saves energy, anxious about four covering same length",
+        "enumeration": "11",
+        "answer": "COEXTENSIVE",
+        "explanation": "COEXTENSIVE(i.e. “covering same length”). Solution is COX (i.e. “helm”) wrapped around or “saving” E (a recognised abbreviation of “energy”) and followed by TENSE (i.e. “anxious”) once this has been wrapped around or “covering” IV (i.e. “four” in Roman numerals), like so: CO(E)X-TENS(IV)E.",
         "row": 13,
         "col": 23,
         "length": 11,
         "wordBoundaries": [
-          3,
-          8,
           11
         ],
         "start": {
@@ -1947,10 +1936,10 @@
       {
         "number": 38,
         "direction": "down",
-        "text": "Drug two Italian girls?",
+        "text": "Star analyst runs over diary penned by Daisy",
         "enumeration": "10",
-        "answer": "BELLADONNA",
-        "explanation": "BELLADONNA. Solution satisfies “drug”, belladonna is also known as deadly nightshade, a toxin with hallucinogenic effects, and “two Italian girls”, as in BELLA and DONNA.",
+        "answer": "ASTROLOGER",
+        "explanation": "ASTROLOGER(i.e. “star analyst”). Solution is R (a recognised abbreviation of “runs” used in a number of ball games), O (a recognised abbreviation of an “over” in cricket) and LOG (i.e. “diary”) all placed in or “penned by” ASTER (i.e. “daisy” – ignore the misleading capitalisation), like so: AST(R-O-LOG)ER.",
         "row": 14,
         "col": 17,
         "length": 10,
@@ -1972,10 +1961,10 @@
       {
         "number": 40,
         "direction": "down",
-        "text": "Length of most of car, and weight (tail end, then rest)",
+        "text": "Waterproof submarine, second in Clyde",
         "enumeration": "9",
-        "answer": "WHEELBASE",
-        "explanation": "WHEELBASE(i.e. “length of most of car”, as in the distance between the front and rear axles of a motor vehicle). Solution is W (a recognised abbreviation of “weight”) followed by HEEL (i.e. “tail end”) and BASE (i.e. “[to] rest” – a bit weak, but that’s my take on it). Not a classic.",
+        "answer": "UNDERSEAL",
+        "explanation": "UNDERSEAL(i.e. “[to] waterproof”). Solution is UNDERSEA (i.e. “submarine”) followed by L (i.e. “second in Clyde”, i.e. the second letter of “Clyde”).",
         "row": 15,
         "col": 5,
         "length": 9,
@@ -1997,15 +1986,14 @@
       {
         "number": 41,
         "direction": "down",
-        "text": "What may shine in darkness covering one shimmering lake?",
-        "enumeration": "4,5",
-        "answer": "NEONLIGHT",
-        "explanation": "NEON LIGHT(i.e. “what may shine”). Solution is NIGHT (i.e. “darkness”) wrapped around or “covering” an anagram (indicated by “shimmering”) of ONE and L (a recognised abbreviation of “lake”), like so: N(EON-L)IGHT.",
+        "text": "Small number possibly needing to edit screenplay perhaps",
+        "enumeration": "9",
+        "answer": "SUBSCRIPT",
+        "explanation": "SUBSCRIPT(i.e. “small number possibly” – subscripts can be text too). When read as SUB SCRIPT, the solution also satisfies “edit screenplay perhaps”.",
         "row": 15,
         "col": 11,
         "length": 9,
         "wordBoundaries": [
-          4,
           9
         ],
         "start": {
@@ -2023,10 +2011,10 @@
       {
         "number": 43,
         "direction": "down",
-        "text": "Skilled worker is wearing plaid, though hatless",
+        "text": "Less intelligent old boy beginning to transform addict",
         "enumeration": "7",
-        "answer": "ARTISAN",
-        "explanation": "ARTISAN(i.e. “skilled worker”). Solution is IS placed in or “wearing” TARTAN (i.e. “plaid”) once its initial letter has been removed (indicated by “hatless”), like so: ART(IS)AN.",
+        "answer": "OBTUSER",
+        "explanation": "OBTUSER(i.e. “less intelligent”). Solution is OB (a recognised abbreviation of “old boy”, or alumnus) followed by T (i.e. “beginning to transform”, i.e. the first letter of “transform”) and USER (i.e. “[drug] addict”).",
         "row": 17,
         "col": 9,
         "length": 7,
@@ -2048,10 +2036,10 @@
       {
         "number": 44,
         "direction": "down",
-        "text": "Maybe brother is upset over ostentatious jewellery",
+        "text": "Bronte sister admits exercising with no effect",
         "enumeration": "7",
-        "answer": "SIBLING",
-        "explanation": "SIBLING(i.e. “maybe brother”). Solution is IS reversed (indicated by “upset”, this being a down clue) and followed by BLING (i.e. “ostentatious jewellery”), like so: SI-BLING.",
+        "answer": "EMPTILY",
+        "explanation": "EMPTILY(i.e. “with no effect”). Solution is EMILY (i.e. “Bronte sister”) wrapped around or “admitting” PT (i.e. “exercising”, specifically a recognised abbreviation of Physical Training), like so: EM(PT)ILY.",
         "row": 17,
         "col": 15,
         "length": 7,
@@ -2073,10 +2061,10 @@
       {
         "number": 46,
         "direction": "down",
-        "text": "Get rid of blood group O? I succeeded in large hospital",
+        "text": "Ring friend abroad about kit for art in Tokyo",
         "enumeration": "7",
-        "answer": "ABOLISH",
-        "explanation": "ABOLISH(i.e. “get rid of”). Solution is AB (i.e. “blood group”) and O followed by I and S (a recognised abbreviation of “succeeded”) placed between or “in” L (ditto “large”) and H (ditto “hospital”), like so: AB-O-L-(I-S)-H. Convoluted? Yes, but I rather liked it.",
+        "answer": "ORIGAMI",
+        "explanation": "ORIGAMI(i.e. “art in Tokyo”). Solution is O (i.e. “ring”) and AMI (i.e. “friend abroad”, i.e. the French for “friend”) wrapped “about” RIG (i.e. “kit”), like so: O-(RIG)-AMI.",
         "row": 17,
         "col": 21,
         "length": 7,
@@ -2098,10 +2086,10 @@
       {
         "number": 48,
         "direction": "down",
-        "text": "Gift in bag a private secretary overlooked",
+        "text": "Old coin originally accepted in tube",
         "enumeration": "5",
-        "answer": "KNACK",
-        "explanation": "KNACK(i.e. “gift”, as in having a knack for some activity). Solution is KNAPSACK (i.e. “bag”) once the middle A P and S letters have been removed (indicated by “a private secretary overlooked” – PS being a recognised abbreviation of “private secretary”).",
+        "answer": "DUCAT",
+        "explanation": "DUCAT(i.e. “old coin”). Solution is A (i.e. “originally accepted”, i.e. the first letter of “accepted”) placed “in” DUCT (i.e. “tube”), like so: DUC(A)T.",
         "row": 19,
         "col": 3,
         "length": 5,
@@ -2123,10 +2111,10 @@
       {
         "number": 50,
         "direction": "down",
-        "text": "Part of play watched in the auditorium",
+        "text": "Section of program is simply wrong",
         "enumeration": "5",
-        "answer": "SCENE",
-        "explanation": "SCENE(i.e. “part of play”). “In the auditorium” indicates homophone. Solution is a homophone of SEEN (i.e. “watched”).",
+        "answer": "AMISS",
+        "explanation": "AMISS(i.e. “wrong”). “Section of” indicates the solution has been hidden in the clue, like so: PROGR(AM IS S)IMPLY.",
         "row": 19,
         "col": 19,
         "length": 5,
@@ -2148,11 +2136,10 @@
     ]
   },
   "sanityChecks": {
-    "unmappedClues": [
-      "Down 2: No answer found"
-    ],
+    "unmappedClues": [],
     "unmappedGridRuns": [],
     "lengthMismatches": [],
-    "gridConflicts": []
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

@@ -1,6 +1,7 @@
 {
   "puzzleId": "1380",
-  "title": "Times Jumbo Cryptic Crossword 1380",
+  "title": "Times Jumbo Cryptic Crossword 1380 (2019-05-06)",
+  "date": "2019-05-06",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1380/"
@@ -1099,7 +1100,7 @@
         "direction": "across",
         "text": "Christmas month has gold ornamentation",
         "enumeration": "5",
-        "answer": "DCOR",
+        "answer": "DÉCOR",
         "explanation": "DÉCOR(i.e. “ornamentation”). Solution is DEC (i.e. “Christmas month”, specifically a recognised abbreviation of “December”) followed by OR (i.e. “gold” in heraldry, often used by crossword setters in their solutions).",
         "row": 15,
         "col": 19,
@@ -2142,9 +2143,8 @@
   "sanityChecks": {
     "unmappedClues": [],
     "unmappedGridRuns": [],
-    "lengthMismatches": [
-      "Across 41: Answer length 4 doesn't match enumeration 5"
-    ],
-    "gridConflicts": []
+    "lengthMismatches": [],
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }

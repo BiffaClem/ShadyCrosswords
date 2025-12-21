@@ -1,6 +1,7 @@
 {
   "puzzleId": "1383",
-  "title": "Times Jumbo Cryptic Crossword 1383",
+  "title": "Times Jumbo Cryptic Crossword 1383 (2019-05-26)",
+  "date": "2019-05-26",
   "source": {
     "site": "lucianpoll.com",
     "url": "https://lucianpoll.com/times-jumbo-cryptic-crossword-1383/"
@@ -2140,6 +2141,7 @@
     "unmappedClues": [],
     "unmappedGridRuns": [],
     "lengthMismatches": [],
-    "gridConflicts": []
+    "gridConflicts": [],
+    "cellCountMismatch": null
   }
 }
