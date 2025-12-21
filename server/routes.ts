@@ -210,7 +210,7 @@ export async function registerRoutes(
   app.post("/api/sessions", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { puzzleId, name, isCollaborative, difficulty } = req.body;
+      const { puzzleId, name, isCollaborative, difficulty, invitees } = req.body;
 
       // Verify puzzle exists
       const puzzle = await storage.getPuzzle(puzzleId);
@@ -241,6 +241,17 @@ export async function registerRoutes(
         grid: emptyGrid,
         updatedBy: userId,
       });
+
+      // Create invites for selected users
+      if (invitees && Array.isArray(invitees) && invitees.length > 0) {
+        const inviteRecords = invitees.map((invitedUserId: string) => ({
+          sessionId: session.id,
+          invitedUserId,
+          invitedById: userId,
+          status: "pending",
+        }));
+        await storage.createInvites(inviteRecords);
+      }
 
       res.json(session);
     } catch (error) {
@@ -319,6 +330,88 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error saving progress:", error);
       res.status(500).json({ message: "Failed to save progress" });
+    }
+  });
+
+  // Get all users (for invite selection)
+  app.get("/api/users", isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const allUsers = await storage.getAllUsers();
+      // Exclude current user from list
+      const users = allUsers.filter(u => u.id !== currentUserId);
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Get invites for current user
+  app.get("/api/invites", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const invites = await storage.getInvitesForUser(userId);
+      
+      // Enrich with session and puzzle info
+      const enrichedInvites = await Promise.all(invites.map(async (invite) => {
+        const session = await storage.getSession(invite.sessionId);
+        if (!session) return null;
+        const puzzle = await storage.getPuzzle(session.puzzleId);
+        return {
+          ...invite,
+          sessionName: session.name,
+          puzzleTitle: puzzle?.title,
+          puzzleId: puzzle?.puzzleId,
+        };
+      }));
+      
+      res.json(enrichedInvites.filter(Boolean));
+    } catch (error) {
+      console.error("Error fetching invites:", error);
+      res.status(500).json({ message: "Failed to fetch invites" });
+    }
+  });
+
+  // Respond to an invite (accept/decline)
+  app.post("/api/invites/:id/respond", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { status } = req.body;
+      
+      if (!["accepted", "declined"].includes(status)) {
+        res.status(400).json({ message: "Invalid status" });
+        return;
+      }
+      
+      const invite = await storage.getInvite(req.params.id);
+      if (!invite) {
+        res.status(404).json({ message: "Invite not found" });
+        return;
+      }
+      
+      if (invite.invitedUserId !== userId) {
+        res.status(403).json({ message: "Access denied" });
+        return;
+      }
+      
+      const updated = await storage.updateInviteStatus(req.params.id, status);
+      
+      // If accepted, add user as participant
+      if (status === "accepted") {
+        const isAlreadyParticipant = await storage.isParticipant(invite.sessionId, userId);
+        if (!isAlreadyParticipant) {
+          await storage.addParticipant({
+            sessionId: invite.sessionId,
+            userId,
+          });
+        }
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error responding to invite:", error);
+      res.status(500).json({ message: "Failed to respond to invite" });
     }
   });
 
