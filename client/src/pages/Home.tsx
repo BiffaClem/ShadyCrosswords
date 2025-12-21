@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -47,6 +48,7 @@ export default function Home() {
   const [selectedPuzzle, setSelectedPuzzle] = useState<PuzzleWithSessions | null>(null);
   const [sessionName, setSessionName] = useState("");
   const [isCollaborative, setIsCollaborative] = useState(false);
+  const [difficulty, setDifficulty] = useState<"normal" | "easy" | "learner">("normal");
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
@@ -61,7 +63,7 @@ export default function Home() {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean }) => {
+    mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean; difficulty: string }) => {
       const res = await apiRequest("POST", "/api/sessions", data);
       return res.json();
     },
@@ -88,6 +90,7 @@ export default function Home() {
     setSelectedPuzzle(puzzle);
     setSessionName("");
     setIsCollaborative(false);
+    setDifficulty("normal");
     setCreateSessionDialogOpen(true);
   };
 
@@ -102,6 +105,7 @@ export default function Home() {
       puzzleId: selectedPuzzle.id,
       name: fullName,
       isCollaborative,
+      difficulty,
     });
   };
 
@@ -262,6 +266,24 @@ export default function Home() {
                   data-testid="input-session-name"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Difficulty</Label>
+              <RadioGroup value={difficulty} onValueChange={(v) => setDifficulty(v as "normal" | "easy" | "learner")}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="normal" id="normal" data-testid="radio-difficulty-normal" />
+                  <Label htmlFor="normal" className="font-normal">Normal</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="easy" id="easy" data-testid="radio-difficulty-easy" />
+                  <Label htmlFor="easy" className="font-normal">Easy (Reveal answers)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="learner" id="learner" data-testid="radio-difficulty-learner" />
+                  <Label htmlFor="learner" className="font-normal">Learner (Hints enabled)</Label>
+                </div>
+              </RadioGroup>
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg border border-amber-200">
