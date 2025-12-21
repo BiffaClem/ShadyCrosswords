@@ -122,6 +122,7 @@ export async function registerRoutes(
         // Calculate stats for each session
         const sessionsWithStats = await Promise.all(puzzleSessions.map(async (session) => {
           const progress = await storage.getProgress(session.id);
+          const participants = await storage.getSessionParticipantsWithUsers(session.id);
           const puzzleData = puzzle.data as any;
           const totalCells = countWhiteCells(puzzleData.grid);
           const userGrid = (progress?.grid as string[][] | null) || [];
@@ -132,6 +133,7 @@ export async function registerRoutes(
             ...session,
             percentComplete: totalCells > 0 ? Math.round((filledCells / totalCells) * 100) : 0,
             percentCorrect: filledCells > 0 ? Math.round((correctCells / filledCells) * 100) : 0,
+            participants,
           };
         }));
         
@@ -208,7 +210,7 @@ export async function registerRoutes(
   app.post("/api/sessions", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { puzzleId, name, isCollaborative } = req.body;
+      const { puzzleId, name, isCollaborative, difficulty } = req.body;
 
       // Verify puzzle exists
       const puzzle = await storage.getPuzzle(puzzleId);
@@ -217,11 +219,16 @@ export async function registerRoutes(
         return;
       }
 
+      // Validate difficulty
+      const validDifficulties = ["beginner", "standard", "expert"];
+      const sessionDifficulty = validDifficulties.includes(difficulty) ? difficulty : "standard";
+
       const session = await storage.createSession({
         puzzleId,
         ownerId: userId,
         name: name || `${puzzle.title} - ${new Date().toLocaleDateString()}`,
         isCollaborative: isCollaborative || false,
+        difficulty: sessionDifficulty,
       });
 
       // Initialize empty progress

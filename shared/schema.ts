@@ -26,6 +26,7 @@ export const puzzleSessions = pgTable("puzzle_sessions", {
   ownerId: varchar("owner_id").references(() => users.id).notNull(),
   name: varchar("name"),
   isCollaborative: boolean("is_collaborative").default(false),
+  difficulty: varchar("difficulty").default("standard"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

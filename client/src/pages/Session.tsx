@@ -135,6 +135,11 @@ export default function Session() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleBack = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
+    navigate("/");
+  };
+
   if (error) {
     if (isUnauthorizedError(error)) {
       toast({ title: "Unauthorized", description: "Logging in again...", variant: "destructive" });
@@ -169,7 +174,7 @@ export default function Session() {
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <Button 
             variant="ghost" 
-            onClick={() => navigate("/")}
+            onClick={handleBack}
             className="text-amber-700"
             data-testid="button-back"
           >

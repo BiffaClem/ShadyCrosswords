@@ -1,5 +1,5 @@
 import { 
-  puzzles, puzzleSessions, sessionParticipants, puzzleProgress,
+  puzzles, puzzleSessions, sessionParticipants, puzzleProgress, users,
   type Puzzle, type InsertPuzzle,
   type PuzzleSession, type InsertSession,
   type SessionParticipant, type InsertParticipant,
@@ -22,6 +22,7 @@ export interface IStorage {
   
   // Participants
   getSessionParticipants(sessionId: string): Promise<SessionParticipant[]>;
+  getSessionParticipantsWithUsers(sessionId: string): Promise<Array<{id: string; firstName: string | null; email: string | null}>>;
   addParticipant(participant: InsertParticipant): Promise<SessionParticipant>;
   isParticipant(sessionId: string, userId: string): Promise<boolean>;
   
@@ -84,6 +85,19 @@ export class DatabaseStorage implements IStorage {
   // Participants
   async getSessionParticipants(sessionId: string): Promise<SessionParticipant[]> {
     return db.select().from(sessionParticipants).where(eq(sessionParticipants.sessionId, sessionId));
+  }
+
+  async getSessionParticipantsWithUsers(sessionId: string): Promise<Array<{id: string; firstName: string | null; email: string | null}>> {
+    const results = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        email: users.email,
+      })
+      .from(sessionParticipants)
+      .innerJoin(users, eq(sessionParticipants.userId, users.id))
+      .where(eq(sessionParticipants.sessionId, sessionId));
+    return results;
   }
 
   async addParticipant(participant: InsertParticipant): Promise<SessionParticipant> {

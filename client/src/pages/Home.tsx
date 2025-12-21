@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,19 +8,28 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, BookOpen, Users, Play, LogOut, Plus, ChevronRight } from "lucide-react";
+import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/auth-utils";
+
+interface Participant {
+  id: string;
+  firstName: string | null;
+  email: string | null;
+}
 
 interface SessionWithStats {
   id: string;
   name: string;
   isCollaborative: boolean;
+  difficulty: string;
   createdAt: string;
   percentComplete: number;
   percentCorrect: number;
+  participants: Participant[];
 }
 
 interface PuzzleWithSessions {
@@ -29,6 +38,24 @@ interface PuzzleWithSessions {
   data: any;
   sessions: SessionWithStats[];
 }
+
+const DIFFICULTY_OPTIONS = [
+  {
+    value: "beginner",
+    label: "Beginner",
+    description: "Shows letter counts and allows checking individual answers"
+  },
+  {
+    value: "standard",
+    label: "Standard",
+    description: "Shows letter counts only, no answer checking"
+  },
+  {
+    value: "expert",
+    label: "Expert",
+    description: "No hints - pure solving experience"
+  }
+];
 
 export default function Home() {
   const { user } = useAuth();
@@ -40,6 +67,12 @@ export default function Home() {
   const [selectedPuzzleTitle, setSelectedPuzzleTitle] = useState<string>("");
   const [sessionName, setSessionName] = useState("");
   const [isCollaborative, setIsCollaborative] = useState(false);
+  const [difficulty, setDifficulty] = useState("standard");
+
+  // Refetch puzzles when component mounts (handles back navigation)
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
+  }, [queryClient]);
 
   const { data: puzzles, isLoading } = useQuery<PuzzleWithSessions[]>({
     queryKey: ["/api/puzzles"],
@@ -50,7 +83,7 @@ export default function Home() {
   });
 
   const createSessionMutation = useMutation({
-    mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean }) => {
+    mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean; difficulty: string }) => {
       const res = await apiRequest("POST", "/api/sessions", data);
       return res.json();
     },
@@ -74,6 +107,7 @@ export default function Home() {
     setSelectedPuzzleTitle(puzzleTitle);
     setSessionName("");
     setIsCollaborative(false);
+    setDifficulty("standard");
     setCreateSessionDialogOpen(true);
   };
 
@@ -83,7 +117,17 @@ export default function Home() {
       puzzleId: selectedPuzzleId,
       name: sessionName || `${selectedPuzzleTitle} Session`,
       isCollaborative,
+      difficulty,
     });
+  };
+
+  const getParticipantDisplay = (participants: Participant[]) => {
+    if (participants.length === 0) return null;
+    const names = participants.map(p => p.firstName || p.email?.split('@')[0] || 'User');
+    if (names.length <= 2) {
+      return names.join(', ');
+    }
+    return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
   };
 
   return (
@@ -168,7 +212,15 @@ export default function Home() {
                                   {session.isCollaborative && (
                                     <Users className="h-4 w-4 text-amber-600 flex-shrink-0" />
                                   )}
+                                  <span className="text-xs px-2 py-0.5 bg-amber-200 text-amber-800 rounded capitalize">
+                                    {session.difficulty || 'standard'}
+                                  </span>
                                 </div>
+                                {session.participants.length > 0 && (
+                                  <p className="text-xs text-amber-600 mt-1">
+                                    Participants: {getParticipantDisplay(session.participants)}
+                                  </p>
+                                )}
                                 <div className="flex items-center gap-4 mt-2">
                                   <div className="flex-1 max-w-32">
                                     <div className="flex justify-between text-xs text-amber-600 mb-1">
@@ -204,14 +256,14 @@ export default function Home() {
       </main>
 
       <Dialog open={createSessionDialogOpen} onOpenChange={setCreateSessionDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Start Solving: {selectedPuzzleTitle}</DialogTitle>
             <DialogDescription>
               Create a new solving session
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-4">
             <div className="space-y-2">
               <Label htmlFor="session-name">Session Name</Label>
               <Input 
@@ -222,7 +274,35 @@ export default function Home() {
                 data-testid="input-session-name"
               />
             </div>
-            <div className="flex items-center justify-between">
+            
+            <div className="space-y-3">
+              <Label>Difficulty Level</Label>
+              <RadioGroup value={difficulty} onValueChange={setDifficulty} className="space-y-3">
+                {DIFFICULTY_OPTIONS.map((option) => (
+                  <div 
+                    key={option.value}
+                    className="flex items-start space-x-3 p-3 rounded-lg border border-amber-200 hover:bg-amber-50 transition-colors"
+                  >
+                    <RadioGroupItem 
+                      value={option.value} 
+                      id={option.value}
+                      className="mt-0.5"
+                      data-testid={`radio-difficulty-${option.value}`}
+                    />
+                    <div className="flex-1">
+                      <Label htmlFor={option.value} className="font-medium cursor-pointer">
+                        {option.label}
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {option.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg border border-amber-200">
               <div>
                 <Label htmlFor="collaborative">Collaborative Mode</Label>
                 <p className="text-sm text-muted-foreground">Allow others to join and solve together</p>
