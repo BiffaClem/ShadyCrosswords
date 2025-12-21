@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight, ChevronDown } from "lucide-react";
+import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight, ChevronDown, Trash2, CheckCircle, AlertCircle } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/auth-utils";
@@ -24,11 +25,20 @@ interface Participant {
 interface SessionWithStats {
   id: string;
   name: string;
+  ownerId: string;
   isCollaborative: boolean;
   createdAt: string;
   percentComplete: number;
   percentCorrect: number;
+  submittedAt: string | null;
   participants: Participant[];
+}
+
+interface UserActivity {
+  id: string;
+  firstName: string | null;
+  email: string | null;
+  lastActivity: string | null;
 }
 
 interface PuzzleWithSessions {
@@ -53,6 +63,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"all" | "inprogress">("all");
   const [hideCompleted, setHideCompleted] = useState(false);
   const [expandedPuzzles, setExpandedPuzzles] = useState<Set<string>>(new Set());
+  const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
@@ -64,6 +75,15 @@ export default function Home() {
       const res = await apiRequest("GET", "/api/puzzles");
       return res.json();
     },
+  });
+
+  const { data: userActivity } = useQuery<UserActivity[]>({
+    queryKey: ["/api/activity"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/activity");
+      return res.json();
+    },
+    refetchInterval: 30000,
   });
 
   const createSessionMutation = useMutation({
@@ -82,6 +102,25 @@ export default function Home() {
         setTimeout(() => { window.location.href = "/api/login"; }, 500);
       } else {
         toast({ title: "Failed to create session", variant: "destructive" });
+      }
+    },
+  });
+
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      await apiRequest("DELETE", `/api/sessions/${sessionId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
+      toast({ title: "Session deleted" });
+      setDeleteSessionId(null);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({ title: "Session expired", description: "Logging in again...", variant: "destructive" });
+        setTimeout(() => { window.location.href = "/api/login"; }, 500);
+      } else {
+        toast({ title: "Failed to delete session", variant: "destructive" });
       }
     },
   });
@@ -148,6 +187,29 @@ export default function Home() {
     return dateB.getTime() - dateA.getTime();
   });
 
+  // Compute metrics
+  const allSessions = puzzles?.flatMap(p => p.sessions) || [];
+  const totalPuzzles = puzzles?.length || 0;
+  const inProgressCount = allSessions.filter(s => s.percentComplete > 0 && s.percentComplete < 100 && !s.submittedAt).length;
+  const completedCount = allSessions.filter(s => s.submittedAt).length;
+  const totalCorrect = allSessions.reduce((sum, s) => sum + s.percentCorrect * s.percentComplete, 0);
+  const totalAttempted = allSessions.reduce((sum, s) => sum + s.percentComplete, 0);
+  const overallAccuracy = totalAttempted > 0 ? Math.round(totalCorrect / totalAttempted) : 0;
+
+  const getActivityStatus = (lastActivity: string | null) => {
+    if (!lastActivity) return { color: "bg-gray-300", label: "Never active" };
+    const diff = Date.now() - new Date(lastActivity).getTime();
+    const minutes = diff / (1000 * 60);
+    const hours = diff / (1000 * 60 * 60);
+    const days = diff / (1000 * 60 * 60 * 24);
+    
+    if (minutes < 5) return { color: "bg-green-500", label: "Active now" };
+    if (hours < 1) return { color: "bg-green-400", label: "Active recently" };
+    if (hours < 24) return { color: "bg-amber-500", label: "Active today" };
+    if (days < 7) return { color: "bg-orange-400", label: "This week" };
+    return { color: "bg-red-400", label: "Inactive" };
+  };
+
   return (
     <div className="min-h-screen bg-amber-50 font-serif">
       <header className="border-b border-amber-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
@@ -178,6 +240,52 @@ export default function Home() {
 
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-5xl mx-auto">
+          {/* Metrics and Activity Section */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div className="bg-white rounded-lg border border-amber-200 p-4 text-center" data-testid="metric-total">
+              <div className="text-2xl font-bold text-amber-900">{totalPuzzles}</div>
+              <div className="text-xs text-amber-600">Total Puzzles</div>
+            </div>
+            <div className="bg-white rounded-lg border border-amber-200 p-4 text-center" data-testid="metric-progress">
+              <div className="text-2xl font-bold text-amber-700 flex items-center justify-center gap-1">
+                <AlertCircle className="h-5 w-5" />
+                {inProgressCount}
+              </div>
+              <div className="text-xs text-amber-600">In Progress</div>
+            </div>
+            <div className="bg-white rounded-lg border border-amber-200 p-4 text-center" data-testid="metric-complete">
+              <div className="text-2xl font-bold text-green-700 flex items-center justify-center gap-1">
+                <CheckCircle className="h-5 w-5" />
+                {completedCount}
+              </div>
+              <div className="text-xs text-amber-600">Submitted</div>
+            </div>
+            <div className="bg-white rounded-lg border border-amber-200 p-4 text-center" data-testid="metric-accuracy">
+              <div className="text-2xl font-bold text-amber-900">{overallAccuracy}%</div>
+              <div className="text-xs text-amber-600">Accuracy</div>
+            </div>
+            <div className="bg-white rounded-lg border border-amber-200 p-3" data-testid="metric-activity">
+              <div className="text-xs text-amber-600 mb-2 font-medium">Recent Activity</div>
+              <div className="flex flex-wrap gap-2">
+                {userActivity?.slice(0, 5).map((u) => {
+                  const status = getActivityStatus(u.lastActivity);
+                  return (
+                    <div 
+                      key={u.id} 
+                      className="flex items-center gap-1.5"
+                      title={`${u.firstName || u.email || 'User'}: ${status.label}`}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${status.color}`} />
+                      <span className="text-xs text-amber-800 truncate max-w-16">
+                        {u.firstName || u.email?.split('@')[0] || 'User'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between mb-4">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
               <TabsList>
@@ -272,43 +380,61 @@ export default function Home() {
                             </Button>
                           </td>
                         </tr>
-                        {isExpanded && puzzle.sessions.map((session) => (
-                          <tr 
-                            key={session.id}
-                            className="bg-amber-50/50 hover:bg-amber-100/50 cursor-pointer"
-                            onClick={() => navigate(`/session/${session.id}`)}
-                            data-testid={`session-${session.id}`}
-                          >
-                            <td className="px-4 py-2 pl-10">
-                              <div className="flex items-center gap-2">
-                                <span className="text-amber-800">{session.name}</span>
-                                {session.isCollaborative && (
-                                  <Users className="h-3.5 w-3.5 text-amber-600" />
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-2 text-center text-xs text-amber-600">
-                              {session.participants.length > 0 && (
-                                <span>{session.participants.length} participant{session.participants.length !== 1 ? 's' : ''}</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-2"></td>
-                            <td className="px-4 py-2 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <div className="w-20 h-1.5 bg-amber-200 rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-amber-600 rounded-full" 
-                                    style={{ width: `${session.percentComplete}%` }}
-                                  />
+                        {isExpanded && puzzle.sessions.map((session) => {
+                          const isOwner = session.ownerId === user?.id;
+                          return (
+                            <tr 
+                              key={session.id}
+                              className="bg-amber-50/50 hover:bg-amber-100/50 cursor-pointer"
+                              onClick={() => navigate(`/session/${session.id}`)}
+                              data-testid={`session-${session.id}`}
+                            >
+                              <td className="px-4 py-2 pl-10">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-amber-800">{session.name}</span>
+                                  {session.isCollaborative && (
+                                    <Users className="h-3.5 w-3.5 text-amber-600" />
+                                  )}
+                                  {session.submittedAt && (
+                                    <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                                  )}
                                 </div>
-                                <span className="text-xs text-amber-600">{session.percentComplete}%</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-2 text-right">
-                              <ChevronRight className="h-4 w-4 text-amber-400 inline" />
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td className="px-4 py-2 text-center text-xs text-amber-600">
+                                {session.participants.length > 0 && (
+                                  <span>{session.participants.length} participant{session.participants.length !== 1 ? 's' : ''}</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-2"></td>
+                              <td className="px-4 py-2 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <div className="w-20 h-1.5 bg-amber-200 rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full rounded-full ${session.submittedAt ? 'bg-green-600' : 'bg-amber-600'}`}
+                                      style={{ width: `${session.percentComplete}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-xs text-amber-600">{session.percentComplete}%</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-2 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  {isOwner && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setDeleteSessionId(session.id); }}
+                                      className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
+                                      title="Delete session"
+                                      data-testid={`button-delete-session-${session.id}`}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  )}
+                                  <ChevronRight className="h-4 w-4 text-amber-400" />
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </React.Fragment>
                     );
                   })}
@@ -391,6 +517,27 @@ export default function Home() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteSessionId} onOpenChange={(open) => !open && setDeleteSessionId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Session</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this session? This action cannot be undone and will remove all progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteSessionId && deleteSessionMutation.mutate(deleteSessionId)}
+              className="bg-red-600 hover:bg-red-700"
+              data-testid="button-confirm-delete"
+            >
+              {deleteSessionMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

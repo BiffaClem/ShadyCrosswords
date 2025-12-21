@@ -7,7 +7,7 @@ import {
   type SessionInvite, type InsertInvite
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Puzzles
@@ -46,6 +46,9 @@ export interface IStorage {
   
   // Users
   getAllUsers(): Promise<Array<{id: string; firstName: string | null; email: string | null}>>;
+  
+  // Activity
+  getRecentUserActivity(): Promise<Array<{id: string; firstName: string | null; email: string | null; lastActivity: Date | null}>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -245,6 +248,23 @@ export class DatabaseStorage implements IStorage {
       firstName: users.firstName,
       email: users.email,
     }).from(users);
+  }
+
+  // Activity
+  async getRecentUserActivity(): Promise<Array<{id: string; firstName: string | null; email: string | null; lastActivity: Date | null}>> {
+    // Get the most recent activity for each user across all sessions
+    const results = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        email: users.email,
+        lastActivity: sql<Date>`MAX(${sessionParticipants.lastActivity})`.as('lastActivity'),
+      })
+      .from(users)
+      .leftJoin(sessionParticipants, eq(sessionParticipants.userId, users.id))
+      .groupBy(users.id, users.firstName, users.email)
+      .orderBy(sql`MAX(${sessionParticipants.lastActivity}) DESC NULLS LAST`);
+    return results;
   }
 }
 

@@ -2082,7 +2082,7 @@
         "direction": "down",
         "text": "Capital in company affected by inflation?",
         "enumeration": "5",
-        "answer": null,
+        "answer": CAIRO,
         "explanation": "CAIRO (i.e. “capital [of Egypt]”). Solution is CO (a recognised abbreviation of “company”) with AIR placed inside (i.e. “affected by inflation”, like filling a balloon), like so: C(AIR)O. Another one that made me smile when I figured it out.",
         "row": 19,
         "col": 1,

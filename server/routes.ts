@@ -133,6 +133,7 @@ export async function registerRoutes(
             ...session,
             percentComplete: totalCells > 0 ? Math.round((filledCells / totalCells) * 100) : 0,
             percentCorrect: filledCells > 0 ? Math.round((correctCells / filledCells) * 100) : 0,
+            submittedAt: progress?.submittedAt || null,
             participants,
           };
         }));
@@ -159,6 +160,17 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching sessions:", error);
       res.status(500).json({ message: "Failed to fetch sessions" });
+    }
+  });
+
+  // Get recent user activity across all sessions
+  app.get("/api/activity", isAuthenticated, async (req: any, res) => {
+    try {
+      const recentActivity = await storage.getRecentUserActivity();
+      res.json(recentActivity);
+    } catch (error) {
+      console.error("Error fetching activity:", error);
+      res.status(500).json({ message: "Failed to fetch activity" });
     }
   });
 
