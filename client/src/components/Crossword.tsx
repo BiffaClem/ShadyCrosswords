@@ -35,8 +35,36 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [direction, setDirection] = useState<"across" | "down">("across");
   const [showErrors, setShowErrors] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  // Detect mobile on initial render only
+  const isMobileInitial = typeof window !== 'undefined' && (
+    window.matchMedia('(max-width: 768px)').matches || 'ontouchstart' in window
+  );
+  const [isMobile, setIsMobile] = useState(isMobileInitial);
+  const [zoom, setZoom] = useState(isMobileInitial ? 0.5 : 1);
+  const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
+  
+  // Detect mobile for layout purposes, but only set zoom once
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.matchMedia('(max-width: 768px)').matches || 
+                     ('ontouchstart' in window);
+      setIsMobile(mobile);
+    };
+    
+    // Set initial zoom only once
+    if (!hasInitializedZoom) {
+      const mobile = window.matchMedia('(max-width: 768px)').matches || 
+                     ('ontouchstart' in window);
+      setZoom(mobile ? 0.5 : 1);
+      setHasInitializedZoom(true);
+    }
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [hasInitializedZoom]);
 
   // Update grid when initialGrid prop changes (for real-time collaboration)
   useEffect(() => {
@@ -343,11 +371,54 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     } else {
       setActiveCell({ row: r, col: c });
     }
+    
+    // Focus hidden input on mobile to invoke keyboard
+    if (isMobile && hiddenInputRef.current) {
+      hiddenInputRef.current.focus();
+    }
   };
+  
+  // Handle mobile keyboard input via hidden input
+  const handleHiddenInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!puzzle || !activeCell) return;
+    
+    const value = e.target.value.toUpperCase();
+    if (value.length > 0 && value.match(/[A-Z]/)) {
+      const char = value[value.length - 1]; // Get last character typed
+      const { row, col } = activeCell;
+      const newGrid = gridState.map(r => [...r]);
+      newGrid[row][col] = char;
+      setGridState(newGrid);
+      if (onCellChange) onCellChange(row, col, char, newGrid);
+      moveCursorTyping(1);
+    }
+    
+    // Clear the input for next character
+    e.target.value = '';
+  }, [puzzle, activeCell, gridState, onCellChange, moveCursorTyping]);
+  
+  // Handle backspace on mobile
+  const handleHiddenKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!puzzle || !activeCell) return;
+    
+    if (e.key === 'Backspace') {
+      const { row, col } = activeCell;
+      const newGrid = gridState.map(r => [...r]);
+      newGrid[row][col] = '';
+      setGridState(newGrid);
+      if (onCellChange) onCellChange(row, col, '', newGrid);
+      moveCursorTyping(-1);
+    }
+  }, [puzzle, activeCell, gridState, onCellChange, moveCursorTyping]);
 
   const handleClueClick = (clue: Clue) => {
     setActiveCell({ row: clue.row - 1, col: clue.col - 1 });
     setDirection(clue.direction);
+    
+    // Focus hidden input on mobile
+    if (isMobile && hiddenInputRef.current) {
+      hiddenInputRef.current.focus();
+    }
   };
 
   const checkPuzzle = () => {
@@ -588,11 +659,41 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex flex-row flex-1 overflow-hidden">
+      {/* Hidden input for mobile keyboard */}
+      <input
+        ref={hiddenInputRef}
+        type="text"
+        inputMode="text"
+        autoCapitalize="characters"
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
+        onChange={handleHiddenInput}
+        onKeyDown={handleHiddenKeyDown}
+        className="sr-only"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          opacity: 0
+        }}
+        aria-label="Crossword input"
+      />
+
+      {/* Main Content - Responsive layout */}
+      <main className={cn(
+        "flex flex-1 overflow-hidden",
+        isMobile ? "flex-col" : "flex-row"
+      )}>
         
-        {/* Clue List (Left side) */}
-        <div className="w-80 h-full border-r border-border bg-card flex flex-col shrink-0">
+        {/* Clue List - Side on desktop, bottom drawer on mobile */}
+        <div className={cn(
+          "bg-card flex flex-col shrink-0",
+          isMobile 
+            ? "order-2 h-48 border-t border-border" 
+            : "w-80 h-full border-r border-border"
+        )}>
             <div className="p-3 bg-muted/20 border-b border-border">
                 <h2 className="font-serif font-bold text-sm">Clues</h2>
             </div>
@@ -667,8 +768,27 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
             </Tabs>
         </div>
 
-        {/* Grid Section (Right) */}
-        <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center gap-4">
+        {/* Grid Section - Top on mobile, right on desktop */}
+        <div className={cn(
+          "flex-1 flex flex-col overflow-auto items-center justify-center",
+          isMobile ? "order-1 p-2 gap-2" : "p-4 gap-4"
+        )}>
+            {/* Mobile: Show active clue prominently */}
+            {isMobile && activeClue && (
+              <div 
+                className="w-full bg-amber-50 border border-amber-200 rounded-lg px-3 py-2"
+                onClick={() => hiddenInputRef.current?.focus()}
+              >
+                <div className="flex items-start gap-2">
+                  <span className="font-bold text-amber-700">
+                    {activeClue.number}{activeClue.direction === 'across' ? 'A' : 'D'}
+                  </span>
+                  <span className="text-sm text-amber-900 flex-1">{activeClue.text}</span>
+                  <span className="text-xs text-amber-500">({activeClue.enumeration})</span>
+                </div>
+              </div>
+            )}
+            
             {/* Grid Container - Responsive with aspect ratio */}
             <div className="flex-1 flex items-center justify-center min-w-0 w-full">
               <div 
