@@ -129,6 +129,19 @@ export default function Home() {
   const getPuzzleNumber = (puzzle: PuzzleWithSessions) => {
     return puzzle.data?.puzzleNumber || puzzle.puzzleId || puzzle.title;
   };
+  
+  // Extract numeric puzzle number for sorting (handles titles like "Times Jumbo Cryptic Crossword 1649")
+  const getNumericPuzzleNumber = (puzzle: PuzzleWithSessions): number => {
+    const puzzleNum = puzzle.data?.puzzleNumber;
+    if (puzzleNum) {
+      const num = parseInt(puzzleNum, 10);
+      if (!isNaN(num)) return num;
+    }
+    // Try to extract number from title (e.g., "...Crossword 1649 (2024-01-05)")
+    const match = puzzle.title?.match(/(\d{4,})/);
+    if (match) return parseInt(match[1], 10);
+    return 0;
+  };
 
   const handleStartNewSession = (puzzle: PuzzleWithSessions) => {
     setSelectedPuzzle(puzzle);
@@ -196,9 +209,23 @@ export default function Home() {
   }) || [];
 
   const sortedPuzzles = [...filteredPuzzles].sort((a, b) => {
+    // Sort by date descending (most recent first)
     const dateA = a.data?.date || "";
     const dateB = b.data?.date || "";
-    return dateB.localeCompare(dateA);
+    
+    // If both have dates, compare dates
+    if (dateA && dateB) {
+      return dateB.localeCompare(dateA);
+    }
+    
+    // If only one has a date, the one with date comes first
+    if (dateA && !dateB) return -1;
+    if (!dateA && dateB) return 1;
+    
+    // If neither has a date, sort by puzzle number descending
+    const numA = getNumericPuzzleNumber(a);
+    const numB = getNumericPuzzleNumber(b);
+    return numB - numA;
   });
   
   const formatDate = (dateStr: string | undefined): string => {
