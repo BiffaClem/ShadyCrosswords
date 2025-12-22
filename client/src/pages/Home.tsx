@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight, ChevronDown, Trash2, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight, ChevronDown, Trash2, CheckCircle, AlertCircle, Pencil } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -65,6 +65,8 @@ export default function Home() {
   const [expandedPuzzles, setExpandedPuzzles] = useState<Set<string>>(new Set());
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
+  const [newDisplayName, setNewDisplayName] = useState("");
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
@@ -125,6 +127,39 @@ export default function Home() {
       }
     },
   });
+
+  const updateNameMutation = useMutation({
+    mutationFn: async (firstName: string) => {
+      const res = await apiRequest("PATCH", "/api/users/me", { firstName });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/activity"] });
+      toast({ title: "Name updated" });
+      setEditNameDialogOpen(false);
+      window.location.reload();
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({ title: "Session expired", description: "Logging in again...", variant: "destructive" });
+        setTimeout(() => { window.location.href = "/api/login"; }, 500);
+      } else {
+        toast({ title: "Failed to update name", variant: "destructive" });
+      }
+    },
+  });
+
+  const handleEditName = () => {
+    setNewDisplayName(user?.firstName || "");
+    setEditNameDialogOpen(true);
+  };
+
+  const handleSaveName = () => {
+    if (newDisplayName.trim()) {
+      updateNameMutation.mutate(newDisplayName.trim());
+    }
+  };
 
   const getPuzzleNumber = (puzzle: PuzzleWithSessions) => {
     return puzzle.data?.puzzleNumber || puzzle.puzzleId || puzzle.title;
@@ -266,10 +301,18 @@ export default function Home() {
               <p className="text-xs text-amber-700 italic">It's a family thing...</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-amber-700" data-testid="text-username">
-              {user?.firstName || user?.email || "User"}
-            </span>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button
+              onClick={handleEditName}
+              className="flex items-center gap-1 text-amber-700 hover:text-amber-900 transition-colors"
+              data-testid="button-edit-name"
+              title="Edit your display name"
+            >
+              <span data-testid="text-username">
+                {user?.firstName || user?.email || "User"}
+              </span>
+              <Pencil className="h-3 w-3" />
+            </button>
             <Button 
               variant="ghost"
               onClick={() => window.location.href = "/api/logout"}
@@ -277,7 +320,7 @@ export default function Home() {
               data-testid="button-logout"
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              <span className="hidden sm:inline">Sign Out</span>
             </Button>
           </div>
         </div>
@@ -353,7 +396,7 @@ export default function Home() {
               </select>
             </div>
             
-            <label className="flex items-center gap-2 text-xs sm:text-sm text-amber-700 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-amber-700 cursor-pointer">
               <Checkbox 
                 checked={hideCompleted} 
                 onCheckedChange={(c) => setHideCompleted(!!c)}
@@ -403,8 +446,8 @@ export default function Home() {
                               {puzzle.sessions.length > 0 && (
                                 <ChevronDown className={`h-4 w-4 text-amber-500 transition-transform flex-shrink-0 ${isExpanded ? '' : '-rotate-90'}`} />
                               )}
-                              {/* Show just puzzle number on mobile, full title on desktop */}
-                              <span className="font-medium text-amber-900 text-sm truncate sm:hidden">#{getPuzzleNumber(puzzle)}</span>
+                              {/* Show just puzzle number on mobile (larger font), full title on desktop */}
+                              <span className="font-medium text-amber-900 text-base truncate sm:hidden">#{getPuzzleNumber(puzzle)}</span>
                               <span className="font-medium text-amber-900 text-base truncate hidden sm:inline">{puzzle.title}</span>
                             </div>
                           </td>
@@ -423,7 +466,7 @@ export default function Home() {
                                     style={{ width: `${bestSession.percentComplete}%` }}
                                   />
                                 </div>
-                                <span className="text-xs sm:text-sm text-amber-700">{bestSession.percentComplete}%</span>
+                                <span className="text-sm text-amber-700">{bestSession.percentComplete}%</span>
                               </div>
                             ) : (
                               <span className="text-amber-400 text-sm">-</span>
@@ -452,7 +495,7 @@ export default function Home() {
                             >
                               <td className="px-2 sm:px-4 py-2 pl-6 sm:pl-10" colSpan={1}>
                                 <div className="flex items-center gap-1 sm:gap-2">
-                                  <span className="text-amber-800 text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{session.name}</span>
+                                  <span className="text-amber-800 text-sm truncate max-w-[120px] sm:max-w-none">{session.name}</span>
                                   {session.isCollaborative && (
                                     <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-600 flex-shrink-0" />
                                   )}
@@ -599,6 +642,43 @@ export default function Home() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={editNameDialogOpen} onOpenChange={setEditNameDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Edit Display Name</DialogTitle>
+            <DialogDescription>
+              Change how your name appears to others
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="display-name">Display Name</Label>
+              <Input 
+                id="display-name" 
+                value={newDisplayName}
+                onChange={(e) => setNewDisplayName(e.target.value)}
+                placeholder="Enter your name"
+                data-testid="input-display-name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditNameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveName}
+              disabled={updateNameMutation.isPending || !newDisplayName.trim()}
+              className="bg-amber-700 hover:bg-amber-800"
+              data-testid="button-save-name"
+            >
+              {updateNameMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
