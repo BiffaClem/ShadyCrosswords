@@ -42,9 +42,20 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [isMobile, setIsMobile] = useState(isMobileInitial);
   const [zoom, setZoom] = useState(isMobileInitial ? 0.5 : 1);
   const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
+  const [cluePanelHeight, setCluePanelHeight] = useState(200);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const activeClueRef = useRef<HTMLButtonElement>(null);
+  
+  // Refs for long-press keyboard detection
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressStartPos = useRef<{ x: number; y: number } | null>(null);
+  const longPressTriggered = useRef(false);
+  
+  // Refs for separator dragging
+  const isDraggingSeparator = useRef(false);
+  const dragStartY = useRef(0);
+  const dragStartHeight = useRef(200);
   
   // Detect mobile for layout purposes, but only set zoom once
   useEffect(() => {
@@ -377,17 +388,86 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     if (!puzzle) return;
     if (puzzle.grid[r][c] === "#") return;
 
+    // Skip direction toggle if long-press just triggered (keyboard invocation)
+    if (longPressTriggered.current) {
+      longPressTriggered.current = false;
+      return;
+    }
+
     if (activeCell?.row === r && activeCell?.col === c) {
       toggleDirection();
     } else {
       setActiveCell({ row: r, col: c });
     }
     
-    // Focus hidden input on mobile to invoke keyboard
-    if (isMobile && hiddenInputRef.current) {
-      hiddenInputRef.current.focus();
-    }
+    // On desktop, keyboard works automatically via physical keyboard
+    // On mobile, keyboard requires long-press (handled separately)
   };
+  
+  // Long-press handlers for mobile keyboard invocation
+  const handleCellPointerDown = useCallback((r: number, c: number, e: React.PointerEvent) => {
+    if (!isMobile || isSubmitted) return;
+    if (!puzzle || puzzle.grid[r][c] === "#") return;
+    
+    longPressStartPos.current = { x: e.clientX, y: e.clientY };
+    
+    longPressTimerRef.current = setTimeout(() => {
+      // Long press detected - focus input to show keyboard
+      longPressTriggered.current = true;
+      if (hiddenInputRef.current) {
+        hiddenInputRef.current.focus();
+      }
+      longPressTimerRef.current = null;
+    }, 400);
+  }, [isMobile, isSubmitted, puzzle]);
+  
+  const handleCellPointerUp = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    longPressStartPos.current = null;
+  }, []);
+  
+  const handleCellPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!longPressStartPos.current || !longPressTimerRef.current) return;
+    
+    const dx = Math.abs(e.clientX - longPressStartPos.current.x);
+    const dy = Math.abs(e.clientY - longPressStartPos.current.y);
+    
+    // Cancel long-press if pointer moves too much (probably scrolling)
+    if (dx > 10 || dy > 10) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+      longPressStartPos.current = null;
+    }
+  }, []);
+  
+  // Separator drag handlers
+  const handleSeparatorPointerDown = useCallback((e: React.PointerEvent) => {
+    if (!isMobile) return;
+    e.preventDefault();
+    isDraggingSeparator.current = true;
+    dragStartY.current = e.clientY;
+    dragStartHeight.current = cluePanelHeight;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, [isMobile, cluePanelHeight]);
+  
+  const handleSeparatorPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDraggingSeparator.current) return;
+    
+    const delta = dragStartY.current - e.clientY;
+    const maxHeight = window.innerHeight - 200;
+    const newHeight = Math.max(100, Math.min(maxHeight, dragStartHeight.current + delta));
+    setCluePanelHeight(newHeight);
+  }, []);
+  
+  const handleSeparatorPointerUp = useCallback((e: React.PointerEvent) => {
+    if (isDraggingSeparator.current) {
+      isDraggingSeparator.current = false;
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    }
+  }, []);
   
   // Handle mobile keyboard input via hidden input
   const handleHiddenInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -425,11 +505,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const handleClueClick = (clue: Clue) => {
     setActiveCell({ row: clue.row - 1, col: clue.col - 1 });
     setDirection(clue.direction);
-    
-    // Focus hidden input on mobile
-    if (isMobile && hiddenInputRef.current) {
-      hiddenInputRef.current.focus();
-    }
+    // Keyboard is invoked via long-press on the grid, not on clue click
   };
 
   const checkPuzzle = () => {
@@ -736,8 +812,13 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                       <div 
                         key={`${r}-${c}`}
                         onClick={() => !isSubmitted && handleCellClick(r, c)}
+                        onPointerDown={(e) => handleCellPointerDown(r, c, e)}
+                        onPointerUp={handleCellPointerUp}
+                        onPointerMove={handleCellPointerMove}
+                        onPointerCancel={handleCellPointerUp}
+                        onPointerLeave={handleCellPointerUp}
                         className={cn(
-                          "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75",
+                          "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 touch-manipulation",
                           isSubmitted ? "cursor-default" : "cursor-pointer",
                           isBlack ? "bg-black" : "bg-white",
                           !isSubmitted && isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
@@ -766,8 +847,22 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
           </div>
         </div>
         
-        {/* Clue List - Below grid on mobile (fixed height), left side on desktop */}
-        <div className="bg-card flex flex-col h-48 md:h-full flex-none md:order-1 border-t md:border-t-0 md:border-r border-border md:w-80 min-h-0 overflow-hidden">
+        {/* Draggable separator - mobile only */}
+        <div 
+          className="md:hidden flex items-center justify-center h-4 bg-muted/30 border-y border-border cursor-row-resize touch-none select-none active:bg-muted/50"
+          onPointerDown={handleSeparatorPointerDown}
+          onPointerMove={handleSeparatorPointerMove}
+          onPointerUp={handleSeparatorPointerUp}
+          onPointerCancel={handleSeparatorPointerUp}
+        >
+          <div className="w-12 h-1 bg-muted-foreground/40 rounded-full" />
+        </div>
+        
+        {/* Clue List - Below grid on mobile (resizable), left side on desktop */}
+        <div 
+          className="bg-card flex flex-col flex-none md:order-1 md:border-t-0 md:border-r border-border md:w-80 md:h-full min-h-0 overflow-hidden"
+          style={{ height: isMobile ? `${cluePanelHeight}px` : undefined }}
+        >
             <div className="hidden md:block p-3 bg-muted/20 border-b border-border">
                 <h2 className="font-serif font-bold text-sm">Clues</h2>
             </div>
