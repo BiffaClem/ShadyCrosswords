@@ -443,30 +443,43 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }
   }, []);
   
-  // Separator drag handlers
-  const handleSeparatorPointerDown = useCallback((e: React.PointerEvent) => {
+  // Separator drag handlers - use window-level events for reliable tracking
+  const handleSeparatorStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     if (!isMobile) return;
     e.preventDefault();
     isDraggingSeparator.current = true;
-    dragStartY.current = e.clientY;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    dragStartY.current = clientY;
     dragStartHeight.current = cluePanelHeight;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }, [isMobile, cluePanelHeight]);
   
-  const handleSeparatorPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDraggingSeparator.current) return;
+  // Window-level drag handlers
+  useEffect(() => {
+    const handleMove = (e: TouchEvent | MouseEvent) => {
+      if (!isDraggingSeparator.current) return;
+      
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const delta = dragStartY.current - clientY;
+      const maxHeight = window.innerHeight - 200;
+      const newHeight = Math.max(100, Math.min(maxHeight, dragStartHeight.current + delta));
+      setCluePanelHeight(newHeight);
+    };
     
-    const delta = dragStartY.current - e.clientY;
-    const maxHeight = window.innerHeight - 200;
-    const newHeight = Math.max(100, Math.min(maxHeight, dragStartHeight.current + delta));
-    setCluePanelHeight(newHeight);
-  }, []);
-  
-  const handleSeparatorPointerUp = useCallback((e: React.PointerEvent) => {
-    if (isDraggingSeparator.current) {
+    const handleEnd = () => {
       isDraggingSeparator.current = false;
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    }
+    };
+    
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleEnd);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleEnd);
+      window.removeEventListener('touchmove', handleMove);
+      window.removeEventListener('touchend', handleEnd);
+    };
   }, []);
   
   // Handle mobile keyboard input via hidden input
@@ -775,8 +788,8 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       {/* Main Content - Simple stacked layout: Grid first, Clues below */}
       <main className="flex flex-1 overflow-hidden flex-col md:flex-row">
         
-        {/* Grid Section - Always first visually, full width on mobile */}
-        <div className="flex flex-col items-center w-full shrink-0 p-1 md:p-4 md:flex-1 md:order-2 overflow-auto">
+        {/* Grid Section - Always first visually, flex to fill remaining space on mobile */}
+        <div className="flex flex-col items-center w-full flex-1 p-1 md:p-4 md:order-2 overflow-auto min-h-0">
           <div 
             className="bg-card rounded-lg shadow-sm border border-border/50 p-1 md:p-4 max-w-full"
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -849,13 +862,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         
         {/* Draggable separator - mobile only */}
         <div 
-          className="md:hidden flex items-center justify-center h-4 bg-muted/30 border-y border-border cursor-row-resize touch-none select-none active:bg-muted/50"
-          onPointerDown={handleSeparatorPointerDown}
-          onPointerMove={handleSeparatorPointerMove}
-          onPointerUp={handleSeparatorPointerUp}
-          onPointerCancel={handleSeparatorPointerUp}
+          className="md:hidden flex items-center justify-center h-5 bg-muted/40 border-y border-border cursor-row-resize touch-none select-none shrink-0"
+          onMouseDown={handleSeparatorStart}
+          onTouchStart={handleSeparatorStart}
         >
-          <div className="w-12 h-1 bg-muted-foreground/40 rounded-full" />
+          <div className="w-16 h-1.5 bg-muted-foreground/50 rounded-full" />
         </div>
         
         {/* Clue List - Below grid on mobile (resizable), left side on desktop */}
