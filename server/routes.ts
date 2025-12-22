@@ -479,6 +479,30 @@ export async function registerRoutes(
     }
   });
 
+  // Update current user profile
+  app.patch("/api/users/me", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { firstName } = req.body;
+      
+      if (typeof firstName !== "string" || firstName.trim().length === 0) {
+        res.status(400).json({ message: "Invalid first name" });
+        return;
+      }
+      
+      const updatedUser = await storage.updateUser(userId, { firstName: firstName.trim() });
+      if (!updatedUser) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
   // Get invites for current user
   app.get("/api/invites", isAuthenticated, async (req: any, res) => {
     try {

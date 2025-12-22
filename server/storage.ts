@@ -46,6 +46,7 @@ export interface IStorage {
   
   // Users
   getAllUsers(): Promise<Array<{id: string; firstName: string | null; email: string | null}>>;
+  updateUser(id: string, data: { firstName?: string }): Promise<{id: string; firstName: string | null; email: string | null} | undefined>;
   
   // Activity
   getRecentUserActivity(): Promise<Array<{id: string; firstName: string | null; email: string | null; lastActivity: Date | null}>>;
@@ -248,6 +249,15 @@ export class DatabaseStorage implements IStorage {
       firstName: users.firstName,
       email: users.email,
     }).from(users);
+  }
+
+  async updateUser(id: string, data: { firstName?: string }): Promise<{id: string; firstName: string | null; email: string | null} | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ firstName: data.firstName, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning({ id: users.id, firstName: users.firstName, email: users.email });
+    return updated;
   }
 
   // Activity
