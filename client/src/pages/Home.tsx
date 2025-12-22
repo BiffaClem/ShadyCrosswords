@@ -208,24 +208,22 @@ export default function Home() {
     return true;
   }) || [];
 
+  // Helper to check if puzzle has active (in-progress) sessions
+  const hasActiveSession = (puzzle: PuzzleWithSessions): boolean => {
+    return puzzle.sessions.some(s => s.percentComplete > 0 && s.percentComplete < 100 && !s.submittedAt);
+  };
+
   const sortedPuzzles = [...filteredPuzzles].sort((a, b) => {
-    // Sort by date descending (most recent first)
-    const dateA = a.data?.date || "";
-    const dateB = b.data?.date || "";
+    // Priority 1: In-progress puzzles come first
+    const aActive = hasActiveSession(a);
+    const bActive = hasActiveSession(b);
+    if (aActive && !bActive) return -1;
+    if (!aActive && bActive) return 1;
     
-    // If both have dates, compare dates
-    if (dateA && dateB) {
-      return dateB.localeCompare(dateA);
-    }
-    
-    // If only one has a date, the one with date comes first
-    if (dateA && !dateB) return -1;
-    if (!dateA && dateB) return 1;
-    
-    // If neither has a date, sort by puzzle number descending
+    // Priority 2: Sort by puzzle number ascending (lowest number first)
     const numA = getNumericPuzzleNumber(a);
     const numB = getNumericPuzzleNumber(b);
-    return numB - numA;
+    return numA - numB;
   });
   
   const formatDate = (dateStr: string | undefined): string => {
