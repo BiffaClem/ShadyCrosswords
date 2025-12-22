@@ -42,11 +42,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [isMobile, setIsMobile] = useState(isMobileInitial);
   const [zoom, setZoom] = useState(isMobileInitial ? 0.5 : 1);
   const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
-  const [mobileClueHeight, setMobileClueHeight] = useState(220);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
-  const dragStartY = useRef<number | null>(null);
-  const dragStartHeight = useRef<number>(220);
+  const activeClueRef = useRef<HTMLButtonElement>(null);
   
   // Detect mobile for layout purposes, but only set zoom once
   useEffect(() => {
@@ -365,6 +363,16 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       }
   }, [activeCell, activeClue, direction, puzzle]);
 
+  // Auto-scroll to active clue when it changes
+  useEffect(() => {
+    if (activeClue && activeClueRef.current) {
+      activeClueRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      });
+    }
+  }, [activeClue?.number, activeClue?.direction]);
+
   const handleCellClick = (r: number, c: number) => {
     if (!puzzle) return;
     if (puzzle.grid[r][c] === "#") return;
@@ -423,26 +431,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       hiddenInputRef.current.focus();
     }
   };
-  
-  // Mobile clue panel drag handlers
-  const handleDragStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    dragStartY.current = clientY;
-    dragStartHeight.current = mobileClueHeight;
-  }, [mobileClueHeight]);
-  
-  const handleDragMove = useCallback((e: React.TouchEvent | React.MouseEvent) => {
-    if (dragStartY.current === null) return;
-    
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    const delta = dragStartY.current - clientY;
-    const newHeight = Math.max(80, Math.min(400, dragStartHeight.current + delta));
-    setMobileClueHeight(newHeight);
-  }, []);
-  
-  const handleDragEnd = useCallback(() => {
-    dragStartY.current = null;
-  }, []);
 
   const checkPuzzle = () => {
     if (!puzzle) return;
@@ -553,10 +541,14 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       
-      {/* Minimal Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
-        <div className="flex-1">
-          <h1 className="text-xl font-serif font-bold">{puzzle.title}</h1>
+      {/* Minimal Header - compact on mobile */}
+      <header className="flex items-center justify-between px-2 md:px-4 py-2 md:py-3 border-b border-border bg-card shrink-0">
+        <div className="flex-1 min-w-0">
+          {/* Short title on mobile (just puzzle number), full title on desktop */}
+          <h1 className="text-base md:text-xl font-serif font-bold truncate">
+            <span className="md:hidden">#{puzzle.puzzleId || puzzle.title.match(/\d{4}/)?.[0] || puzzle.title}</span>
+            <span className="hidden md:inline">{puzzle.title}</span>
+          </h1>
         </div>
         
         <div className="relative">
@@ -704,26 +696,78 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         aria-label="Crossword input"
       />
 
-      {/* Main Content - CSS-based responsive layout */}
+      {/* Main Content - Simple stacked layout: Grid first, Clues below */}
       <main className="flex flex-1 overflow-hidden flex-col md:flex-row">
         
-        {/* Clue List - Bottom on mobile, left side on desktop */}
-        <div 
-          className="bg-card flex flex-col shrink-0 order-2 md:order-1 border-t md:border-t-0 md:border-r border-border h-56 md:h-full md:w-80"
-        >
-            {/* Drag handle for mobile */}
+        {/* Grid Section - Always first visually, full width on mobile */}
+        <div className="flex flex-col items-center w-full shrink-0 p-1 md:p-4 md:flex-1 md:order-2 overflow-auto">
+          <div 
+            className="bg-card rounded-lg shadow-sm border border-border/50 p-1 md:p-4 max-w-full"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
             <div 
-              className="flex md:hidden justify-center items-center py-2 cursor-ns-resize touch-none bg-muted/30 border-b border-border"
-              onTouchStart={handleDragStart}
-              onTouchMove={handleDragMove}
-              onTouchEnd={handleDragEnd}
-              onMouseDown={handleDragStart}
-              onMouseMove={handleDragMove}
-              onMouseUp={handleDragEnd}
-              onMouseLeave={handleDragEnd}
+              style={{
+                transform: `scale(${zoom})`,
+                transformOrigin: 'center center',
+                width: 'fit-content',
+                height: 'fit-content'
+              }}
             >
-              <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
+              <div 
+                className="grid gap-0 select-none"
+                style={{
+                  gridTemplateColumns: `repeat(${puzzle.size.cols}, 32px)`,
+                  backgroundColor: '#1a1a1a',
+                  padding: '1px',
+                  gap: '1px'
+                }}
+              >
+                {puzzle.grid.map((rowStr, r) => (
+                  rowStr.split('').map((cellChar, c) => {
+                    const isBlack = cellChar === "#";
+                    const isActive = activeCell?.row === r && activeCell?.col === c;
+                    const isInClue = !isBlack && isCellInActiveClue(r, c);
+                    const number = puzzle.numbers[r][c];
+                    const displayValue = getDisplayValue(r, c);
+                    const isError = isCellError(r, c);
+                    const submittedStatus = getCellSubmittedStatus(r, c);
+
+                    return (
+                      <div 
+                        key={`${r}-${c}`}
+                        onClick={() => !isSubmitted && handleCellClick(r, c)}
+                        className={cn(
+                          "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75",
+                          isSubmitted ? "cursor-default" : "cursor-pointer",
+                          isBlack ? "bg-black" : "bg-white",
+                          !isSubmitted && isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
+                          !isSubmitted && !isActive && isInClue ? "bg-amber-100" : "",
+                          !isSubmitted && isError ? "text-red-600 bg-red-50" : "",
+                          submittedStatus.isMissing ? "text-blue-600" : "",
+                          submittedStatus.isIncorrect ? "text-red-600" : ""
+                        )}
+                        style={{ width: '32px', height: '32px', fontSize: '1.1rem' }}
+                      >
+                        {!isBlack && number && (
+                          <span 
+                            className="font-mono text-gray-600 absolute"
+                            style={{ fontSize: '9px', top: '1px', left: '2px' }}
+                          >
+                            {number}
+                          </span>
+                        )}
+                        {!isBlack && displayValue}
+                      </div>
+                    );
+                  })
+                ))}
+              </div>
             </div>
+          </div>
+        </div>
+        
+        {/* Clue List - Below grid on mobile (fixed height), left side on desktop */}
+        <div className="bg-card flex flex-col h-48 md:h-full flex-none md:order-1 border-t md:border-t-0 md:border-r border-border md:w-80 min-h-0 overflow-hidden">
             <div className="hidden md:block p-3 bg-muted/20 border-b border-border">
                 <h2 className="font-serif font-bold text-sm">Clues</h2>
             </div>
@@ -747,6 +791,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                     return (
                                         <div key={getClueId(clue)} className="space-y-1">
                                           <button
+                                            ref={isActive ? activeClueRef : undefined}
                                             onClick={() => handleClueClick(clue)}
                                             className={cn(
                                                 "w-full text-left p-2 rounded-md transition-all flex items-start gap-2 group relative",
@@ -796,103 +841,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                     </TabsContent>
                 ))}
             </Tabs>
-        </div>
-
-        {/* Grid Section - Top on mobile, right on desktop */}
-        <div className="flex flex-col overflow-auto items-center order-1 md:order-2 p-2 md:p-4 gap-1 md:gap-4 shrink-0 md:shrink md:flex-1 md:justify-center">
-            {/* Mobile: Show active clue prominently */}
-            {activeClue && (
-              <div 
-                className="w-full bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 md:hidden"
-                onClick={() => hiddenInputRef.current?.focus()}
-              >
-                <div className="flex items-start gap-2">
-                  <span className="font-bold text-amber-700">
-                    {activeClue.number}{activeClue.direction === 'across' ? 'A' : 'D'}
-                  </span>
-                  <span className="text-sm text-amber-900 flex-1">{activeClue.text}</span>
-                  <span className="text-xs text-amber-500">({activeClue.enumeration})</span>
-                </div>
-              </div>
-            )}
-            
-            {/* Grid Container - Responsive with aspect ratio */}
-            <div className="flex items-center justify-center min-w-0 w-full md:flex-1">
-              <div 
-                className="bg-card rounded-lg shadow-sm border border-border/50 p-2 md:p-4"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'auto'
-                }}
-              >
-                <div 
-                  style={{
-                    transform: `scale(${zoom})`,
-                    transformOrigin: 'center center',
-                    width: 'fit-content',
-                    height: 'fit-content'
-                  }}
-                >
-                  <div 
-                      className="grid gap-0 select-none"
-                      style={{
-                          gridTemplateColumns: `repeat(${puzzle.size.cols}, 32px)`,
-                          backgroundColor: '#1a1a1a',
-                          padding: '1px',
-                          gap: '1px'
-                      }}
-                >
-                    {puzzle.grid.map((rowStr, r) => (
-                        rowStr.split('').map((cellChar, c) => {
-                            const isBlack = cellChar === "#";
-                            const isActive = activeCell?.row === r && activeCell?.col === c;
-                            const isInClue = !isBlack && isCellInActiveClue(r, c);
-                            const number = puzzle.numbers[r][c];
-                            const displayValue = getDisplayValue(r, c);
-                            const isError = isCellError(r, c);
-                            const boundary = boundaryMap[`${r}-${c}`];
-                            const submittedStatus = getCellSubmittedStatus(r, c);
-
-                            return (
-                                <div 
-                                    key={`${r}-${c}`}
-                                    onClick={() => !isSubmitted && handleCellClick(r, c)}
-                                    className={cn(
-                                        "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75",
-                                        isSubmitted ? "cursor-default" : "cursor-pointer",
-                                        isBlack ? "bg-black" : "bg-white",
-                                        !isSubmitted && isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
-                                        !isSubmitted && !isActive && isInClue ? "bg-amber-100" : "",
-                                        !isSubmitted && isError ? "text-red-600 bg-red-50" : "",
-                                        submittedStatus.isMissing ? "text-blue-600" : "",
-                                        submittedStatus.isIncorrect ? "text-red-600" : ""
-                                    )}
-                                    style={{ 
-                                      width: '32px', 
-                                      height: '32px',
-                                      fontSize: '1.1rem'
-                                    }}
-                                >
-                                    {!isBlack && number && (
-                                        <span 
-                                          className="font-mono text-gray-600 absolute"
-                                          style={{ fontSize: '9px', top: '1px', left: '2px' }}
-                                        >
-                                            {number}
-                                        </span>
-                                    )}
-                                    {!isBlack && displayValue}
-                                </div>
-                            );
-                        })
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
         </div>
       </main>
 
