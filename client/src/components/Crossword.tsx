@@ -24,11 +24,12 @@ interface CrosswordProps {
   isCollaborative?: boolean;
   recentSessions?: RecentSession[];
   onSessionSelect?: (sessionId: string) => void;
+  sessionId?: string; // For beacon saves on unload
 }
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
-export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSave, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect }: CrosswordProps) {
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSave, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId }: CrosswordProps) {
   const [puzzle, setPuzzle] = useState<PuzzleData | null>(initialPuzzle || null);
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
@@ -114,6 +115,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }
   }, [puzzle, initialGrid]);
 
+  // Track if we have pending unsaved changes
+  const pendingSaveRef = useRef<string[][] | null>(null);
+  
   // Save progress whenever grid changes (with debounce for server saves)
   useEffect(() => {
     if (puzzle && gridState.length) {
@@ -122,21 +126,68 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       
       // Debounce server saves
       if (onSave) {
+        pendingSaveRef.current = gridState;
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current);
         }
         saveTimeoutRef.current = setTimeout(() => {
           onSave(gridState);
-        }, 2000);
+          pendingSaveRef.current = null;
+        }, 1000); // Reduced to 1 second for faster saves
       }
     }
-    
+  }, [gridState, puzzle, onSave]);
+
+  // Flush pending saves on unmount
+  useEffect(() => {
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
+      // If there are pending changes, save them immediately
+      if (pendingSaveRef.current && onSave) {
+        onSave(pendingSaveRef.current);
+      }
     };
-  }, [gridState, puzzle, onSave]);
+  }, [onSave]);
+
+  // Save on page unload using fetch with keepalive for reliability
+  useEffect(() => {
+    const flushSave = () => {
+      if (!pendingSaveRef.current || !sessionId) return;
+      
+      const gridToSave = pendingSaveRef.current;
+      // Use fetch with keepalive for reliable saves during unload (includes credentials)
+      fetch(`/api/sessions/${sessionId}/progress`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grid: gridToSave }),
+        credentials: 'include',
+        keepalive: true
+      }).catch(() => {
+        // Ignore errors during unload
+      });
+      pendingSaveRef.current = null;
+    };
+    
+    const handleBeforeUnload = () => {
+      flushSave();
+    };
+    
+    // Also save on visibility change (backgrounding the tab)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushSave();
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [sessionId]);
 
   // Pre-calculate word boundaries
   const boundaryMap = useMemo(() => {
@@ -869,10 +920,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
           <div className="w-16 h-1.5 bg-muted-foreground/50 rounded-full" />
         </div>
         
-        {/* Clue List - Below grid on mobile (resizable), left side on desktop */}
+        {/* Clue List - Below grid on mobile (resizable), left side on desktop (full height) */}
         <div 
-          className="bg-card flex flex-col flex-none md:order-1 md:border-t-0 md:border-r border-border md:w-80 md:h-full min-h-0 overflow-hidden"
-          style={{ height: isMobile ? `${cluePanelHeight}px` : undefined }}
+          className="bg-card flex flex-col flex-none md:flex-1 md:order-1 md:border-t-0 md:border-r border-border md:w-80 md:max-w-80 min-h-0 overflow-hidden"
+          style={{ height: isMobile ? `${cluePanelHeight}px` : '100%' }}
         >
             <div className="hidden md:block p-3 bg-muted/20 border-b border-border">
                 <h2 className="font-serif font-bold text-sm">Clues</h2>

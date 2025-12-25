@@ -412,6 +412,7 @@ export default function Session() {
             isCollaborative={data.session.isCollaborative}
             recentSessions={recentSessions}
             onSessionSelect={(sessionId) => navigate(`/session/${sessionId}`)}
+            sessionId={id}
           />
         )}
       </main>
