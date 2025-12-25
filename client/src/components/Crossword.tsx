@@ -117,26 +117,56 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
 
   // Track if we have pending unsaved changes
   const pendingSaveRef = useRef<string[][] | null>(null);
+  const isSavingRef = useRef(false);
+  
+  // Helper to perform save with proper error handling
+  const performSave = useCallback(async (grid: string[][], useKeepalive = false) => {
+    if (!sessionId) {
+      // Fall back to onSave if no sessionId
+      if (onSave) onSave(grid);
+      return;
+    }
+    
+    try {
+      isSavingRef.current = true;
+      await fetch(`/api/sessions/${sessionId}/progress`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grid }),
+        credentials: 'include',
+        keepalive: useKeepalive
+      });
+      // Only clear pending if successful and it matches what we saved
+      if (pendingSaveRef.current === grid) {
+        pendingSaveRef.current = null;
+      }
+    } catch (error) {
+      // On error, don't clear pendingSaveRef so it can be retried
+      console.error('Failed to save progress:', error);
+    } finally {
+      isSavingRef.current = false;
+    }
+  }, [sessionId, onSave]);
   
   // Save progress whenever grid changes (with debounce for server saves)
   useEffect(() => {
     if (puzzle && gridState.length) {
-      // Always save to localStorage
+      // Always save to localStorage as backup
       puzzleStorage.saveProgress(puzzle.puzzleId, gridState);
       
-      // Debounce server saves
-      if (onSave) {
-        pendingSaveRef.current = gridState;
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-        }
-        saveTimeoutRef.current = setTimeout(() => {
-          onSave(gridState);
-          pendingSaveRef.current = null;
-        }, 1000); // Reduced to 1 second for faster saves
+      // Track pending changes and debounce server saves
+      pendingSaveRef.current = gridState;
+      
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
+      saveTimeoutRef.current = setTimeout(() => {
+        if (pendingSaveRef.current) {
+          performSave(pendingSaveRef.current);
+        }
+      }, 1000);
     }
-  }, [gridState, puzzle, onSave]);
+  }, [gridState, puzzle, performSave]);
 
   // Flush pending saves on unmount
   useEffect(() => {
@@ -144,40 +174,24 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-      // If there are pending changes, save them immediately
-      if (pendingSaveRef.current && onSave) {
-        onSave(pendingSaveRef.current);
+      // If there are pending changes, save them immediately with keepalive
+      if (pendingSaveRef.current) {
+        performSave(pendingSaveRef.current, true);
       }
     };
-  }, [onSave]);
+  }, [performSave]);
 
-  // Save on page unload using fetch with keepalive for reliability
+  // Save on page unload and visibility change
   useEffect(() => {
-    const flushSave = () => {
-      if (!pendingSaveRef.current || !sessionId) return;
-      
-      const gridToSave = pendingSaveRef.current;
-      // Use fetch with keepalive for reliable saves during unload (includes credentials)
-      fetch(`/api/sessions/${sessionId}/progress`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ grid: gridToSave }),
-        credentials: 'include',
-        keepalive: true
-      }).catch(() => {
-        // Ignore errors during unload
-      });
-      pendingSaveRef.current = null;
-    };
-    
     const handleBeforeUnload = () => {
-      flushSave();
+      if (pendingSaveRef.current) {
+        performSave(pendingSaveRef.current, true);
+      }
     };
     
-    // Also save on visibility change (backgrounding the tab)
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        flushSave();
+      if (document.visibilityState === 'hidden' && pendingSaveRef.current) {
+        performSave(pendingSaveRef.current, true);
       }
     };
     
@@ -187,7 +201,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [sessionId]);
+  }, [performSave]);
 
   // Pre-calculate word boundaries
   const boundaryMap = useMemo(() => {
