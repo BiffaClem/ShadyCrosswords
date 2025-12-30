@@ -1,5 +1,6 @@
+import { randomBytes } from "crypto";
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, jsonb, timestamp, boolean, integer, index } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -9,61 +10,60 @@ export * from "./models/auth";
 // Import users from auth for relations
 import { users } from "./models/auth";
 
+const jsonText = <T extends string>(name: T) => text(name, { mode: "json" });
+const generateId = () => randomBytes(16).toString("hex");
+
 // Puzzles table - stores puzzle data
-export const puzzles = pgTable("puzzles", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  puzzleId: varchar("puzzle_id").notNull().unique(),
-  title: varchar("title").notNull(),
-  data: jsonb("data").notNull(),
-  uploadedBy: varchar("uploaded_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
+export const puzzles = sqliteTable("puzzles", {
+  id: text("id").primaryKey().$defaultFn(generateId),
+  puzzleId: text("puzzle_id").notNull().unique(),
+  title: text("title").notNull(),
+  data: jsonText("data").notNull(),
+  uploadedBy: text("uploaded_by").references(() => users.id),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
 });
 
 // Puzzle sessions - represents a solving session (solo or collaborative)
-export const puzzleSessions = pgTable("puzzle_sessions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  puzzleId: varchar("puzzle_id").references(() => puzzles.id).notNull(),
-  ownerId: varchar("owner_id").references(() => users.id).notNull(),
-  name: varchar("name"),
-  isCollaborative: boolean("is_collaborative").default(false),
-  difficulty: varchar("difficulty").default("standard"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const puzzleSessions = sqliteTable("puzzle_sessions", {
+  id: text("id").primaryKey().$defaultFn(generateId),
+  puzzleId: text("puzzle_id").references(() => puzzles.id).notNull(),
+  ownerId: text("owner_id").references(() => users.id).notNull(),
+  name: text("name"),
+  isCollaborative: integer("is_collaborative", { mode: "boolean" }).default(false),
+  difficulty: text("difficulty").default("standard"),
+  createdAt: integer("created_at", { mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
 });
 
 // Session participants - who can access a session
-export const sessionParticipants = pgTable("session_participants", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").references(() => puzzleSessions.id).notNull(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  joinedAt: timestamp("joined_at").defaultNow(),
-  lastActivity: timestamp("last_activity").defaultNow(),
-}, (table) => [
-  index("idx_session_user").on(table.sessionId, table.userId)
-]);
+export const sessionParticipants = sqliteTable("session_participants", {
+  id: text("id").primaryKey().$defaultFn(generateId),
+  sessionId: text("session_id").references(() => puzzleSessions.id).notNull(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  joinedAt: integer("joined_at", { mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
+  lastActivity: integer("last_activity", { mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
+});
 
 // Puzzle progress - stores the current state of a session
-export const puzzleProgress = pgTable("puzzle_progress", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").references(() => puzzleSessions.id).notNull().unique(),
-  grid: jsonb("grid").notNull(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  updatedBy: varchar("updated_by").references(() => users.id),
-  submittedAt: timestamp("submitted_at"),
+export const puzzleProgress = sqliteTable("puzzle_progress", {
+  id: text("id").primaryKey().$defaultFn(generateId),
+  sessionId: text("session_id").references(() => puzzleSessions.id).notNull().unique(),
+  grid: jsonText("grid").notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
+  updatedBy: text("updated_by").references(() => users.id),
+  submittedAt: integer("submitted_at", { mode: "timestamp" }),
 });
 
 // Session invites - tracks pending invitations to sessions
-export const sessionInvites = pgTable("session_invites", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: varchar("session_id").references(() => puzzleSessions.id).notNull(),
-  invitedUserId: varchar("invited_user_id").references(() => users.id).notNull(),
-  invitedById: varchar("invited_by_id").references(() => users.id).notNull(),
-  status: varchar("status").default("pending").notNull(), // pending, accepted, declined
-  createdAt: timestamp("created_at").defaultNow(),
-  respondedAt: timestamp("responded_at"),
-}, (table) => [
-  index("idx_invite_user").on(table.invitedUserId, table.status)
-]);
+export const sessionInvites = sqliteTable("session_invites", {
+  id: text("id").primaryKey().$defaultFn(generateId),
+  sessionId: text("session_id").references(() => puzzleSessions.id).notNull(),
+  invitedUserId: text("invited_user_id").references(() => users.id).notNull(),
+  invitedById: text("invited_by_id").references(() => users.id).notNull(),
+  status: text("status").default("pending").notNull(), // pending, accepted, declined
+  createdAt: integer("created_at", { mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
+  respondedAt: integer("responded_at", { mode: "timestamp" }),
+});
 
 // Relations
 export const puzzlesRelations = relations(puzzles, ({ one, many }) => ({
@@ -130,7 +130,7 @@ export const sessionInvitesRelations = relations(sessionInvites, ({ one }) => ({
 // Insert schemas
 export const insertPuzzleSchema = createInsertSchema(puzzles).omit({ id: true, createdAt: true });
 export const insertSessionSchema = createInsertSchema(puzzleSessions).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertParticipantSchema = createInsertSchema(sessionParticipants).omit({ id: true, joinedAt: true });
+export const insertParticipantSchema = createInsertSchema(sessionParticipants).omit({ id: true, joinedAt: true, lastActivity: true });
 export const insertProgressSchema = createInsertSchema(puzzleProgress).omit({ id: true, updatedAt: true });
 export const insertInviteSchema = createInsertSchema(sessionInvites).omit({ id: true, createdAt: true, respondedAt: true });
 

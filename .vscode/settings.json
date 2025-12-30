@@ -1,0 +1,8 @@
+{
+    "github.copilot.chat.codesearch.enabled": true,
+    "github.copilot.chat.inlineEdits.diagnosticsContextProvider.enabled": true,
+    "github.copilot.chat.languageContext.fix.typescript.enabled": true,
+    "github.copilot.chat.languageContext.inline.typescript.enabled": true,
+    "github.copilot.chat.review.intent": false,
+    "github.copilot.chat.tools.memory.enabled": true
+}

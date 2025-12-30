@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: shady-crosswords:latest
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-5000}:5000"
+    volumes:
+      - crossword-data:/app/data
+      - ./puzzles:/app/puzzles:ro
+    restart: unless-stopped
+
+volumes:
+  crossword-data:

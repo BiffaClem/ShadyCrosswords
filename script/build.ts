@@ -1,39 +1,35 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, writeFile, mkdir } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
 const allowlist = [
-  "@google/generative-ai",
-  "axios",
-  "connect-pg-simple",
-  "cors",
+  "bcryptjs",
+  "connect-sqlite3",
   "date-fns",
   "drizzle-orm",
   "drizzle-zod",
   "express",
-  "express-rate-limit",
   "express-session",
-  "jsonwebtoken",
-  "memorystore",
-  "multer",
-  "nanoid",
-  "nodemailer",
-  "openai",
   "passport",
   "passport-local",
-  "pg",
-  "stripe",
-  "uuid",
   "ws",
-  "xlsx",
   "zod",
   "zod-validation-error",
 ];
 
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
+
+  // Create build info
+  const buildInfo = {
+    timestamp: new Date().toISOString(),
+    date: new Date().toLocaleDateString(),
+    time: new Date().toLocaleTimeString(),
+  };
+  await mkdir("dist", { recursive: true });
+  await writeFile("dist/build-info.json", JSON.stringify(buildInfo, null, 2));
 
   console.log("building client...");
   await viteBuild();

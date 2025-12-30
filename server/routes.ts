@@ -2,9 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, registerAuthRoutes } from "./replit_integrations/auth";
+import { setupAuth, isAuthenticated, registerAuthRoutes, requireAdmin, authStorage } from "./auth";
 import fs from "fs";
 import path from "path";
+import bcrypt from "bcryptjs";
+import type { PuzzleSession } from "@shared/schema";
 
 // Track active WebSocket connections per session
 const sessionConnections = new Map<string, Set<WebSocket>>();
@@ -62,6 +64,13 @@ function countCorrectCells(userGrid: string[][], puzzleData: any): number {
   return correctCells.size;
 }
 
+function normalizeEmail(input: unknown): string | null {
+  if (typeof input !== "string") return null;
+  const trimmed = input.trim().toLowerCase();
+  if (!trimmed.includes("@")) return null;
+  return trimmed;
+}
+
 // Load puzzles from the puzzles folder into the database
 async function loadPuzzlesFromFolder() {
   const puzzlesDir = path.join(process.cwd(), "puzzles");
@@ -108,16 +117,24 @@ export async function registerRoutes(
   // Load puzzles from folder
   await loadPuzzlesFromFolder();
 
-  // Get all puzzles with user's session stats
+  // Get all puzzles with all session stats (visible to all users)
   app.get("/api/puzzles", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const puzzles = await storage.getAllPuzzles();
-      const sessions = await storage.getUserSessions(userId);
+      const allSessions = await storage.getAllSessions();
+      
+      // Group sessions by puzzle
+      const sessionsByPuzzle = new Map<string, PuzzleSession[]>();
+      allSessions.forEach(session => {
+        if (!sessionsByPuzzle.has(session.puzzleId)) {
+          sessionsByPuzzle.set(session.puzzleId, []);
+        }
+        sessionsByPuzzle.get(session.puzzleId)!.push(session);
+      });
       
       // Enrich puzzles with session info
       const enrichedPuzzles = await Promise.all(puzzles.map(async (puzzle) => {
-        const puzzleSessions = sessions.filter(s => s.puzzleId === puzzle.id);
+        const puzzleSessions = sessionsByPuzzle.get(puzzle.id) || [];
         
         // Calculate stats for each session
         const sessionsWithStats = await Promise.all(puzzleSessions.map(async (session) => {
@@ -154,7 +171,7 @@ export async function registerRoutes(
   // Get user's sessions
   app.get("/api/sessions", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const sessions = await storage.getUserSessions(userId);
       res.json(sessions);
     } catch (error) {
@@ -177,7 +194,7 @@ export async function registerRoutes(
   // Get a specific session with puzzle data
   app.get("/api/sessions/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const session = await storage.getSession(req.params.id);
       
       if (!session) {
@@ -185,13 +202,10 @@ export async function registerRoutes(
         return;
       }
 
-      // Check access
-      const isOwner = session.ownerId === userId;
-      let isParticipant = await storage.isParticipant(session.id, userId);
-      
-      // Auto-join collaborative sessions
-      if (!isOwner && !isParticipant) {
-        if (session.isCollaborative) {
+      // Allow access to all collaborative sessions - auto-add as participant
+      if (session.isCollaborative) {
+        const isAlreadyParticipant = await storage.isParticipant(session.id, userId);
+        if (!isAlreadyParticipant && session.ownerId !== userId) {
           try {
             await storage.addParticipant({
               sessionId: session.id,
@@ -200,9 +214,11 @@ export async function registerRoutes(
           } catch (e) {
             // Ignore duplicate participant errors - user may already be added
           }
-          isParticipant = true;
-        } else {
-          res.status(403).json({ message: "Access denied" });
+        }
+      } else {
+        // For private sessions, only allow owner
+        if (session.ownerId !== userId) {
+          res.status(403).json({ message: "Access denied - this is a private session" });
           return;
         }
       }
@@ -221,7 +237,7 @@ export async function registerRoutes(
   // Create a new session
   app.post("/api/sessions", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { puzzleId, name, isCollaborative, difficulty, invitees } = req.body;
 
       // Verify puzzle exists
@@ -281,7 +297,7 @@ export async function registerRoutes(
   // Join a collaborative session
   app.post("/api/sessions/:id/join", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const session = await storage.getSession(req.params.id);
 
       if (!session) {
@@ -310,10 +326,10 @@ export async function registerRoutes(
     }
   });
 
-  // Delete a session (owner only)
+  // Delete a session (owner or admin)
   app.delete("/api/sessions/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const session = await storage.getSession(req.params.id);
 
       if (!session) {
@@ -321,8 +337,9 @@ export async function registerRoutes(
         return;
       }
 
-      if (session.ownerId !== userId) {
-        res.status(403).json({ message: "Only the session owner can delete this session" });
+      const isAdmin = req.user?.role === "admin";
+      if (session.ownerId !== userId && !isAdmin) {
+        res.status(403).json({ message: "Only the session owner or an admin can delete this session" });
         return;
       }
 
@@ -337,7 +354,7 @@ export async function registerRoutes(
   // Submit a session (marks it as complete)
   app.post("/api/sessions/:id/submit", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const session = await storage.getSession(req.params.id);
 
       if (!session) {
@@ -378,7 +395,7 @@ export async function registerRoutes(
   // Save progress
   app.post("/api/sessions/:id/progress", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const session = await storage.getSession(req.params.id);
 
       if (!session) {
@@ -429,7 +446,7 @@ export async function registerRoutes(
   // Get session participants with activity info
   app.get("/api/sessions/:id/participants", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const session = await storage.getSession(req.params.id);
 
       if (!session) {
@@ -468,10 +485,12 @@ export async function registerRoutes(
   // Get all users (for invite selection)
   app.get("/api/users", isAuthenticated, async (req: any, res) => {
     try {
-      const currentUserId = req.user.claims.sub;
+      const currentUserId = req.user.id;
       const allUsers = await storage.getAllUsers();
       // Exclude current user from list
-      const users = allUsers.filter(u => u.id !== currentUserId);
+      const users = allUsers
+        .filter(u => u.id !== currentUserId)
+        .map(({ id, firstName, email }) => ({ id, firstName, email }));
       res.json(users);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -482,7 +501,7 @@ export async function registerRoutes(
   // Update current user profile
   app.patch("/api/users/me", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { firstName } = req.body;
       
       if (typeof firstName !== "string" || firstName.trim().length === 0) {
@@ -506,7 +525,7 @@ export async function registerRoutes(
   // Get invites for current user
   app.get("/api/invites", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const invites = await storage.getInvitesForUser(userId);
       
       // Enrich with session and puzzle info
@@ -532,7 +551,7 @@ export async function registerRoutes(
   // Respond to an invite (accept/decline)
   app.post("/api/invites/:id/respond", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { status } = req.body;
       
       if (!["accepted", "declined"].includes(status)) {
@@ -568,6 +587,304 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error responding to invite:", error);
       res.status(500).json({ message: "Failed to respond to invite" });
+    }
+  });
+
+  // Admin: list users
+  app.get("/api/admin/users", requireAdmin, async (_req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching admin users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Admin: update user by allowed email ID (universal method)
+  app.patch("/api/admin/people/:id", requireAdmin, async (req: any, res) => {
+    try {
+      const allowedRoles = ["admin", "user"];
+      const role = typeof req.body?.role === "string" ? req.body.role : undefined;
+      const firstName = typeof req.body?.firstName === "string" ? req.body.firstName.trim() : undefined;
+
+      if (role && !allowedRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      // First, try to find the allowed email record
+      const allowedEmails = await authStorage.listAllowedEmails();
+      const allowedEmail = allowedEmails.find(a => a.id === req.params.id);
+
+      if (!allowedEmail) {
+        return res.status(404).json({ message: "Person not found" });
+      }
+
+      // Find the corresponding user by email (should always exist after migration)
+      const user = await authStorage.getUserByEmail(allowedEmail.email);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Update the user record
+      const updated = await storage.updateUser(user.id, {
+        role,
+        firstName,
+      });
+
+      if (!updated) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating person:", error);
+      res.status(500).json({ message: "Failed to update person" });
+    }
+  });
+
+  // Admin: set password for user
+  app.post("/api/admin/users/:id/password", requireAdmin, async (req: any, res) => {
+    try {
+      const password = typeof req.body?.password === "string" ? req.body.password.trim() : null;
+
+      if (!password || password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters long" });
+      }
+
+      const user = await authStorage.getUser(req.params.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 12);
+      await authStorage.updateUser(req.params.id, { passwordHash });
+
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error("Error setting user password:", error);
+      res.status(500).json({ message: "Failed to set password" });
+    }
+  });
+
+  // Admin: delete user
+  app.delete("/api/admin/users/:id", requireAdmin, async (req: any, res) => {
+    try {
+      // Prevent admin from deleting themselves
+      if (req.params.id === req.user.id) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+
+      // Prevent deletion of default admin
+      const userToDelete = await authStorage.getUser(req.params.id);
+      if (!userToDelete) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL ?? "mark.clement@outlook.com";
+      if (userToDelete.email === DEFAULT_ADMIN_EMAIL.toLowerCase()) {
+        return res.status(400).json({ message: "Cannot delete the default admin account" });
+      }
+
+      const deleted = await storage.deleteUser(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Admin: list all people (allowed emails + users)
+  app.get("/api/admin/people", requireAdmin, async (req: any, res) => {
+    try {
+      const [allowedEmails, users] = await Promise.all([
+        authStorage.listAllowedEmails(),
+        storage.getAllUsers(),
+      ]);
+
+      // Create a map of users by email for easy lookup
+      const userMap = new Map(users.map((user) => [user.email.toLowerCase(), user]));
+
+      // Combine allowed emails and users into a unified list
+      const people = allowedEmails.map((allowed) => {
+        const user = userMap.get(allowed.email.toLowerCase());
+        return {
+          id: allowed.id, // Always use allowed email ID for consistency
+          email: allowed.email,
+          firstName: user?.firstName || null,
+          role: user?.role || "invited",
+          createdAt: user?.createdAt || allowed.createdAt,
+          invitedAt: allowed.createdAt,
+          registeredAt: user?.createdAt || null,
+          isRegistered: !!user,
+          invitedBy: allowed.invitedBy,
+        };
+      });
+
+      // Add any registered users who might not have an allowed email entry
+      users.forEach((user) => {
+        const exists = people.some((p) => p.email.toLowerCase() === user.email.toLowerCase());
+        if (!exists) {
+          people.push({
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            role: user.role,
+            createdAt: user.createdAt,
+            invitedAt: null,
+            registeredAt: user.createdAt,
+            isRegistered: true,
+            invitedBy: null,
+          });
+        }
+      });
+
+      res.json(people);
+    } catch (error) {
+      console.error("Error fetching people:", error);
+      res.status(500).json({ message: "Failed to fetch people" });
+    }
+  });
+
+  // Admin: allowed email management
+  app.get("/api/admin/allowed-emails", requireAdmin, async (_req, res) => {
+    try {
+      const allowed = await authStorage.listAllowedEmails();
+      res.json(allowed);
+    } catch (error) {
+      console.error("Error fetching allowed emails:", error);
+      res.status(500).json({ message: "Failed to fetch allowed emails" });
+    }
+  });
+
+  app.post("/api/admin/allowed-emails", requireAdmin, async (req: any, res) => {
+    try {
+      const email = normalizeEmail(req.body?.email);
+      const firstName = typeof req.body?.firstName === "string" ? req.body.firstName.trim() : null;
+      const password = typeof req.body?.password === "string" ? req.body.password : "Shady0ks";
+
+      if (!email) {
+        return res.status(400).json({ message: "Valid email is required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await authStorage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(409).json({ message: "User with this email already exists" });
+      }
+
+      // Ensure email is allowed
+      await authStorage.ensureAllowedEmail(email, req.user.id);
+
+      // Create user account with provided credentials
+      const passwordHash = await bcrypt.hash(password, 12);
+      await authStorage.createUser({
+        email,
+        passwordHash,
+        firstName,
+        role: "user",
+      });
+
+      const allowed = await authStorage.listAllowedEmails();
+      res.status(201).json(allowed);
+    } catch (error) {
+      console.error("Error adding allowed email:", error);
+      res.status(500).json({ message: "Failed to add allowed email" });
+    }
+  });
+
+  app.patch("/api/admin/allowed-emails/:id", requireAdmin, async (req: any, res) => {
+    try {
+      const firstName = typeof req.body?.firstName === "string" ? req.body.firstName.trim() : undefined;
+
+      if (firstName === undefined) {
+        return res.status(400).json({ message: "firstName is required" });
+      }
+
+      const updated = await authStorage.updateAllowedEmail(req.params.id, { firstName });
+      if (!updated) {
+        return res.status(404).json({ message: "Allowed email not found" });
+      }
+
+      const allowed = await authStorage.listAllowedEmails();
+      res.json(allowed);
+    } catch (error) {
+      console.error("Error updating allowed email:", error);
+      res.status(500).json({ message: "Failed to update allowed email" });
+    }
+  });
+
+  app.delete("/api/admin/allowed-emails/:id", requireAdmin, async (req, res) => {
+    try {
+      await authStorage.removeAllowedEmail(req.params.id);
+      const allowed = await authStorage.listAllowedEmails();
+      res.json(allowed);
+    } catch (error) {
+      console.error("Error removing allowed email:", error);
+      res.status(500).json({ message: "Failed to remove allowed email" });
+    }
+  });
+
+  // Admin: list sessions with stats
+  app.get("/api/admin/sessions", requireAdmin, async (_req, res) => {
+    try {
+      const [sessions, puzzles, users] = await Promise.all([
+        storage.getAllSessions(),
+        storage.getAllPuzzles(),
+        storage.getAllUsers(),
+      ]);
+
+      const puzzleMap = new Map(puzzles.map((puzzle) => [puzzle.id, puzzle]));
+      const userMap = new Map(users.map((user) => [user.id, user]));
+
+      const enriched = await Promise.all(
+        sessions.map(async (session) => {
+          const puzzle = puzzleMap.get(session.puzzleId);
+          const progress = await storage.getProgress(session.id);
+          let percentComplete = 0;
+          if (puzzle?.data && (puzzle.data as any).grid) {
+            const totalCells = countWhiteCells((puzzle.data as any).grid as string[]);
+            const userGrid = (progress?.grid as string[][] | null) || [];
+            const filled = countFilledCells(userGrid);
+            percentComplete = totalCells > 0 ? Math.round((filled / totalCells) * 100) : 0;
+          }
+
+          return {
+            ...session,
+            puzzleTitle: puzzle?.title ?? "Unknown",
+            puzzleExternalId: puzzle?.puzzleId ?? null,
+            ownerName: userMap.get(session.ownerId)?.firstName || userMap.get(session.ownerId)?.email,
+            percentComplete,
+            submittedAt: progress?.submittedAt ?? null,
+          };
+        }),
+      );
+
+      res.json(enriched);
+    } catch (error) {
+      console.error("Error fetching admin sessions:", error);
+      res.status(500).json({ message: "Failed to fetch sessions" });
+    }
+  });
+
+  // Get build information
+  app.get("/api/build-info", async (_req, res) => {
+    try {
+      const buildInfoPath = path.join(__dirname, "build-info.json");
+      if (fs.existsSync(buildInfoPath)) {
+        const buildInfo = JSON.parse(fs.readFileSync(buildInfoPath, "utf-8"));
+        res.json(buildInfo);
+      } else {
+        res.json({ timestamp: "unknown", date: "unknown", time: "unknown" });
+      }
+    } catch (error) {
+      console.error("Error fetching build info:", error);
+      res.status(500).json({ message: "Failed to fetch build info" });
     }
   });
 

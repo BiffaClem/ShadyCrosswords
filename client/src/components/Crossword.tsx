@@ -57,6 +57,17 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const isDraggingSeparator = useRef(false);
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(200);
+
+  // Track saving state across renders
+  const pendingSaveRef = useRef<string[][] | null>(null);
+  const lastSavedGridRef = useRef<string | null>(null);
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
+  const hasHydratedInitialGridRef = useRef<boolean>(Boolean(initialGrid && initialGrid.length > 0));
+  const latestGridRef = useRef<string[][]>(initialGrid || gridState);
+  useEffect(() => {
+    latestGridRef.current = gridState;
+  }, [gridState]);
   
   // Detect mobile for layout purposes, but only set zoom once
   useEffect(() => {
@@ -81,13 +92,37 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
 
   // Update grid when initialGrid prop changes (for real-time collaboration)
   useEffect(() => {
-    if (initialGrid && initialGrid.length > 0) {
+    if (!initialGrid || initialGrid.length === 0) {
+      return;
+    }
+
+    // Deep compare grids to avoid unnecessary resets
+    const gridsEqual = latestGridRef.current && 
+      latestGridRef.current.length === initialGrid.length &&
+      latestGridRef.current.every((row, r) => 
+        row.length === initialGrid[r].length && 
+        row.every((cell, c) => cell === initialGrid[r][c])
+      );
+
+    const needsSync = !gridsEqual;
+    const hasHydrated = hasHydratedInitialGridRef.current;
+
+    if (needsSync) {
       setGridState(initialGrid);
+    }
+
+    if (!hasHydrated || needsSync) {
+      lastSavedGridRef.current = JSON.stringify(initialGrid);
+      hasHydratedInitialGridRef.current = true;
     }
   }, [initialGrid]);
 
   // Initialize grid state when puzzle loads
   useEffect(() => {
+    if (sessionId) {
+      return;
+    }
+
     if (puzzle && gridState.length === 0) {
       const rows = puzzle.size.rows;
       const cols = puzzle.size.cols;
@@ -97,10 +132,13 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         const savedProgress = puzzleStorage.getProgress(puzzle.puzzleId);
         if (savedProgress) {
           setGridState(savedProgress);
+          lastSavedGridRef.current = JSON.stringify(savedProgress);
         } else {
           const newGrid = Array(rows).fill(null).map(() => Array(cols).fill(""));
           setGridState(newGrid);
+          lastSavedGridRef.current = JSON.stringify(newGrid);
         }
+        hasHydratedInitialGridRef.current = true;
       }
       
       // Find first white square to select
@@ -113,14 +151,8 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         }
       }
     }
-  }, [puzzle, initialGrid]);
+  }, [puzzle, initialGrid, sessionId]);
 
-  // Track if we have pending unsaved changes
-  const pendingSaveRef = useRef<string[][] | null>(null);
-  const lastSavedGridRef = useRef<string | null>(null);
-  const sessionIdRef = useRef(sessionId);
-  sessionIdRef.current = sessionId;
-  
   // Stable save function that doesn't change between renders
   const doSave = useCallback(async (grid: string[][], useKeepalive = false) => {
     const currentSessionId = sessionIdRef.current;
@@ -150,7 +182,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   
   // Save progress whenever grid changes (with debounce)
   useEffect(() => {
-    if (!puzzle || !gridState.length || !sessionId) return;
+    if (!puzzle || !gridState.length || !sessionId || !hasHydratedInitialGridRef.current) return;
     
     // Always save to localStorage as backup
     puzzleStorage.saveProgress(puzzle.puzzleId, gridState);

@@ -14,7 +14,7 @@ import { Loader2, BookOpen, Users, LogOut, Plus, ChevronRight, ChevronDown, Tras
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/auth-utils";
+import { isUnauthorizedError, redirectToLogin } from "@/lib/auth-utils";
 
 interface Participant {
   id: string;
@@ -50,15 +50,16 @@ interface PuzzleWithSessions {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   
   const [createSessionDialogOpen, setCreateSessionDialogOpen] = useState(false);
   const [selectedPuzzle, setSelectedPuzzle] = useState<PuzzleWithSessions | null>(null);
   const [sessionName, setSessionName] = useState("");
-  const [isCollaborative, setIsCollaborative] = useState(false);
+  const [isCollaborative, setIsCollaborative] = useState(true); // Default to collaborative
   const [difficulty, setDifficulty] = useState<"standard" | "beginner" | "expert">("standard");
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   
   const [activeTab, setActiveTab] = useState<"all" | "inprogress">("all");
   const [hideCompleted, setHideCompleted] = useState(false);
@@ -89,6 +90,14 @@ export default function Home() {
     refetchInterval: 30000,
   });
 
+  const { data: allUsers } = useQuery<{ id: string; firstName: string | null; email: string | null }[]>({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/users");
+      return res.json();
+    },
+  });
+
   const createSessionMutation = useMutation({
     mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean; difficulty: string }) => {
       const res = await apiRequest("POST", "/api/sessions", data);
@@ -102,7 +111,7 @@ export default function Home() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({ title: "Session expired", description: "Logging in again...", variant: "destructive" });
-        setTimeout(() => { window.location.href = "/api/login"; }, 500);
+        redirectToLogin();
       } else {
         toast({ title: "Failed to create session", variant: "destructive" });
       }
@@ -121,7 +130,7 @@ export default function Home() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({ title: "Session expired", description: "Logging in again...", variant: "destructive" });
-        setTimeout(() => { window.location.href = "/api/login"; }, 500);
+        redirectToLogin();
       } else {
         toast({ title: "Failed to delete session", variant: "destructive" });
       }
@@ -134,7 +143,7 @@ export default function Home() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       queryClient.invalidateQueries({ queryKey: ["/api/activity"] });
       toast({ title: "Name updated" });
       setEditNameDialogOpen(false);
@@ -143,7 +152,7 @@ export default function Home() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({ title: "Session expired", description: "Logging in again...", variant: "destructive" });
-        setTimeout(() => { window.location.href = "/api/login"; }, 500);
+        redirectToLogin();
       } else {
         toast({ title: "Failed to update name", variant: "destructive" });
       }
@@ -181,8 +190,9 @@ export default function Home() {
   const handleStartNewSession = (puzzle: PuzzleWithSessions) => {
     setSelectedPuzzle(puzzle);
     setSessionName("");
-    setIsCollaborative(false);
+    setIsCollaborative(true); // Default to collaborative
     setDifficulty("standard");
+    setSelectedUsers([]);
     setCreateSessionDialogOpen(true);
   };
 
@@ -198,7 +208,8 @@ export default function Home() {
       name: fullName,
       isCollaborative,
       difficulty,
-    });
+      invitees: isCollaborative ? selectedUsers : [],
+    } as any);
   };
 
   const togglePuzzleExpand = (puzzleId: string) => {
@@ -313,14 +324,25 @@ export default function Home() {
               </span>
               <Pencil className="h-3 w-3" />
             </button>
+            {user?.role === "admin" && (
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin")}
+                className="text-amber-700 border-amber-300"
+                data-testid="button-admin"
+              >
+                Admin
+              </Button>
+            )}
             <Button 
               variant="ghost"
-              onClick={() => window.location.href = "/api/logout"}
+              onClick={() => logout()}
               className="text-amber-700"
               data-testid="button-logout"
+              disabled={isLoggingOut}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Sign Out</span>
+              <span className="hidden sm:inline">{isLoggingOut ? "Signing Out" : "Sign Out"}</span>
             </Button>
           </div>
         </div>
@@ -595,7 +617,9 @@ export default function Home() {
             <div className="flex items-center justify-between p-3 rounded-lg border border-amber-200">
               <div>
                 <Label htmlFor="collaborative">Collaborative Mode</Label>
-                <p className="text-sm text-muted-foreground">Share link to solve together</p>
+                <p className="text-sm text-muted-foreground">
+                  {isCollaborative ? "Invite family members to solve together" : "Solve privately (you can still share the link)"}
+                </p>
               </div>
               <Switch 
                 id="collaborative"
@@ -604,6 +628,37 @@ export default function Home() {
                 data-testid="switch-collaborative"
               />
             </div>
+
+            {isCollaborative && allUsers && allUsers.length > 0 && (
+              <div className="space-y-2">
+                <Label>Invite Family Members</Label>
+                <div className="max-h-40 overflow-y-auto border border-amber-200 rounded-lg p-2 space-y-2">
+                  {allUsers.map((user) => (
+                    <div key={user.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`user-${user.id}`}
+                        checked={selectedUsers.includes(user.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedUsers(prev => [...prev, user.id]);
+                          } else {
+                            setSelectedUsers(prev => prev.filter(id => id !== user.id));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`user-${user.id}`} className="text-sm font-normal">
+                        {user.firstName || user.email?.split('@')[0] || 'User'}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                {selectedUsers.length > 0 && (
+                  <p className="text-sm text-amber-600">
+                    {selectedUsers.length} member{selectedUsers.length !== 1 ? 's' : ''} will be invited
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateSessionDialogOpen(false)}>

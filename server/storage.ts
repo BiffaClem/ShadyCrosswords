@@ -18,6 +18,7 @@ export interface IStorage {
   
   // Sessions
   getSession(id: string): Promise<PuzzleSession | undefined>;
+  getAllSessions(): Promise<PuzzleSession[]>;
   getUserSessions(userId: string): Promise<PuzzleSession[]>;
   createSession(session: InsertSession): Promise<PuzzleSession>;
   deleteSession(id: string): Promise<void>;
@@ -45,8 +46,9 @@ export interface IStorage {
   updateInviteStatus(id: string, status: string): Promise<SessionInvite | undefined>;
   
   // Users
-  getAllUsers(): Promise<Array<{id: string; firstName: string | null; email: string | null}>>;
-  updateUser(id: string, data: { firstName?: string }): Promise<{id: string; firstName: string | null; email: string | null} | undefined>;
+  getAllUsers(): Promise<Array<{id: string; firstName: string | null; email: string; role: string; createdAt: Date | null}>>;
+  updateUser(id: string, data: { firstName?: string; role?: string }): Promise<{id: string; firstName: string | null; email: string; role: string} | undefined>;
+  deleteUser(id: string): Promise<boolean>;
   
   // Activity
   getRecentUserActivity(): Promise<Array<{id: string; firstName: string | null; email: string | null; lastActivity: Date | null}>>;
@@ -77,6 +79,10 @@ export class DatabaseStorage implements IStorage {
   async getSession(id: string): Promise<PuzzleSession | undefined> {
     const [session] = await db.select().from(puzzleSessions).where(eq(puzzleSessions.id, id));
     return session;
+  }
+
+  async getAllSessions(): Promise<PuzzleSession[]> {
+    return db.select().from(puzzleSessions);
   }
 
   async getUserSessions(userId: string): Promise<PuzzleSession[]> {
@@ -243,21 +249,64 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Users
-  async getAllUsers(): Promise<Array<{id: string; firstName: string | null; email: string | null}>> {
+  async getAllUsers(): Promise<Array<{id: string; firstName: string | null; email: string; role: string; createdAt: Date | null}>> {
     return db.select({
       id: users.id,
       firstName: users.firstName,
       email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
     }).from(users);
   }
 
-  async updateUser(id: string, data: { firstName?: string }): Promise<{id: string; firstName: string | null; email: string | null} | undefined> {
+  async updateUser(id: string, data: { firstName?: string; role?: string }): Promise<{id: string; firstName: string | null; email: string; role: string} | undefined> {
+    const updatePayload: Partial<typeof users.$inferInsert> = {
+      updatedAt: new Date(),
+    };
+
+    if (data.firstName !== undefined) {
+      updatePayload.firstName = data.firstName;
+    }
+
+    if (data.role !== undefined) {
+      updatePayload.role = data.role;
+    }
+
     const [updated] = await db
       .update(users)
-      .set({ firstName: data.firstName, updatedAt: new Date() })
+      .set(updatePayload)
       .where(eq(users.id, id))
-      .returning({ id: users.id, firstName: users.firstName, email: users.email });
+      .returning({ id: users.id, firstName: users.firstName, email: users.email, role: users.role });
     return updated;
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    // Delete in correct order due to foreign keys
+    // First delete session invites (both invited by and invited user)
+    await db.delete(sessionInvites).where(eq(sessionInvites.invitedById, id));
+    await db.delete(sessionInvites).where(eq(sessionInvites.invitedUserId, id));
+    
+    // Delete session participants
+    await db.delete(sessionParticipants).where(eq(sessionParticipants.userId, id));
+    
+    // Delete puzzle progress updates
+    await db.delete(puzzleProgress).where(eq(puzzleProgress.updatedBy, id));
+    
+    // Update puzzles uploaded by this user to null (or we could delete them, but keeping them seems better)
+    await db.update(puzzles).set({ uploadedBy: null }).where(eq(puzzles.uploadedBy, id));
+    
+    // For sessions owned by this user, we need to decide what to do
+    // Option 1: Delete the sessions (cascades to progress, participants, invites)
+    // Option 2: Transfer ownership to another admin
+    // For now, let's delete the sessions as they're tied to the user
+    const ownedSessions = await db.select({ id: puzzleSessions.id }).from(puzzleSessions).where(eq(puzzleSessions.ownerId, id));
+    for (const session of ownedSessions) {
+      await this.deleteSession(session.id);
+    }
+    
+    // Finally delete the user
+    const result = await db.delete(users).where(eq(users.id, id));
+    return result.changes > 0;
   }
 
   // Activity

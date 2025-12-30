@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Loader2, ArrowLeft, Users, Check, Share2, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/auth-utils";
+import { isUnauthorizedError, redirectToLogin } from "@/lib/auth-utils";
 
 interface SessionData {
   session: any;
@@ -92,6 +92,7 @@ export default function Session() {
       return res.json();
     },
     retry: false,
+    staleTime: 0,
   });
 
   const { data: participantsData, refetch: refetchParticipants } = useQuery<ParticipantsData>({
@@ -120,11 +121,38 @@ export default function Session() {
     }))
   ).filter((s: RecentSession) => s.id !== id).slice(0, 5) || [];
 
+  const updateCachedProgress = useCallback((grid: string[][]) => {
+    queryClient.setQueryData<SessionData | undefined>(["/api/sessions", id], (existing) => {
+      if (!existing) return existing;
+      if (!existing.progress) {
+        return {
+          ...existing,
+          progress: {
+            sessionId: existing.session.id,
+            id: existing.session.id,
+            grid,
+            updatedAt: new Date().toISOString(),
+            updatedBy: user?.id ?? null,
+            submittedAt: null,
+          },
+        };
+      }
+      return {
+        ...existing,
+        progress: {
+          ...existing.progress,
+          grid,
+        },
+      };
+    });
+  }, [id, queryClient, user?.id]);
+
   useEffect(() => {
     if (data?.progress?.grid) {
       setGridState(data.progress.grid);
+      updateCachedProgress(data.progress.grid);
     }
-  }, [data?.progress?.grid]);
+  }, [data?.progress?.grid, updateCachedProgress]);
 
   useEffect(() => {
     if (!data?.session?.isCollaborative || !user) return;
@@ -168,6 +196,7 @@ export default function Session() {
       
       if (message.type === "progress_update") {
         setGridState(message.grid);
+        updateCachedProgress(message.grid);
       }
     };
 
@@ -188,7 +217,7 @@ export default function Session() {
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({ title: "Session expired", description: "Logging in again...", variant: "destructive" });
-        setTimeout(() => { window.location.href = "/api/login"; }, 500);
+        redirectToLogin();
       }
     }
   });
@@ -224,6 +253,7 @@ export default function Session() {
 
   const handleCellChange = useCallback((row: number, col: number, value: string, newGrid: string[][]) => {
     setGridState(newGrid);
+    updateCachedProgress(newGrid);
     
     if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
@@ -233,7 +263,7 @@ export default function Session() {
         value,
       }));
     }
-  }, [data?.session?.isCollaborative]);
+  }, [data?.session?.isCollaborative, updateCachedProgress]);
 
   const handleSaveProgress = useCallback((grid: string[][]) => {
     saveProgressMutation.mutate(grid);
@@ -255,7 +285,7 @@ export default function Session() {
   if (error) {
     if (isUnauthorizedError(error)) {
       toast({ title: "Unauthorized", description: "Logging in again...", variant: "destructive" });
-      setTimeout(() => { window.location.href = "/api/login"; }, 500);
+      redirectToLogin();
       return null;
     }
     return (
