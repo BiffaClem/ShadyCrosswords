@@ -4,7 +4,7 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
-.env
+.env*
 [cookies.txt](http://_vscodecontentref_/6)
 [cookies_test.txt](http://_vscodecontentref_/7)
 data/
