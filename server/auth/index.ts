@@ -15,20 +15,21 @@ export async function setupAuth(app: Express) {
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         email TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
         first_name TEXT,
+        profile_image_url TEXT,
+        password_hash TEXT,
         role TEXT NOT NULL DEFAULT 'user',
-        created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
+        email_verified INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
+        updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
       )
     `);
     await db.run(sql`
       CREATE TABLE IF NOT EXISTS allowed_emails (
         id TEXT PRIMARY KEY,
         email TEXT UNIQUE NOT NULL,
-        first_name TEXT,
-        invited_by TEXT,
-        created_at INTEGER NOT NULL
+        invited_by TEXT REFERENCES users(id),
+        created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
       )
     `);
     await db.run(sql`
@@ -37,58 +38,51 @@ export async function setupAuth(app: Express) {
         puzzle_id TEXT UNIQUE NOT NULL,
         title TEXT NOT NULL,
         data TEXT NOT NULL,
-        uploaded_by TEXT,
-        created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000)
+        uploaded_by TEXT REFERENCES users(id),
+        created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
       )
     `);
     await db.run(sql`
-      CREATE TABLE IF NOT EXISTS sessions (
+      CREATE TABLE IF NOT EXISTS puzzle_sessions (
         id TEXT PRIMARY KEY,
-        puzzle_id TEXT NOT NULL,
-        owner_id TEXT NOT NULL,
-        name TEXT NOT NULL,
-        is_collaborative INTEGER NOT NULL DEFAULT 0,
-        difficulty TEXT NOT NULL DEFAULT 'standard',
-        created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
-        FOREIGN KEY (puzzle_id) REFERENCES puzzles(id),
-        FOREIGN KEY (owner_id) REFERENCES users(id)
+        puzzle_id TEXT NOT NULL REFERENCES puzzles(id),
+        owner_id TEXT NOT NULL REFERENCES users(id),
+        name TEXT,
+        is_collaborative INTEGER DEFAULT 0,
+        difficulty TEXT DEFAULT 'standard',
+        created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
+        updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
       )
     `);
     await db.run(sql`
       CREATE TABLE IF NOT EXISTS session_participants (
         id TEXT PRIMARY KEY,
-        session_id TEXT NOT NULL,
-        user_id TEXT NOT NULL,
-        joined_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
-        last_activity INTEGER,
-        FOREIGN KEY (session_id) REFERENCES sessions(id),
-        FOREIGN KEY (user_id) REFERENCES users(id),
+        session_id TEXT NOT NULL REFERENCES puzzle_sessions(id),
+        user_id TEXT NOT NULL REFERENCES users(id),
+        joined_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
+        last_activity INTEGER DEFAULT (strftime('%s', 'now') * 1000),
         UNIQUE(session_id, user_id)
       )
     `);
     await db.run(sql`
-      CREATE TABLE IF NOT EXISTS session_progress (
+      CREATE TABLE IF NOT EXISTS puzzle_progress (
         id TEXT PRIMARY KEY,
-        session_id TEXT NOT NULL,
+        session_id TEXT UNIQUE NOT NULL REFERENCES puzzle_sessions(id),
         grid TEXT NOT NULL,
-        updated_by TEXT NOT NULL,
-        submitted_at INTEGER,
-        created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
-        FOREIGN KEY (session_id) REFERENCES sessions(id),
-        FOREIGN KEY (updated_by) REFERENCES users(id)
+        updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
+        updated_by TEXT REFERENCES users(id),
+        submitted_at INTEGER
       )
     `);
     await db.run(sql`
       CREATE TABLE IF NOT EXISTS session_invites (
         id TEXT PRIMARY KEY,
-        session_id TEXT NOT NULL,
-        invited_user_id TEXT NOT NULL,
-        invited_by_id TEXT NOT NULL,
+        session_id TEXT NOT NULL REFERENCES puzzle_sessions(id),
+        invited_user_id TEXT NOT NULL REFERENCES users(id),
+        invited_by_id TEXT NOT NULL REFERENCES users(id),
         status TEXT NOT NULL DEFAULT 'pending',
-        created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
-        FOREIGN KEY (session_id) REFERENCES sessions(id),
-        FOREIGN KEY (invited_user_id) REFERENCES users(id),
-        FOREIGN KEY (invited_by_id) REFERENCES users(id)
+        created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
+        responded_at INTEGER
       )
     `);
     console.log("Database schema ready");

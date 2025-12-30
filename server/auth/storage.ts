@@ -7,13 +7,11 @@ export interface CreateUserInput {
   email: string;
   passwordHash: string;
   firstName?: string | null;
-  lastName?: string | null;
   role?: UserRole;
 }
 
 export interface UpdateUserInput {
   firstName?: string | null;
-  lastName?: string | null;
   role?: UserRole;
   passwordHash?: string;
 }
@@ -45,7 +43,6 @@ class AuthStorage {
         email: normalized,
         passwordHash: input.passwordHash,
         firstName: input.firstName,
-        lastName: input.lastName,
         role: input.role ?? "user",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -60,7 +57,6 @@ class AuthStorage {
     };
 
     if (data.firstName !== undefined) updateData.firstName = data.firstName;
-    if (data.lastName !== undefined) updateData.lastName = data.lastName;
     if (data.role !== undefined) updateData.role = data.role;
     if (data.passwordHash !== undefined) updateData.passwordHash = data.passwordHash;
 
@@ -122,7 +118,6 @@ class AuthStorage {
       email: user.email ?? "",
       role: (user.role as UserRole) ?? "user",
       firstName: user.firstName ?? null,
-      lastName: user.lastName ?? null,
     };
   }
 }

@@ -5,7 +5,6 @@ export interface AuthenticatedUser {
   email: string;
   role: UserRole;
   firstName: string | null;
-  lastName: string | null;
 }
 
 declare global {
