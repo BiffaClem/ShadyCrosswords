@@ -240,17 +240,23 @@ export async function registerRoutes(
       const userId = req.user.id;
       const { puzzleId, name, isCollaborative, difficulty, invitees } = req.body;
 
+      console.log("Creating session with data:", { puzzleId, name, isCollaborative, difficulty, invitees, userId });
+
       // Verify puzzle exists
       const puzzle = await storage.getPuzzle(puzzleId);
       if (!puzzle) {
+        console.log("Puzzle not found:", puzzleId);
         res.status(404).json({ message: "Puzzle not found" });
         return;
       }
+
+      console.log("Puzzle found:", puzzle.title);
 
       // Validate difficulty
       const validDifficulties = ["beginner", "standard", "expert"];
       const sessionDifficulty = validDifficulties.includes(difficulty) ? difficulty : "standard";
 
+      console.log("Creating session record...");
       const session = await storage.createSession({
         puzzleId,
         ownerId: userId,
@@ -259,25 +265,34 @@ export async function registerRoutes(
         difficulty: sessionDifficulty,
       });
 
+      console.log("Session created:", session.id);
+
       // Add owner as participant so their activity is tracked
+      console.log("Adding owner as participant...");
       await storage.addParticipant({
         sessionId: session.id,
         userId,
       });
+
+      console.log("Owner added as participant");
 
       // Initialize empty progress
       const rows = (puzzle.data as any).size.rows;
       const cols = (puzzle.data as any).size.cols;
       const emptyGrid = Array(rows).fill(null).map(() => Array(cols).fill(""));
       
+      console.log("Saving initial progress...");
       await storage.saveProgress({
         sessionId: session.id,
         grid: emptyGrid,
         updatedBy: userId,
       });
 
+      console.log("Initial progress saved");
+
       // Create invites for selected users
       if (invitees && Array.isArray(invitees) && invitees.length > 0) {
+        console.log("Creating invites for:", invitees);
         const inviteRecords = invitees.map((invitedUserId: string) => ({
           sessionId: session.id,
           invitedUserId,
@@ -285,8 +300,10 @@ export async function registerRoutes(
           status: "pending",
         }));
         await storage.createInvites(inviteRecords);
+        console.log("Invites created");
       }
 
+      console.log("Session creation complete");
       res.json(session);
     } catch (error) {
       console.error("Error creating session:", error);
