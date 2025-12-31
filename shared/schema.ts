@@ -28,7 +28,7 @@ export const puzzleSessions = pgTable("puzzle_sessions", {
   puzzleId: text("puzzle_id").references(() => puzzles.id).notNull(),
   ownerId: text("owner_id").references(() => users.id).notNull(),
   name: text("name"),
-  isCollaborative: integer("is_collaborative").default(0),
+  isCollaborative: boolean("is_collaborative").default(false),
   difficulty: text("difficulty").default("standard"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -261,7 +261,7 @@ export async function registerRoutes(
         puzzleId,
         ownerId: userId,
         name: name || `${puzzle.title} - ${new Date().toLocaleDateString()}`,
-        isCollaborative: isCollaborative ? 1 : 0,
+        isCollaborative: !!isCollaborative,
         difficulty: sessionDifficulty,
       });
 

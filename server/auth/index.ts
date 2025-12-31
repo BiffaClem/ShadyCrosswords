@@ -54,12 +54,18 @@ export async function setupAuth(app: Express) {
           puzzle_id TEXT NOT NULL REFERENCES puzzles(id),
           owner_id TEXT NOT NULL REFERENCES users(id),
           name TEXT,
-          is_collaborative INTEGER DEFAULT 0,
+          is_collaborative BOOLEAN DEFAULT FALSE,
           difficulty TEXT DEFAULT 'standard',
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )
       `;
+      // Migrate existing integer column to boolean if needed
+      try {
+        await sql`ALTER TABLE puzzle_sessions ALTER COLUMN is_collaborative TYPE BOOLEAN USING is_collaborative::boolean`;
+      } catch (e) {
+        // Column might already be boolean, ignore error
+      }
       await sql`
         CREATE TABLE IF NOT EXISTS session_participants (
           id TEXT PRIMARY KEY,
