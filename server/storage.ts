@@ -78,11 +78,15 @@ export class DatabaseStorage implements IStorage {
   // Sessions
   async getSession(id: string): Promise<PuzzleSession | undefined> {
     const [session] = await db.select().from(puzzleSessions).where(eq(puzzleSessions.id, id));
+    if (session) {
+      return { ...session, isCollaborative: !!session.isCollaborative };
+    }
     return session;
   }
 
   async getAllSessions(): Promise<PuzzleSession[]> {
-    return db.select().from(puzzleSessions);
+    const sessions = await db.select().from(puzzleSessions);
+    return sessions.map(session => ({ ...session, isCollaborative: !!session.isCollaborative }));
   }
 
   async getUserSessions(userId: string): Promise<PuzzleSession[]> {
@@ -99,13 +103,13 @@ export class DatabaseStorage implements IStorage {
     
     // Merge and dedupe
     const sessionMap = new Map<string, PuzzleSession>();
-    [...owned, ...participatedSessions].forEach(s => sessionMap.set(s.id, s));
+    [...owned, ...participatedSessions].forEach(s => sessionMap.set(s.id, { ...s, isCollaborative: !!s.isCollaborative }));
     return Array.from(sessionMap.values());
   }
 
   async createSession(session: InsertSession): Promise<PuzzleSession> {
     const [created] = await db.insert(puzzleSessions).values(session).returning();
-    return created;
+    return { ...created, isCollaborative: !!created.isCollaborative };
   }
 
   async deleteSession(id: string): Promise<void> {
