@@ -8,25 +8,21 @@ import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Landing() {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
 
   const authMutation = useMutation({
     mutationFn: async () => {
-      const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
       const payload: Record<string, string> = { email, password };
-      if (mode === "register") {
-        payload.firstName = firstName;
-      }
-      const res = await apiRequest("POST", endpoint, payload);
+      const res = await apiRequest("POST", "/api/auth/login", payload);
       return res.json();
     },
     onSuccess: () => {
       toast({
-        title: mode === "login" ? "Welcome back" : "Account created",
-        description: mode === "login" ? "Loading your sessions" : "You're signed in."
+        title: "Welcome back",
+        description: "Loading your sessions"
       });
       window.location.href = "/";
     },
@@ -53,18 +49,11 @@ export default function Landing() {
           </div>
           <div className="flex gap-2">
             <Button
-              variant={mode === "login" ? "default" : "outline"}
+              variant="default"
               onClick={() => setMode("login")}
               className="bg-amber-700 hover:bg-amber-800"
             >
               Sign In
-            </Button>
-            <Button
-              variant={mode === "register" ? "default" : "outline"}
-              onClick={() => setMode("register")}
-              className="bg-amber-700 hover:bg-amber-800"
-            >
-              Register
             </Button>
           </div>
         </div>
@@ -93,12 +82,10 @@ export default function Landing() {
 
         <section className="w-full lg:w-2/5 max-w-md mx-auto bg-white border border-amber-200 rounded-xl shadow-lg p-6">
           <h3 className="text-2xl font-bold text-amber-900 mb-1">
-            {mode === "login" ? "Sign in" : "Request an account"}
+            Sign in
           </h3>
           <p className="text-sm text-amber-600 mb-6">
-            {mode === "login"
-              ? "Enter your details to continue."
-              : "Registration is limited to invited family emails."}
+            Enter your details to continue.
           </p>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
@@ -112,17 +99,6 @@ export default function Landing() {
                 autoComplete="email"
               />
             </div>
-            {mode === "register" && (
-              <div className="space-y-2">
-                <Label htmlFor="first-name">Preferred Name</Label>
-                <Input
-                  id="first-name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="e.g. Mark"
-                />
-              </div>
-            )}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -131,7 +107,7 @@ export default function Landing() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                autoComplete="current-password"
               />
             </div>
             <Button
@@ -141,14 +117,14 @@ export default function Landing() {
               data-testid="button-get-started"
             >
               {authMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {mode === "login" ? "Sign In" : "Register"}
+              Sign In
             </Button>
           </form>
         </section>
       </main>
 
       <footer className="border-t border-amber-200 py-8 text-center text-amber-600">
-        <p>Need access? Ask Mark to add your email.</p>
+        <p>Need access? Ask Mark to add your email to the allowed list.</p>
       </footer>
     </div>
   );

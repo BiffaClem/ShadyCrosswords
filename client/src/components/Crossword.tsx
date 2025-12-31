@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Eye, RotateCcw, Menu, X, ZoomIn, ZoomOut, Send, HelpCircle } from "lucide-react";
+import { Check, Eye, RotateCcw, Menu, X, ZoomIn, ZoomOut, Send, HelpCircle, ArrowLeft } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { puzzleStorage } from "@/lib/puzzle-storage";
 
@@ -44,6 +44,8 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [zoom, setZoom] = useState(isMobileInitial ? 0.5 : 1);
   const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
   const [cluePanelHeight, setCluePanelHeight] = useState(200);
+  const [clueInputMode, setClueInputMode] = useState(false);
+  const [activeInputClue, setActiveInputClue] = useState<Clue | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const activeClueRef = useRef<HTMLButtonElement>(null);
@@ -436,7 +438,19 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     if (e.key === "ArrowLeft") moveSelectionByArrow(0, -1);
     if (e.key === "ArrowRight") moveSelectionByArrow(0, 1);
 
-  }, [puzzle, activeCell, gridState, direction, moveCursorTyping, moveSelectionByArrow, toggleDirection, onCellChange]);
+    if (e.key === "Enter" && clueInputMode) {
+      setClueInputMode(false);
+      setActiveInputClue(null);
+      return;
+    }
+
+    if (e.key === "Escape" && clueInputMode) {
+      setClueInputMode(false);
+      setActiveInputClue(null);
+      return;
+    }
+
+  }, [puzzle, activeCell, gridState, direction, moveCursorTyping, moveSelectionByArrow, toggleDirection, onCellChange, clueInputMode]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -495,12 +509,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     if (!puzzle) return;
     if (puzzle.grid[r][c] === "#") return;
 
-    // Skip direction toggle if long-press just triggered (keyboard invocation)
-    if (longPressTriggered.current) {
-      longPressTriggered.current = false;
-      return;
-    }
-
     if (activeCell?.row === r && activeCell?.col === c) {
       toggleDirection();
     } else {
@@ -508,27 +516,30 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }
     
     // On desktop, keyboard works automatically via physical keyboard
-    // On mobile, keyboard requires long-press (handled separately)
+    // On mobile, keyboard requires long-press on clues
   };
   
-  // Long-press handlers for mobile keyboard invocation
-  const handleCellPointerDown = useCallback((r: number, c: number, e: React.PointerEvent) => {
+  // Long-press handlers for mobile clue keyboard invocation
+  const handleCluePointerDown = useCallback((clue: Clue, e: React.PointerEvent) => {
     if (!isMobile || isSubmitted) return;
-    if (!puzzle || puzzle.grid[r][c] === "#") return;
     
     longPressStartPos.current = { x: e.clientX, y: e.clientY };
     
     longPressTimerRef.current = setTimeout(() => {
-      // Long press detected - focus input to show keyboard
+      // Long press detected - enter focused input mode for this clue
       longPressTriggered.current = true;
+      setClueInputMode(true);
+      setActiveInputClue(clue);
+      setActiveCell({ row: clue.row - 1, col: clue.col - 1 });
+      setDirection(clue.direction);
       if (hiddenInputRef.current) {
         hiddenInputRef.current.focus();
       }
       longPressTimerRef.current = null;
     }, 400);
-  }, [isMobile, isSubmitted, puzzle]);
+  }, [isMobile, isSubmitted]);
   
-  const handleCellPointerUp = useCallback(() => {
+  const handleCluePointerUp = useCallback(() => {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
@@ -536,7 +547,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     longPressStartPos.current = null;
   }, []);
   
-  const handleCellPointerMove = useCallback((e: React.PointerEvent) => {
+  const handleCluePointerMove = useCallback((e: React.PointerEvent) => {
     if (!longPressStartPos.current || !longPressTimerRef.current) return;
     
     const dx = Math.abs(e.clientX - longPressStartPos.current.x);
@@ -625,7 +636,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const handleClueClick = (clue: Clue) => {
     setActiveCell({ row: clue.row - 1, col: clue.col - 1 });
     setDirection(clue.direction);
-    // Keyboard is invoked via long-press on the grid, not on clue click
+    // Keyboard is invoked via long-press on clues (mobile)
   };
 
   const checkPuzzle = () => {
@@ -674,6 +685,17 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
           return activeClue.row === r1 && c1 >= activeClue.col && c1 < activeClue.col + activeClue.length;
       } else {
           return activeClue.col === c1 && r1 >= activeClue.row && r1 < activeClue.row + activeClue.length;
+      }
+  };
+  
+  const isCellInActiveInputClue = (r: number, c: number) => {
+      if (!activeInputClue) return false;
+      const r1 = r + 1;
+      const c1 = c + 1;
+      if (activeInputClue.direction === "across") {
+          return activeInputClue.row === r1 && c1 >= activeInputClue.col && c1 < activeInputClue.col + activeInputClue.length;
+      } else {
+          return activeInputClue.col === c1 && r1 >= activeInputClue.row && r1 < activeInputClue.row + activeInputClue.length;
       }
   };
   
@@ -893,169 +915,294 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       />
 
       {/* Main Content - Simple stacked layout: Grid first, Clues below */}
-      <main className="flex flex-1 overflow-hidden flex-col md:flex-row">
-        
-        {/* Grid Section - Always first visually, flex to fill remaining space on mobile */}
-        <div className="flex flex-col items-center w-full flex-1 p-1 md:p-4 md:order-2 overflow-auto min-h-0">
-          <div 
-            className="bg-card rounded-lg shadow-sm border border-border/50 p-1 md:p-4 max-w-full"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
+      {clueInputMode ? (
+        // Focused input screen
+        <main className="flex flex-1 overflow-hidden flex-col">
+          {/* Header with back button and clue text */}
+          <div className="flex items-center gap-2 p-4 bg-card border-b border-border">
+            <Button variant="ghost" size="icon" onClick={() => { setClueInputMode(false); setActiveInputClue(null); }}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex-1">
+              <div className="text-lg font-serif font-bold">{activeInputClue?.number} {activeInputClue?.direction === "across" ? "Across" : "Down"}</div>
+              <div className="text-sm text-muted-foreground">{activeInputClue?.text}</div>
+            </div>
+          </div>
+          {/* Grid showing only the clue's cells */}
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-border/50 p-4">
+              {activeInputClue && (() => {
+                // Calculate word lengths from wordBoundaries
+                const wordBoundaries = activeInputClue.wordBoundaries || [];
+                const wordLengths: number[] = [];
+                let start = 0;
+                for (let boundary of wordBoundaries) {
+                  if (boundary > start) {
+                    wordLengths.push(boundary - start);
+                    start = boundary;
+                  }
+                }
+                if (start < activeInputClue.length) {
+                  wordLengths.push(activeInputClue.length - start);
+                }
+                if (wordLengths.length === 0) {
+                  wordLengths.push(activeInputClue.length);
+                }
+
+                // Calculate rows: group words into rows of max 13 cells
+                const rows: number[][] = [];
+                let currentRow: number[] = [];
+                let currentLength = 0;
+                for (let wordLen of wordLengths) {
+                  if (wordLen > 13) {
+                    // Long word: break into rows of 13
+                    if (currentRow.length > 0) {
+                      rows.push(currentRow);
+                      currentRow = [];
+                      currentLength = 0;
+                    }
+                    let remaining = wordLen;
+                    while (remaining > 0) {
+                      const take = Math.min(remaining, 13);
+                      rows.push([take]);
+                      remaining -= take;
+                    }
+                  } else if (currentLength + wordLen <= 13) {
+                    currentRow.push(wordLen);
+                    currentLength += wordLen;
+                  } else {
+                    rows.push(currentRow);
+                    currentRow = [wordLen];
+                    currentLength = wordLen;
+                  }
+                }
+                if (currentRow.length > 0) {
+                  rows.push(currentRow);
+                }
+
+                // Now render the grid rows
+                let cellIndex = 0;
+                return (
+                  <div className="space-y-2 select-none">
+                    {rows.map((row, rowIndex) => (
+                      <div 
+                        key={rowIndex}
+                        className="grid gap-1 justify-center"
+                        style={{
+                          gridTemplateColumns: `repeat(${row.reduce((a, b) => a + b, 0)}, 1fr)`
+                        }}
+                      >
+                        {row.map((wordLen, wordIndex) => 
+                          Array.from({ length: wordLen }, (_, i) => {
+                            const globalIndex = cellIndex++;
+                            let r = activeInputClue.row - 1;
+                            let c = activeInputClue.col - 1;
+                            for (let j = 0; j < globalIndex; j++) {
+                              if (activeInputClue.direction === "across") c++;
+                              else r++;
+                            }
+                            const isActive = activeCell?.row === r && activeCell?.col === c;
+                            const displayValue = getDisplayValue(r, c);
+                            const isError = isCellError(r, c);
+                            const submittedStatus = getCellSubmittedStatus(r, c);
+                            const hasRightBoundary = boundaryMap[`${r}-${c}`]?.right;
+                            const hasBottomBoundary = boundaryMap[`${r}-${c}`]?.bottom;
+                            return (
+                              <div 
+                                key={`${r}-${c}`}
+                                onClick={() => !isSubmitted && handleCellClick(r, c)}
+                                className={cn(
+                                  "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 touch-manipulation w-12 h-12 border",
+                                  isSubmitted ? "cursor-default" : "cursor-pointer",
+                                  "bg-white",
+                                  !isSubmitted && isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
+                                  !isSubmitted && isError ? "text-red-600 bg-red-50" : "",
+                                  submittedStatus.isMissing ? "text-blue-600" : "",
+                                  submittedStatus.isIncorrect ? "text-red-600" : "",
+                                  hasRightBoundary ? "border-r-2 border-r-gray-400" : "",
+                                  hasBottomBoundary ? "border-b-2 border-b-gray-400" : ""
+                                )}
+                                style={{ fontSize: '1.5rem' }}
+                              >
+                                {displayValue}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </main>
+      ) : (
+        // Normal layout
+        <main className="flex flex-1 overflow-hidden flex-col md:flex-row">
+          
+          {/* Grid Section - Always first visually, flex to fill remaining space on mobile */}
+          <div className="flex flex-col items-center w-full flex-1 p-1 md:p-4 md:order-2 overflow-auto min-h-0">
             <div 
-              style={{
-                transform: `scale(${zoom})`,
-                transformOrigin: 'center center',
-                width: 'fit-content',
-                height: 'fit-content'
-              }}
+              className="bg-card rounded-lg shadow-sm border border-border/50 p-1 md:p-4 max-w-full"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <div 
-                className="grid gap-0 select-none"
                 style={{
-                  gridTemplateColumns: `repeat(${puzzle.size.cols}, 32px)`,
-                  backgroundColor: '#1a1a1a',
-                  padding: '1px',
-                  gap: '1px'
+                  transform: `scale(${zoom})`,
+                  transformOrigin: 'center center',
+                  width: 'fit-content',
+                  height: 'fit-content'
                 }}
               >
-                {puzzle.grid.map((rowStr, r) => (
-                  rowStr.split('').map((cellChar, c) => {
-                    const isBlack = cellChar === "#";
-                    const isActive = activeCell?.row === r && activeCell?.col === c;
-                    const isInClue = !isBlack && isCellInActiveClue(r, c);
-                    const number = puzzle.numbers[r][c];
-                    const displayValue = getDisplayValue(r, c);
-                    const isError = isCellError(r, c);
-                    const submittedStatus = getCellSubmittedStatus(r, c);
+                <div 
+                  className="grid gap-0 select-none"
+                  style={{
+                    gridTemplateColumns: `repeat(${puzzle.size.cols}, 32px)`,
+                    backgroundColor: '#1a1a1a',
+                    padding: '1px',
+                    gap: '1px'
+                  }}
+                >
+                  {puzzle.grid.map((rowStr, r) => (
+                    rowStr.split('').map((cellChar, c) => {
+                      const isBlack = cellChar === "#";
+                      const isActive = activeCell?.row === r && activeCell?.col === c;
+                      const isInClue = !isBlack && isCellInActiveClue(r, c);
+                      const number = puzzle.numbers[r][c];
+                      const displayValue = getDisplayValue(r, c);
+                      const isError = isCellError(r, c);
+                      const submittedStatus = getCellSubmittedStatus(r, c);
 
-                    return (
-                      <div 
-                        key={`${r}-${c}`}
-                        onClick={() => !isSubmitted && handleCellClick(r, c)}
-                        onPointerDown={(e) => handleCellPointerDown(r, c, e)}
-                        onPointerUp={handleCellPointerUp}
-                        onPointerMove={handleCellPointerMove}
-                        onPointerCancel={handleCellPointerUp}
-                        onPointerLeave={handleCellPointerUp}
-                        className={cn(
-                          "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 touch-manipulation",
-                          isSubmitted ? "cursor-default" : "cursor-pointer",
-                          isBlack ? "bg-black" : "bg-white",
-                          !isSubmitted && isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
-                          !isSubmitted && !isActive && isInClue ? "bg-amber-100" : "",
-                          !isSubmitted && isError ? "text-red-600 bg-red-50" : "",
-                          submittedStatus.isMissing ? "text-blue-600" : "",
-                          submittedStatus.isIncorrect ? "text-red-600" : ""
-                        )}
-                        style={{ width: '32px', height: '32px', fontSize: '1.1rem' }}
-                      >
-                        {!isBlack && number && (
-                          <span 
-                            className="font-mono text-gray-600 absolute"
-                            style={{ fontSize: '9px', top: '1px', left: '2px' }}
-                          >
-                            {number}
-                          </span>
-                        )}
-                        {!isBlack && displayValue}
-                      </div>
-                    );
-                  })
-                ))}
+                      return (
+                        <div 
+                          key={`${r}-${c}`}
+                          onClick={() => !isSubmitted && handleCellClick(r, c)}
+                          className={cn(
+                            "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 touch-manipulation",
+                            isSubmitted ? "cursor-default" : "cursor-pointer",
+                            isBlack ? "bg-black" : "bg-white",
+                            !isSubmitted && isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
+                            !isSubmitted && !isActive && isInClue ? "bg-amber-100" : "",
+                            !isSubmitted && isError ? "text-red-600 bg-red-50" : "",
+                            submittedStatus.isMissing ? "text-blue-600" : "",
+                            submittedStatus.isIncorrect ? "text-red-600" : ""
+                          )}
+                          style={{ width: '32px', height: '32px', fontSize: '1.1rem' }}
+                        >
+                          {!isBlack && number && (
+                            <span 
+                              className="font-mono text-gray-600 absolute"
+                              style={{ fontSize: '9px', top: '1px', left: '2px' }}
+                            >
+                              {number}
+                            </span>
+                          )}
+                          {!isBlack && displayValue}
+                        </div>
+                      );
+                    })
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Draggable separator - mobile only */}
-        <div 
-          className="md:hidden flex items-center justify-center h-5 bg-muted/40 border-y border-border cursor-row-resize touch-none select-none shrink-0"
-          onMouseDown={handleSeparatorStart}
-          onTouchStart={handleSeparatorStart}
-        >
-          <div className="w-16 h-1.5 bg-muted-foreground/50 rounded-full" />
-        </div>
-        
-        {/* Clue List - Below grid on mobile (resizable), left side on desktop (full height) */}
-        <div 
-          className="bg-card flex flex-col flex-none md:flex-1 md:order-1 md:border-t-0 md:border-r border-border md:w-80 md:max-w-80 min-h-0 overflow-hidden"
-          style={{ height: isMobile ? `${cluePanelHeight}px` : '100%' }}
-        >
-            <div className="hidden md:block p-3 bg-muted/20 border-b border-border">
-                <h2 className="font-serif font-bold text-sm">Clues</h2>
-            </div>
+          
+          {/* Draggable separator - mobile only */}
+          <div 
+            className="md:hidden flex items-center justify-center h-5 bg-muted/40 border-y border-border cursor-row-resize touch-none select-none shrink-0"
+            onMouseDown={handleSeparatorStart}
+            onTouchStart={handleSeparatorStart}
+          >
+            <div className="w-16 h-1.5 bg-muted-foreground/50 rounded-full" />
+          </div>
+          
+          {/* Clue List - Below grid on mobile (resizable), left side on desktop (full height) */}
+          <div 
+            className="bg-card flex flex-col flex-none md:flex-1 md:order-1 md:border-t-0 md:border-r border-border md:w-80 md:max-w-80 min-h-0 overflow-hidden"
+            style={{ height: isMobile ? `${cluePanelHeight}px` : '100%' }}
+          >
+              <div className="hidden md:block p-3 bg-muted/20 border-b border-border">
+                  <h2 className="font-serif font-bold text-sm">Clues</h2>
+              </div>
 
-            <Tabs value={direction} onValueChange={(v) => setDirection(v as "across" | "down")} className="flex-1 flex flex-col overflow-hidden min-h-0">
-                <div className="px-2 pt-1 md:pt-2">
-                    <TabsList className="w-full grid grid-cols-2 h-8 md:h-10">
-                        <TabsTrigger value="across" className="text-xs md:text-sm py-1">Across</TabsTrigger>
-                        <TabsTrigger value="down" className="text-xs md:text-sm py-1">Down</TabsTrigger>
-                    </TabsList>
-                </div>
-                
-                {["across", "down"].map((dir) => (
-                    <TabsContent key={dir} value={dir} className="flex-1 overflow-hidden mt-1 p-0 min-h-0">
-                        <ScrollArea className="h-full">
-                            <div className="px-2 pb-4 space-y-0.5">
-                                {puzzle.clues[dir as "across"|"down"].map((clue) => {
-                                    const isActive = activeClue?.number === clue.number && activeClue?.direction === dir;
-                                    const isFilled = isClueFilled(clue);
-                                    
-                                    return (
-                                        <div key={getClueId(clue)} className="space-y-1">
-                                          <button
-                                            ref={isActive ? activeClueRef : undefined}
-                                            onClick={() => handleClueClick(clue)}
-                                            className={cn(
-                                                "w-full text-left p-2 rounded-md transition-all flex items-start gap-2 group relative",
-                                                isActive 
-                                                    ? "bg-accent/40 text-foreground" 
-                                                    : "hover:bg-muted/50 text-muted-foreground"
-                                            )}
-                                          >
-                                              <span className={cn(
-                                                  "font-bold font-mono shrink-0 w-6 text-sm md:w-5 md:text-xs",
-                                                  isActive ? "text-primary" : "text-muted-foreground/70",
-                                                  isFilled && !isActive && "line-through opacity-50"
-                                              )}>
-                                                  {clue.number}
-                                              </span>
-                                              <div className="space-y-0.5 min-w-0 flex-1">
-                                                  <span className={cn(
-                                                      "block leading-tight text-sm md:text-xs",
-                                                      isActive ? "font-medium" : "",
-                                                      isFilled && !isActive && "line-through opacity-60"
-                                                  )}>
-                                                      {clue.text}
-                                                  </span>
-                                                  <span className="text-xs md:text-[10px] text-muted-foreground/60">
-                                                      ({clue.enumeration})
-                                                  </span>
-                                                  {isSubmitted && clue.answer && (
-                                                    <span className="block text-[11px] font-medium text-green-700 mt-1">
-                                                      {clue.answer}
+              <Tabs value={direction} onValueChange={(v) => setDirection(v as "across" | "down")} className="flex-1 flex flex-col overflow-hidden min-h-0">
+                  <div className="px-2 pt-1 md:pt-2">
+                      <TabsList className="w-full grid grid-cols-2 h-8 md:h-10">
+                          <TabsTrigger value="across" className="text-xs md:text-sm py-1">Across</TabsTrigger>
+                          <TabsTrigger value="down" className="text-xs md:text-sm py-1">Down</TabsTrigger>
+                      </TabsList>
+                  </div>
+                  
+                  {["across", "down"].map((dir) => (
+                      <TabsContent key={dir} value={dir} className="flex-1 overflow-hidden mt-1 p-0 min-h-0">
+                          <ScrollArea className="h-full">
+                              <div className="px-2 pb-4 space-y-0.5">
+                                  {puzzle.clues[dir as "across"|"down"].map((clue) => {
+                                      const isActive = activeClue?.number === clue.number && activeClue?.direction === dir;
+                                      const isFilled = isClueFilled(clue);
+                                      
+                                      return (
+                                          <div key={getClueId(clue)} className="space-y-1">
+                                            <button
+                                              ref={isActive ? activeClueRef : undefined}
+                                              onClick={() => handleClueClick(clue)}
+                                              onPointerDown={(e) => handleCluePointerDown(clue, e)}
+                                              onPointerUp={handleCluePointerUp}
+                                              onPointerMove={handleCluePointerMove}
+                                              onPointerCancel={handleCluePointerUp}
+                                              onPointerLeave={handleCluePointerUp}
+                                              className={cn(
+                                                  "w-full text-left p-2 rounded-md transition-all flex items-start gap-2 group relative",
+                                                  isActive 
+                                                      ? "bg-accent/40 text-foreground" 
+                                                      : "hover:bg-muted/50 text-muted-foreground"
+                                              )}
+                                            >
+                                                <span className={cn(
+                                                    "font-bold font-mono shrink-0 w-6 text-sm md:w-5 md:text-xs",
+                                                    isActive ? "text-primary" : "text-muted-foreground/70",
+                                                    isFilled && !isActive && "line-through opacity-50"
+                                                )}>
+                                                    {clue.number}
+                                                </span>
+                                                <div className="space-y-0.5 min-w-0 flex-1">
+                                                    <span className={cn(
+                                                        "block leading-tight text-sm md:text-xs",
+                                                        isActive ? "font-medium" : "",
+                                                        isFilled && !isActive && "line-through opacity-60"
+                                                    )}>
+                                                        {clue.text}
                                                     </span>
-                                                  )}
+                                                    <span className="text-xs md:text-[10px] text-muted-foreground/60">
+                                                        ({clue.enumeration})
+                                                    </span>
+                                                    {isSubmitted && clue.answer && (
+                                                      <span className="block text-[11px] font-medium text-green-700 mt-1">
+                                                        {clue.answer}
+                                                      </span>
+                                                    )}
+                                                </div>
+                                            </button>
+                                            {isSubmitted && clue.explanation && (
+                                              <div className="ml-7 mr-2 p-2 bg-blue-50 border border-blue-100 rounded text-[10px] text-blue-800 leading-relaxed">
+                                                <div className="flex items-start gap-1">
+                                                  <HelpCircle className="h-3 w-3 mt-0.5 shrink-0 text-blue-500" />
+                                                  <span>{clue.explanation}</span>
+                                                </div>
                                               </div>
-                                          </button>
-                                          {isSubmitted && clue.explanation && (
-                                            <div className="ml-7 mr-2 p-2 bg-blue-50 border border-blue-100 rounded text-[10px] text-blue-800 leading-relaxed">
-                                              <div className="flex items-start gap-1">
-                                                <HelpCircle className="h-3 w-3 mt-0.5 shrink-0 text-blue-500" />
-                                                <span>{clue.explanation}</span>
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </ScrollArea>
-                    </TabsContent>
-                ))}
-            </Tabs>
-        </div>
-      </main>
+                                            )}
+                                          </div>
+                                      );
+                                  })}
+                              </div>
+                          </ScrollArea>
+                      </TabsContent>
+                  ))}
+              </Tabs>
+          </div>
+        </main>
+      )}
 
     </div>
   );
