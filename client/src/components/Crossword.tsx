@@ -60,16 +60,15 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(200);
 
-  // Track saving state across renders
-  const pendingSaveRef = useRef<string[][] | null>(null);
-  const lastSavedGridRef = useRef<string | null>(null);
-  const sessionIdRef = useRef(sessionId);
-  sessionIdRef.current = sessionId;
-  const hasHydratedInitialGridRef = useRef<boolean>(Boolean(initialGrid && initialGrid.length > 0));
-  const latestGridRef = useRef<string[][]>(initialGrid || gridState);
+  // Auto-focus hidden input when entering clue input mode
   useEffect(() => {
-    latestGridRef.current = gridState;
-  }, [gridState]);
+    if (clueInputMode && hiddenInputRef.current) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        hiddenInputRef.current?.focus();
+      }, 100);
+    }
+  }, [clueInputMode]);
   
   // Detect mobile for layout purposes, but only set zoom once
   useEffect(() => {
@@ -924,13 +923,13 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <div className="text-lg font-serif font-bold">{activeInputClue?.number} {activeInputClue?.direction === "across" ? "Across" : "Down"}</div>
-              <div className="text-sm text-muted-foreground">{activeInputClue?.text}</div>
+              <div className="text-xl font-serif font-bold">{activeInputClue?.number} {activeInputClue?.direction === "across" ? "Across" : "Down"}</div>
+              <div className="text-base text-muted-foreground">{activeInputClue?.text}</div>
             </div>
           </div>
           {/* Grid showing only the clue's cells */}
-          <div className="flex-1 flex items-center justify-center p-4">
-            <div className="bg-card rounded-lg shadow-sm border border-border/50 p-4">
+          <div className="flex-1 overflow-auto p-4">
+            <div className="bg-card rounded-lg shadow-sm border border-border/50 p-4 max-w-full">
               {activeInputClue && (() => {
                 // Calculate word lengths from wordBoundaries
                 const wordBoundaries = activeInputClue.wordBoundaries || [];
@@ -1168,7 +1167,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                                 </span>
                                                 <div className="space-y-0.5 min-w-0 flex-1">
                                                     <span className={cn(
-                                                        "block leading-tight text-sm md:text-xs",
+                                                        "block leading-tight text-base md:text-sm",
                                                         isActive ? "font-medium" : "",
                                                         isFilled && !isActive && "line-through opacity-60"
                                                     )}>
