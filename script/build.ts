@@ -14,6 +14,7 @@ const allowlist = [
   "express-session",
   "passport",
   "passport-local",
+  "postgres",
   "ws",
   "zod",
   "zod-validation-error",
