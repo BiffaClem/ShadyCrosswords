@@ -1,26 +1,47 @@
 import type { Express } from "express";
 import session from "express-session";
-import connectSqlite3 from "connect-sqlite3";
 import path from "path";
 import fs from "fs";
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-export function setupSession(app: Express) {
+export async function setupSession(app: Express) {
   const sessionSecret = process.env.SESSION_SECRET;
   if (!sessionSecret) {
     throw new Error("SESSION_SECRET must be set before starting the server");
   }
 
-  const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "data");
-  const sessionDir = path.join(dataDir, "sessions");
-  fs.mkdirSync(sessionDir, { recursive: true });
+  const databaseUrl = process.env.DATABASE_URL;
+  const isPostgres = databaseUrl && (databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://"));
 
-  const SQLiteStore = connectSqlite3(session);
-  const store = new SQLiteStore({
-    dir: sessionDir,
-    db: "sessions.sqlite",
-  });
+  let store;
+
+  if (isPostgres) {
+    // PostgreSQL session store
+    const { default: connectPgSimple } = await import("connect-pg-simple");
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: databaseUrl,
+    });
+    const PGStore = connectPgSimple(session);
+    store = new PGStore({
+      pool: pool,
+      tableName: 'session',
+      createTableIfMissing: true,
+    });
+  } else {
+    // SQLite session store for local development
+    const { default: connectSqlite3 } = await import("connect-sqlite3");
+    const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "data");
+    const sessionDir = path.join(dataDir, "sessions");
+    fs.mkdirSync(sessionDir, { recursive: true });
+
+    const SQLiteStore = connectSqlite3(session);
+    store = new SQLiteStore({
+      dir: sessionDir,
+      db: "sessions.sqlite",
+    });
+  }
 
   const secureFlagInput = (process.env.SESSION_COOKIE_SECURE ?? "")
     .toLowerCase()

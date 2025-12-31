@@ -6,7 +6,7 @@ import { rm, readFile, writeFile, mkdir } from "fs/promises";
 // which helps cold start times
 const allowlist = [
   "bcryptjs",
-  "connect-sqlite3",
+  "connect-pg-simple",
   "date-fns",
   "drizzle-orm",
   "drizzle-zod",
@@ -14,6 +14,7 @@ const allowlist = [
   "express-session",
   "passport",
   "passport-local",
+  "pg",
   "postgres",
   "ws",
   "zod",
@@ -53,7 +54,7 @@ async function buildAll() {
       "process.env.NODE_ENV": '"production"',
     },
     minify: true,
-    external: externals,
+    external: [...externals, "connect-sqlite3", "connect-pg-simple"],
     logLevel: "info",
   });
 }
