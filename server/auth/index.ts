@@ -175,7 +175,7 @@ export async function setupAuth(app: Express) {
     // Don't crash the app, but log the error
   }
 
-  setupSession(app);
+  await setupSession(app);
   setupPassport();
   app.use(passport.initialize());
   app.use(passport.session());

@@ -17,9 +17,9 @@ export async function setupSession(app: Express) {
   let store;
 
   if (isPostgres) {
-    // PostgreSQL session store
-    const { default: connectPgSimple } = await import("connect-pg-simple");
-    const { Pool } = await import('pg');
+    // PostgreSQL session store - use synchronous require for bundled code
+    const connectPgSimple = require("connect-pg-simple");
+    const { Pool } = require('pg');
     const pool = new Pool({
       connectionString: databaseUrl,
     });
@@ -30,8 +30,8 @@ export async function setupSession(app: Express) {
       createTableIfMissing: true,
     });
   } else {
-    // SQLite session store for local development
-    const { default: connectSqlite3 } = await import("connect-sqlite3");
+    // SQLite session store for local development - use synchronous require for bundled code
+    const connectSqlite3 = require("connect-sqlite3");
     const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "data");
     const sessionDir = path.join(dataDir, "sessions");
     fs.mkdirSync(sessionDir, { recursive: true });
