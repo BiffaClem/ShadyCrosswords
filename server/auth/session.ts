@@ -1,7 +1,6 @@
 import type { Express } from "express";
 import session from "express-session";
-import path from "path";
-import fs from "fs";
+import { databaseUrl } from "../db";
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -11,37 +10,21 @@ export async function setupSession(app: Express) {
     throw new Error("SESSION_SECRET must be set before starting the server");
   }
 
-  const databaseUrl = process.env.DATABASE_URL;
-  const isPostgres = databaseUrl && (databaseUrl.startsWith("postgresql://") || databaseUrl.startsWith("postgres://"));
-
-  let store;
-
-  if (isPostgres) {
-    // PostgreSQL session store - use synchronous require for bundled code
-    const connectPgSimple = require("connect-pg-simple");
-    const { Pool } = require('pg');
-    const pool = new Pool({
-      connectionString: databaseUrl,
-    });
-    const PGStore = connectPgSimple(session);
-    store = new PGStore({
-      pool: pool,
-      tableName: 'session',
-      createTableIfMissing: true,
-    });
-  } else {
-    // SQLite session store for local development - use synchronous require for bundled code
-    const connectSqlite3 = require("connect-sqlite3");
-    const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "data");
-    const sessionDir = path.join(dataDir, "sessions");
-    fs.mkdirSync(sessionDir, { recursive: true });
-
-    const SQLiteStore = connectSqlite3(session);
-    store = new SQLiteStore({
-      dir: sessionDir,
-      db: "sessions.sqlite",
-    });
+  if (!databaseUrl.startsWith("postgresql://") && !databaseUrl.startsWith("postgres://")) {
+    throw new Error("Session store requires a PostgreSQL DATABASE_URL");
   }
+
+  const connectPgSimple = (await import("connect-pg-simple")).default;
+  const { Pool } = await import("pg");
+  const pool = new Pool({
+    connectionString: databaseUrl,
+  });
+  const PGStore = connectPgSimple(session);
+  const store = new PGStore({
+    pool,
+    tableName: "session",
+    createTableIfMissing: true,
+  });
 
   const secureFlagInput = (process.env.SESSION_COOKIE_SECURE ?? "")
     .toLowerCase()

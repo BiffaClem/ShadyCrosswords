@@ -1,6 +1,6 @@
 # Crossword Application
 
-A web-based crossword puzzle application built with React, Express, and SQLite. Features user authentication, admin management, real-time puzzle solving, and collaborative sessions.
+A web-based crossword puzzle application built with React, Express, and PostgreSQL. Features user authentication, admin management, real-time puzzle solving, and collaborative sessions.
 
 ## System Architecture
 
@@ -14,7 +14,7 @@ A web-based crossword puzzle application built with React, Express, and SQLite. 
 ### Backend
 - **Express.js** server with TypeScript
 - **Passport.js** for local authentication
-- **SQLite** database with **Drizzle ORM** for data persistence
+- **PostgreSQL** database managed via **Drizzle ORM**
 - **WebSocket Server** for real-time updates during puzzle sessions
 - RESTful API for user management, puzzle operations, and admin functions
 
@@ -52,15 +52,17 @@ A web-based crossword puzzle application built with React, Express, and SQLite. 
    ```bash
    cp .env.example .env
    ```
-   Edit `.env` with your local configuration. At minimum, update:
-   - `SESSION_SECRET` (use a random string)
-   - `DEFAULT_ADMIN_EMAIL` and `DEFAULT_ADMIN_PASSWORD`
+   Edit `.env` with your local configuration:
+   - Set `SESSION_SECRET`, `DEFAULT_ADMIN_EMAIL`, and `DEFAULT_ADMIN_PASSWORD`
+   - Choose the database target. For local development, keep `DB_TARGET=local` so the server connects to `LOCAL_DATABASE_URL` (`postgres://postgres:postgres@localhost:5432/crossword_local`).
+   - If you use docker-compose, the app container overrides `DB_TARGET` to `docker` and connects to the bundled Postgres service automatically.
 
 4. **Database setup**
-   ```bash
-   npm run db:push
-   ```
-   This creates the SQLite database and runs migrations.
+   - Ensure PostgreSQL is running. You can start the docker-compose database with `docker compose up db -d` **or** point `LOCAL_DATABASE_URL` at an existing Postgres instance.
+   - Run migrations:
+     ```bash
+     npm run db:push
+     ```
 
 5. **Load puzzle data**
    The application automatically loads crossword puzzles from the `puzzles/` directory on startup. Ensure your puzzle JSON files are in the correct format.
@@ -96,13 +98,18 @@ Ensure your `.env` file contains production-appropriate values:
 
 ```env
 PORT=5000
-DATABASE_URL=sqlite:/app/data/crossword.sqlite
+DB_TARGET=railway
+RAILWAY_DATABASE_URL=<railway-provided-postgres-url>
+LOCAL_DATABASE_URL=postgres://postgres:postgres@localhost:5432/crossword_local
+DOCKER_DATABASE_URL=postgres://postgres:postgres@db:5432/crossword_local
+POSTGRES_DB=crossword_local
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<secure-password>
 SESSION_SECRET=<strong-random-secret>
 SESSION_COOKIE_SECURE=true  # Set to true for HTTPS
 DEFAULT_ADMIN_EMAIL=<your-admin-email>
 DEFAULT_ADMIN_PASSWORD=<secure-password>
 DEFAULT_ADMIN_NAME=<admin-name>
-DATA_DIR=/app/data
 ```
 
 ### Build Process
@@ -123,9 +130,9 @@ DATA_DIR=/app/data
    ```
 
 ### Data Persistence
-- Puzzle data is loaded from `puzzles/` directory
-- User data and sessions are stored in SQLite database
-- Use Docker volumes for data persistence in production
+- Puzzle data is loaded from the `puzzles/` directory
+- User data, sessions, and invites live in PostgreSQL
+- When using Docker, the `crossword-postgres` volume preserves your database between restarts
 
 ## Hosting on Railway.app
 
@@ -147,13 +154,13 @@ Railway.app provides easy Docker-based deployment with automatic scaling and dat
    - Add the following environment variables:
      ```
      PORT=5000
-     DATABASE_URL=sqlite:/app/data/crossword.sqlite
+   DB_TARGET=railway
+   RAILWAY_DATABASE_URL=<railway-provided-postgres-url>
      SESSION_SECRET=<generate-a-secure-random-string>
      SESSION_COOKIE_SECURE=true
      DEFAULT_ADMIN_EMAIL=<your-admin-email>
      DEFAULT_ADMIN_PASSWORD=<secure-password>
      DEFAULT_ADMIN_NAME=<your-admin-name>
-     DATA_DIR=/app/data
      ```
 
 3. **Configure build settings** (if needed)
@@ -169,7 +176,7 @@ Railway.app provides easy Docker-based deployment with automatic scaling and dat
    - The admin panel will be available at `/admin` on your domain
 
 ### Railway-specific Notes
-- Railway provides persistent volumes automatically for the `/app/data` directory
+- Railway provisions a managed Postgres instance—copy its connection string into `RAILWAY_DATABASE_URL`
 - The application uses Railway's built-in networking (no need to configure ports manually)
 - Monitor logs and metrics through the Railway dashboard
 - Scale your application as needed through the Railway interface
@@ -195,8 +202,8 @@ Railway.app provides easy Docker-based deployment with automatic scaling and dat
 - Session state is persisted to prevent data loss
 
 ### Data Management
-- **Puzzles**: Stored as JSON files in the `puzzles/` directory, loaded into database on startup
-- **User Data**: SQLite database with user accounts, sessions, and progress
+- **Puzzles**: Stored as JSON files in the `puzzles/` directory, loaded into the database on startup
+- **User Data**: PostgreSQL holds user accounts, sessions, invites, and puzzle progress
 - **Sessions**: Temporary WebSocket-based sessions for collaborative solving
 
 ### Security

@@ -18,18 +18,18 @@ interface CrosswordProps {
   initialPuzzle?: PuzzleData;
   initialGrid?: string[][];
   onCellChange?: (row: number, col: number, value: string, grid: string[][]) => void;
-  onSave?: (grid: string[][]) => void;
   onSubmit?: () => void;
   isSubmitted?: boolean;
   isCollaborative?: boolean;
   recentSessions?: RecentSession[];
   onSessionSelect?: (sessionId: string) => void;
   sessionId?: string; // For beacon saves on unload
+  shouldAutoSave?: boolean;
 }
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
-export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSave, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId }: CrosswordProps) {
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
   const [puzzle, setPuzzle] = useState<PuzzleData | null>(initialPuzzle || null);
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
@@ -49,6 +49,12 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const activeClueRef = useRef<HTMLButtonElement>(null);
+  const autosaveEnabled = shouldAutoSave !== false && !!sessionId;
+  const sessionIdRef = useRef<string | undefined>(sessionId);
+  const latestGridRef = useRef<string[][] | null>(initialGrid ?? null);
+  const lastSavedGridRef = useRef<string | null>(initialGrid ? JSON.stringify(initialGrid) : null);
+  const pendingSaveRef = useRef<string[][] | null>(null);
+  const hasHydratedInitialGridRef = useRef(false);
   
   // Refs for long-press keyboard detection
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -110,6 +116,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
 
     if (needsSync) {
       setGridState(initialGrid);
+      latestGridRef.current = initialGrid;
     }
 
     if (!hasHydrated || needsSync) {
@@ -134,10 +141,12 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         if (savedProgress) {
           setGridState(savedProgress);
           lastSavedGridRef.current = JSON.stringify(savedProgress);
+          latestGridRef.current = savedProgress;
         } else {
           const newGrid = Array(rows).fill(null).map(() => Array(cols).fill(""));
           setGridState(newGrid);
           lastSavedGridRef.current = JSON.stringify(newGrid);
+          latestGridRef.current = newGrid;
         }
         hasHydratedInitialGridRef.current = true;
       }
@@ -180,10 +189,18 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       console.error('Failed to save progress:', error);
     }
   }, []); // No dependencies - uses refs
+
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
+  useEffect(() => {
+    latestGridRef.current = gridState;
+  }, [gridState]);
   
   // Save progress whenever grid changes (with debounce)
   useEffect(() => {
-    if (!puzzle || !gridState.length || !sessionId || !hasHydratedInitialGridRef.current) return;
+    if (!puzzle || !gridState.length || !sessionId || !hasHydratedInitialGridRef.current || !autosaveEnabled) return;
     
     // Always save to localStorage as backup
     puzzleStorage.saveProgress(puzzle.puzzleId, gridState);
@@ -210,10 +227,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [gridState, puzzle, sessionId, doSave]);
+  }, [gridState, puzzle, sessionId, doSave, autosaveEnabled]);
 
   // Flush pending saves on unmount
   useEffect(() => {
+    if (!autosaveEnabled) return;
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -222,10 +240,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         doSave(pendingSaveRef.current, true);
       }
     };
-  }, [doSave]);
+  }, [doSave, autosaveEnabled]);
 
   // Save on page unload and visibility change
   useEffect(() => {
+    if (!autosaveEnabled) return;
     const handleBeforeUnload = () => {
       if (pendingSaveRef.current) {
         doSave(pendingSaveRef.current, true);
@@ -244,7 +263,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [doSave]);
+  }, [doSave, autosaveEnabled]);
 
   // Pre-calculate word boundaries
   const boundaryMap = useMemo(() => {

@@ -4,7 +4,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
-console.log("DATABASE_URL:", process.env.DATABASE_URL);
+console.log("Database target:", process.env.DB_TARGET ?? "auto");
 
 const app = express();
 const httpServer = createServer(app);

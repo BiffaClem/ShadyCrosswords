@@ -54,7 +54,7 @@ async function buildAll() {
       "process.env.NODE_ENV": '"production"',
     },
     minify: true,
-    external: [...externals, "connect-sqlite3", "connect-pg-simple"],
+    external: [...externals, "connect-pg-simple"],
     logLevel: "info",
   });
 }
