@@ -76,6 +76,14 @@ interface Person {
   invitedBy: string | null;
 }
 
+interface BuildInfo {
+  timestamp?: string;
+  date?: string;
+  time?: string;
+  timezone?: string;
+  utc?: string;
+}
+
 type UserDeleteMeta = {
   id: string;
   email: string;
@@ -181,13 +189,33 @@ export default function Admin() {
     }
   }, [sessionsError]);
 
-  const { data: buildInfo } = useQuery<{ timestamp: string; date: string; time: string }>({
+  const { data: buildInfo } = useQuery<BuildInfo>({
     queryKey: ["/api/build-info"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/build-info");
       return res.json();
     },
   });
+
+  const buildInfoDisplay = useMemo(() => {
+    if (!buildInfo) return null;
+    const ts = buildInfo.timestamp;
+    if (ts) {
+      const parsed = new Date(ts);
+      if (!Number.isNaN(parsed.getTime())) {
+        return {
+          date: parsed.toLocaleDateString(),
+          time: parsed.toLocaleTimeString(),
+          timezone: buildInfo.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        };
+      }
+    }
+    return {
+      date: buildInfo.date ?? null,
+      time: buildInfo.time ?? null,
+      timezone: buildInfo.timezone ?? null,
+    };
+  }, [buildInfo]);
 
   const userMap = useMemo(() => {
     if (!users) return new Map<string, AdminUser>();
@@ -466,11 +494,14 @@ export default function Admin() {
           <Card className="border-amber-200 bg-white">
             <CardHeader className="pb-2">
               <CardDescription className="uppercase text-xs tracking-wide text-amber-500">Build Date</CardDescription>
-              <CardTitle className="text-lg text-amber-900">{buildInfo?.date || "Loading..."}</CardTitle>
+              <CardTitle className="text-lg text-amber-900">{buildInfoDisplay?.date || "Loading..."}</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center gap-2 text-sm text-amber-700">
               <RefreshCcw className="h-4 w-4" />
-              {buildInfo?.time || "Loading..."}
+              {buildInfoDisplay?.time || "Loading..."}
+              {buildInfoDisplay?.timezone && (
+                <span className="text-xs text-muted-foreground">{buildInfoDisplay.timezone}</span>
+              )}
             </CardContent>
           </Card>
         </section>

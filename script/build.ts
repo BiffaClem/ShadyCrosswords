@@ -22,19 +22,28 @@ const allowlist = [
 ];
 
 async function buildAll() {
+  const enableSourceMap = true;
   await rm("dist", { recursive: true, force: true });
 
-  // Create build info
+  // Create build info using a single timestamp to keep values in sync
+  const now = new Date();
   const buildInfo = {
-    timestamp: new Date().toISOString(),
-    date: new Date().toLocaleDateString(),
-    time: new Date().toLocaleTimeString(),
+    timestamp: now.toISOString(),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    utc: now.toUTCString(),
+    // Legacy fields kept for compatibility
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString(),
   };
   await mkdir("dist", { recursive: true });
   await writeFile("dist/build-info.json", JSON.stringify(buildInfo, null, 2));
 
   console.log("building client...");
-  await viteBuild();
+  await viteBuild({
+    build: {
+      sourcemap: enableSourceMap,
+    },
+  });
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
@@ -54,6 +63,7 @@ async function buildAll() {
       "process.env.NODE_ENV": '"production"',
     },
     minify: true,
+    sourcemap: enableSourceMap,
     external: [...externals, "connect-pg-simple"],
     logLevel: "info",
   });

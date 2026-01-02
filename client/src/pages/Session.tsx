@@ -96,7 +96,9 @@ export default function Session() {
       return res.json();
     },
     retry: false,
-    staleTime: 0,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: participantsData, refetch: refetchParticipants } = useQuery<ParticipantsData>({
@@ -165,6 +167,13 @@ export default function Session() {
   }, [id, queryClient, user?.id]);
 
   useEffect(() => {
+    hasHydratedProgressRef.current = false;
+    setGridState(null);
+  }, [id]);
+
+  useEffect(() => {
+    if (hasHydratedProgressRef.current) return;
+
     if (data?.progress?.grid) {
       setGridState(data.progress.grid);
       updateCachedProgress(data.progress.grid);
@@ -174,7 +183,7 @@ export default function Session() {
       return;
     }
 
-    if (!hasHydratedProgressRef.current && data?.puzzle?.data?.size) {
+    if (data?.puzzle?.data?.size) {
       const rows = data.puzzle.data.size.rows;
       const cols = data.puzzle.data.size.cols;
       const emptyGrid = Array.from({ length: rows }, () => Array(cols).fill(""));
@@ -207,6 +216,7 @@ export default function Session() {
       if (message.type === "cell_update") {
         setGridState(prev => {
           if (!prev) return prev;
+          if (prev[message.row]?.[message.col] === message.value) return prev;
           const newGrid = prev.map(row => [...row]);
           newGrid[message.row][message.col] = message.value;
           return newGrid;
@@ -227,7 +237,10 @@ export default function Session() {
       }
       
       if (message.type === "progress_update") {
-        setGridState(message.grid);
+        setGridState(prev => {
+          const same = prev && JSON.stringify(prev) === JSON.stringify(message.grid);
+          return same ? prev : message.grid;
+        });
         updateCachedProgress(message.grid);
         lastSavedGridRef.current = JSON.stringify(message.grid);
         pendingGridRef.current = null;
@@ -392,7 +405,13 @@ export default function Session() {
   });
 
   const handleCellChange = useCallback((row: number, col: number, value: string, newGrid: string[][]) => {
-    setGridState(newGrid);
+    setGridState(prev => {
+      if (!prev) return newGrid;
+      if (prev[row]?.[col] === value) return prev;
+      const copy = prev.map(r => [...r]);
+      copy[row][col] = value;
+      return copy;
+    });
     updateCachedProgress(newGrid);
     
     if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN) {
@@ -570,6 +589,7 @@ export default function Session() {
       <main className="container mx-auto py-4">
         {puzzleData && (
           <Crossword 
+            key={id}
             initialPuzzle={puzzleData}
             initialGrid={gridState || undefined}
             onCellChange={handleCellChange}
