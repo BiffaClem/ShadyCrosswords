@@ -140,32 +140,6 @@ export default function Session() {
     }))
   ).filter((s: RecentSession) => s.id !== id).slice(0, 5) || [];
 
-  const updateCachedProgress = useCallback((grid: string[][]) => {
-    queryClient.setQueryData<SessionData | undefined>(["/api/sessions", id], (existing) => {
-      if (!existing) return existing;
-      if (!existing.progress) {
-        return {
-          ...existing,
-          progress: {
-            sessionId: existing.session.id,
-            id: existing.session.id,
-            grid,
-            updatedAt: new Date().toISOString(),
-            updatedBy: user?.id ?? null,
-            submittedAt: null,
-          },
-        };
-      }
-      return {
-        ...existing,
-        progress: {
-          ...existing.progress,
-          grid,
-        },
-      };
-    });
-  }, [id, queryClient, user?.id]);
-
   useEffect(() => {
     hasHydratedProgressRef.current = false;
     setGridState(null);
@@ -176,7 +150,6 @@ export default function Session() {
 
     if (data?.progress?.grid) {
       setGridState(data.progress.grid);
-      updateCachedProgress(data.progress.grid);
       lastSavedGridRef.current = JSON.stringify(data.progress.grid);
       pendingGridRef.current = null;
       hasHydratedProgressRef.current = true;
@@ -188,12 +161,11 @@ export default function Session() {
       const cols = data.puzzle.data.size.cols;
       const emptyGrid = Array.from({ length: rows }, () => Array(cols).fill(""));
       setGridState(emptyGrid);
-      updateCachedProgress(emptyGrid);
       pendingGridRef.current = null;
       lastSavedGridRef.current = null;
       hasHydratedProgressRef.current = true;
     }
-  }, [data?.progress?.grid, data?.puzzle?.data?.size, updateCachedProgress]);
+  }, [data?.progress?.grid, data?.puzzle?.data?.size]);
 
   useEffect(() => {
     if (!data?.session?.isCollaborative || !user) return;
@@ -241,7 +213,6 @@ export default function Session() {
           const same = prev && JSON.stringify(prev) === JSON.stringify(message.grid);
           return same ? prev : message.grid;
         });
-        updateCachedProgress(message.grid);
         lastSavedGridRef.current = JSON.stringify(message.grid);
         pendingGridRef.current = null;
         hasHydratedProgressRef.current = true;
@@ -412,7 +383,6 @@ export default function Session() {
       copy[row][col] = value;
       return copy;
     });
-    updateCachedProgress(newGrid);
     
     if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
@@ -422,7 +392,18 @@ export default function Session() {
         value,
       }));
     }
-  }, [data?.session?.isCollaborative, updateCachedProgress]);
+  }, [data?.session?.isCollaborative]);
+
+  const handleGridChange = useCallback((nextGrid: string[][]) => {
+    setGridState(nextGrid);
+
+    if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: "bulk_update",
+        grid: nextGrid,
+      }));
+    }
+  }, [data]);
 
   const handleGridChange = useCallback((nextGrid: string[][]) => {
     setGridState(prev => {
