@@ -29,6 +29,13 @@ interface CrosswordProps {
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
+const isEditableTarget = (target: EventTarget | null) => {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  const tagName = target.tagName;
+  return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
+};
+
 export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
   const puzzle = initialPuzzle || null;
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
@@ -64,12 +71,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const isDraggingSeparator = useRef(false);
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(200);
-  const isEditableTarget = (target: EventTarget | null) => {
-    if (!target || !(target instanceof HTMLElement)) return false;
-    if (target.isContentEditable) return true;
-    const tagName = target.tagName;
-    return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
-  };
 
   // Auto-focus hidden input when entering clue input mode
   useEffect(() => {
