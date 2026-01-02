@@ -276,9 +276,18 @@ export async function registerRoutes(
 
       console.log("Owner added as participant");
 
+      const rawPuzzleData = puzzle.data as any;
+      const puzzleData = typeof rawPuzzleData === "string" ? JSON.parse(rawPuzzleData) : rawPuzzleData;
+
+      if (!puzzleData?.size?.rows || !puzzleData?.size?.cols) {
+        console.error("Puzzle data missing size metadata:", puzzle.id);
+        res.status(500).json({ message: "Puzzle data is missing size metadata" });
+        return;
+      }
+
       // Initialize empty progress
-      const rows = (puzzle.data as any).size.rows;
-      const cols = (puzzle.data as any).size.cols;
+      const rows = puzzleData.size.rows;
+      const cols = puzzleData.size.cols;
       const emptyGrid = Array(rows).fill(null).map(() => Array(cols).fill(""));
       
       console.log("Saving initial progress...");
