@@ -424,6 +424,18 @@ export default function Session() {
     }
   }, [data?.session?.isCollaborative, updateCachedProgress]);
 
+  const handleGridChange = useCallback((nextGrid: string[][]) => {
+    setGridState(nextGrid);
+    updateCachedProgress(nextGrid);
+
+    if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        type: "bulk_update",
+        grid: nextGrid,
+      }));
+    }
+  }, [data, updateCachedProgress]);
+
 
   const copyInviteLink = () => {
     const link = `${window.location.origin}/session/${id}`;
@@ -593,6 +605,7 @@ export default function Session() {
             initialPuzzle={puzzleData}
             initialGrid={gridState || undefined}
             onCellChange={handleCellChange}
+            onGridChange={handleGridChange}
             onSubmit={() => submitSessionMutation.mutate()}
             isSubmitted={!!data.progress?.submittedAt}
             isCollaborative={data.session.isCollaborative}
