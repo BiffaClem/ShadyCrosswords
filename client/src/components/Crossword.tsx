@@ -18,6 +18,7 @@ interface CrosswordProps {
   initialPuzzle?: PuzzleData;
   initialGrid?: string[][];
   onCellChange?: (row: number, col: number, value: string, grid: string[][]) => void;
+  onGridChange?: (grid: string[][]) => void;
   onSubmit?: () => void;
   isSubmitted?: boolean;
   isCollaborative?: boolean;
@@ -29,7 +30,14 @@ interface CrosswordProps {
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
-export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
+const isEditableTarget = (target: EventTarget | null) => {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  const tagName = target.tagName;
+  return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
+};
+
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onGridChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
   const puzzle = initialPuzzle || null;
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
@@ -47,6 +55,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const activeClueRef = useRef<HTMLButtonElement>(null);
+  const gridWrapperRef = useRef<HTMLDivElement>(null);
   const autosaveEnabled = shouldAutoSave !== false && !!sessionId;
   const sessionIdRef = useRef<string | undefined>(sessionId);
   const latestGridRef = useRef<string[][] | null>(initialGrid ?? null);
@@ -63,6 +72,31 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const isDraggingSeparator = useRef(false);
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(200);
+  const isControlled = initialGrid !== undefined && (!!onCellChange || !!onGridChange);
+  const grid = initialGrid ?? gridState;
+
+  const updateGrid = useCallback((nextGrid: string[][], change?: { row: number; col: number; value: string }) => {
+    const hasCellChange = !!change;
+    if (!isControlled) {
+      setGridState(nextGrid);
+      return;
+    }
+
+    if (hasCellChange) {
+      if (onCellChange && change) {
+        onCellChange(change.row, change.col, change.value, nextGrid);
+        return;
+      }
+      if (onGridChange) {
+        onGridChange(nextGrid);
+      }
+      return;
+    }
+
+    if (onGridChange) {
+      onGridChange(nextGrid);
+    }
+  }, [isControlled, onCellChange, onGridChange]);
 
   // Auto-focus hidden input when entering clue input mode
   useEffect(() => {
@@ -111,7 +145,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     const hasHydrated = hasHydratedInitialGridRef.current;
 
     if (needsSync) {
-      setGridState(initialGrid);
+      if (!isControlled) {
+        setGridState(initialGrid);
+      }
       latestGridRef.current = initialGrid;
     }
 
@@ -119,7 +155,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       lastSavedGridRef.current = JSON.stringify(initialGrid);
       hasHydratedInitialGridRef.current = true;
     }
-  }, [initialGrid]);
+  }, [initialGrid, isControlled]);
 
   // Initialize grid state when puzzle loads
   useEffect(() => {
@@ -191,22 +227,22 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   }, [sessionId]);
 
   useEffect(() => {
-    latestGridRef.current = gridState;
-  }, [gridState]);
+    latestGridRef.current = grid;
+  }, [grid]);
   
   // Save progress whenever grid changes (with debounce)
   useEffect(() => {
-    if (!puzzle || !gridState.length || !sessionId || !hasHydratedInitialGridRef.current || !autosaveEnabled) return;
+    if (!puzzle || !grid.length || !sessionId || !hasHydratedInitialGridRef.current || !autosaveEnabled) return;
     
     // Always save to localStorage as backup
-    puzzleStorage.saveProgress(puzzle.puzzleId, gridState);
+    puzzleStorage.saveProgress(puzzle.puzzleId, grid);
     
     // Check if grid actually changed from last save
-    const gridJson = JSON.stringify(gridState);
+    const gridJson = JSON.stringify(grid);
     if (gridJson === lastSavedGridRef.current) return;
     
     // Track pending changes
-    pendingSaveRef.current = gridState;
+    pendingSaveRef.current = grid;
     
     // Debounce server saves
     if (saveTimeoutRef.current) {
@@ -223,7 +259,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [gridState, puzzle, sessionId, doSave, autosaveEnabled]);
+  }, [grid, puzzle, sessionId, doSave, autosaveEnabled]);
 
   // Flush pending saves on unmount
   useEffect(() => {
@@ -329,7 +365,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       return { isMissing: false, isIncorrect: false };
     }
     
-    const userValue = (gridState[r]?.[c] || "").toUpperCase();
+    const userValue = (grid[r]?.[c] || "").toUpperCase();
     const correctValue = (answerGrid[r]?.[c] || "").toUpperCase();
     
     if (!userValue && correctValue) {
@@ -345,7 +381,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const getDisplayValue = (r: number, c: number): string => {
     if (!puzzle || puzzle.grid[r][c] === "#") return "";
     
-    const userValue = gridState[r]?.[c] || "";
+    const userValue = grid[r]?.[c] || "";
     if (isSubmitted && !userValue) {
       return answerGrid[r]?.[c] || "";
     }
@@ -408,23 +444,23 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     setDirection(prev => prev === "across" ? "down" : "across");
   }, []);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent | React.KeyboardEvent) => {
+    if (isEditableTarget(e.target)) return;
     if (!puzzle || !activeCell) return;
 
     const { row, col } = activeCell;
 
     // Bail out if grid state is not yet hydrated to avoid runtime crashes that blank the UI
-    if (!gridState.length || !gridState[row] || col >= gridState[row].length) return;
+    if (!grid.length || !grid[row] || col >= grid[row].length) return;
 
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
       e.preventDefault();
     }
 
     if (e.key === "Backspace" || e.key === "Delete") {
-      const newGrid = gridState.map(r => [...r]);
+      const newGrid = grid.map(r => [...r]);
       newGrid[row][col] = "";
-      setGridState(newGrid);
-      if (onCellChange) onCellChange(row, col, "", newGrid);
+      updateGrid(newGrid, { row, col, value: "" });
       moveCursorTyping(-1);
       return;
     }
@@ -442,14 +478,13 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
 
     if (e.key.length === 1 && e.key.match(/[a-zA-Z]/)) {
       const value = e.key.toUpperCase();
-      if (gridState[row][col] === value) {
+      if (grid[row][col] === value) {
         moveCursorTyping(1);
         return;
       }
-      const newGrid = gridState.map(r => [...r]);
+      const newGrid = grid.map(r => [...r]);
       newGrid[row][col] = value;
-      setGridState(newGrid);
-      if (onCellChange) onCellChange(row, col, value, newGrid);
+      updateGrid(newGrid, { row, col, value });
       moveCursorTyping(1);
       return;
     }
@@ -473,12 +508,14 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       return;
     }
 
-  }, [puzzle, activeCell, gridState, direction, moveCursorTyping, moveSelectionByArrow, toggleDirection, onCellChange, clueInputMode]);
+  }, [puzzle, activeCell, grid, direction, moveCursorTyping, moveSelectionByArrow, toggleDirection, updateGrid, clueInputMode]);
 
   useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+    if (isMobile) return;
+    if (!activeCell || clueInputMode) return;
+    if (isEditableTarget(document.activeElement)) return;
+    gridWrapperRef.current?.focus();
+  }, [activeCell, clueInputMode, isMobile]);
 
   const getActiveClue = (): Clue | null => {
     if (!puzzle || !activeCell) return null;
@@ -536,6 +573,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       toggleDirection();
     } else {
       setActiveCell({ row: r, col: c });
+    }
+    if (!isMobile) {
+      gridWrapperRef.current?.focus();
     }
     
     // On desktop, keyboard works automatically via physical keyboard
@@ -628,40 +668,38 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     if (clueInputMode) return;
     if (!puzzle || !activeCell) return;
     const { row, col } = activeCell;
-    if (!gridState.length || !gridState[row] || col >= gridState[row].length) return;
+    if (!grid.length || !grid[row] || col >= grid[row].length) return;
     
     const value = e.target.value.toUpperCase();
     if (value.length > 0 && value.match(/[A-Z]/)) {
       const char = value[value.length - 1]; // Get last character typed
-      if (gridState[row][col] !== char) {
-        const newGrid = gridState.map(r => [...r]);
+      if (grid[row][col] !== char) {
+        const newGrid = grid.map(r => [...r]);
         newGrid[row][col] = char;
-        setGridState(newGrid);
-        if (onCellChange) onCellChange(row, col, char, newGrid);
+        updateGrid(newGrid, { row, col, value: char });
       }
       moveCursorTyping(1);
     }
     
     // Clear the input for next character
     e.target.value = '';
-  }, [puzzle, activeCell, gridState, onCellChange, moveCursorTyping, clueInputMode]);
+  }, [puzzle, activeCell, grid, moveCursorTyping, clueInputMode, updateGrid]);
   
   // Handle backspace on mobile
   const handleHiddenKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (clueInputMode) return;
     if (!puzzle || !activeCell) return;
     const { row, col } = activeCell;
-    if (!gridState.length || !gridState[row] || col >= gridState[row].length) return;
+    if (!grid.length || !grid[row] || col >= grid[row].length) return;
     
     if (e.key === 'Backspace') {
-      if (!gridState[row][col]) return;
-      const newGrid = gridState.map(r => [...r]);
+      if (!grid[row][col]) return;
+      const newGrid = grid.map(r => [...r]);
       newGrid[row][col] = '';
-      setGridState(newGrid);
-      if (onCellChange) onCellChange(row, col, '', newGrid);
+      updateGrid(newGrid, { row, col, value: "" });
       moveCursorTyping(-1);
     }
-  }, [puzzle, activeCell, gridState, onCellChange, moveCursorTyping, clueInputMode]);
+  }, [puzzle, activeCell, grid, moveCursorTyping, clueInputMode, updateGrid]);
 
   const handleClueClick = (clue: Clue) => {
     setActiveCell({ row: clue.row - 1, col: clue.col - 1 });
@@ -679,10 +717,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
      if (!puzzle) return;
      if (!confirm("Are you sure you want to reveal the whole puzzle?")) return;
      
-     const newGrid = [...gridState];
+     const newGrid = [...grid];
      puzzle.clues.across.forEach(clue => fillClue(newGrid, clue));
      puzzle.clues.down.forEach(clue => fillClue(newGrid, clue));
-     setGridState(newGrid);
+     updateGrid(newGrid);
   };
   
   const fillClue = (grid: string[][], clue: Clue) => {
@@ -696,9 +734,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   
   const revealClue = () => {
     if (!activeClue || !puzzle) return;
-    const newGrid = [...gridState];
+    const newGrid = [...grid];
     fillClue(newGrid, activeClue);
-    setGridState(newGrid);
+    updateGrid(newGrid);
   };
   
   const checkClue = () => {
@@ -731,9 +769,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   
   const isCellError = (r: number, c: number) => {
       if (!puzzle || !showErrors) return false;
-      if (!gridState[r] || gridState[r][c] === undefined) return false;
+      if (!grid[r] || grid[r][c] === undefined) return false;
       
-      const userVal = gridState[r][c];
+      const userVal = grid[r][c];
       if (!userVal) return false;
       
       const r1 = r + 1;
@@ -755,11 +793,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   };
 
   const isClueFilled = (clue: Clue) => {
-     if (!gridState.length) return false;
+     if (!grid.length) return false;
      let r = clue.row - 1;
      let c = clue.col - 1;
      
-     if (r < 0 || r >= gridState.length) return false;
+     if (r < 0 || r >= grid.length) return false;
 
      for (let i = 0; i < clue.length; i++) {
         let currR = r;
@@ -767,9 +805,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         if (clue.direction === "across") currC += i;
         else currR += i;
         
-        if (currR >= gridState.length || !gridState[currR] || currC >= gridState[currR].length) return false;
+        if (currR >= grid.length || !grid[currR] || currC >= grid[currR].length) return false;
         
-        const val = gridState[currR][currC];
+        const val = grid[currR][currC];
         if (!val) return false;
      }
      return true;
@@ -787,7 +825,12 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
+    <div
+      ref={gridWrapperRef}
+      className="flex flex-col h-screen bg-background overflow-hidden"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
       
       {/* Minimal Header - compact on mobile */}
       <header className="flex items-center justify-between px-2 md:px-4 py-2 md:py-3 border-b border-border bg-card shrink-0">
