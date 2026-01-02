@@ -610,30 +610,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }
   }, [clueInputMode, activeInputClue, readClueFromGrid]);
 
-  const handleCellClick = (r: number, c: number) => {
-    if (!puzzle) return;
-    if (puzzle.grid[r][c] === "#") return;
-
-    if (activeCell?.row === r && activeCell?.col === c) {
-      toggleDirection();
-    } else {
-      setActiveCell({ row: r, col: c });
-    }
-    if (!isMobile) {
-      gridWrapperRef.current?.focus();
-    }
-  };
-
-  const handleCellPointerDown = useCallback((r: number, c: number, e: React.PointerEvent) => {
-    if (!isMobile || isSubmitted) return;
-    if (!puzzle || puzzle.grid[r][c] === "#") return;
-    const clue = getClueForCell(r, c);
-    if (!clue) return;
-    setActiveCell({ row: r, col: c });
-    startLongPress(clue, { x: e.clientX, y: e.clientY });
-  }, [isMobile, isSubmitted, puzzle, getClueForCell, startLongPress]);
-  
-  // Long-press handlers for mobile clue keyboard invocation
   const startLongPress = useCallback((clue: Clue | null, pos: { x: number; y: number }) => {
     if (!isMobile || isSubmitted || !clue) return;
     longPressStartPos.current = pos;
@@ -648,6 +624,39 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       longPressTimerRef.current = null;
     }, 500);
   }, [isMobile, isSubmitted, readClueFromGrid]);
+
+  const handleCellClick = (r: number, c: number) => {
+    if (!puzzle) return;
+    if (puzzle.grid[r][c] === "#") return;
+
+    if (activeCell?.row === r && activeCell?.col === c) {
+      toggleDirection();
+    } else {
+      setActiveCell({ row: r, col: c });
+    }
+    if (!isMobile) {
+      gridWrapperRef.current?.focus();
+    }
+
+    if (isMobile && !isSubmitted) {
+      const clue = getClueForCell(r, c);
+      if (clue) {
+        setActiveInputClue(clue);
+        setClueInputMode(true);
+        setClueInputValue(readClueFromGrid(clue));
+        setTimeout(() => clueAnswerInputRef.current?.focus(), 50);
+      }
+    }
+  };
+
+  const handleCellPointerDown = useCallback((r: number, c: number, e: React.PointerEvent) => {
+    if (!isMobile || isSubmitted) return;
+    if (!puzzle || puzzle.grid[r][c] === "#") return;
+    const clue = getClueForCell(r, c);
+    if (!clue) return;
+    setActiveCell({ row: r, col: c });
+    startLongPress(clue, { x: e.clientX, y: e.clientY });
+  }, [isMobile, isSubmitted, puzzle, getClueForCell, startLongPress]);
 
   const handleCluePointerDown = useCallback((clue: Clue, e: React.PointerEvent) => {
     startLongPress(clue, { x: e.clientX, y: e.clientY });
@@ -760,7 +769,12 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const handleClueClick = (clue: Clue) => {
     setActiveCell({ row: clue.row - 1, col: clue.col - 1 });
     setDirection(clue.direction);
-    // Keyboard is invoked via long-press on clues (mobile)
+    if (isMobile && !isSubmitted) {
+      setActiveInputClue(clue);
+      setClueInputMode(true);
+      setClueInputValue(readClueFromGrid(clue));
+      setTimeout(() => clueAnswerInputRef.current?.focus(), 50);
+    }
   };
 
   const checkPuzzle = () => {
