@@ -951,6 +951,14 @@ export async function registerRoutes(
             userId,
           }, ws);
         }
+
+        if (data.type === "bulk_update" && sessionId) {
+          broadcastToSession(sessionId, {
+            type: "progress_update",
+            grid: data.grid,
+            userId,
+          }, ws);
+        }
       } catch (error) {
         console.error("WebSocket message error:", error);
       }
