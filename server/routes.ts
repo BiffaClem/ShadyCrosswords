@@ -276,9 +276,21 @@ export async function registerRoutes(
 
       console.log("Owner added as participant");
 
+      const rawPuzzleData = puzzle.data as any;
+      const puzzleData = typeof rawPuzzleData === "string" ? JSON.parse(rawPuzzleData) : rawPuzzleData;
+
+      const sizeRows = puzzleData?.size?.rows ?? puzzleData?.grid?.length;
+      const sizeCols = puzzleData?.size?.cols ?? puzzleData?.grid?.[0]?.length;
+
+      if (!sizeRows || !sizeCols) {
+        console.error("Puzzle data missing size metadata:", puzzle.id);
+        res.status(500).json({ message: "Puzzle data is missing size metadata" });
+        return;
+      }
+
       // Initialize empty progress
-      const rows = (puzzle.data as any).size.rows;
-      const cols = (puzzle.data as any).size.cols;
+      const rows = sizeRows;
+      const cols = sizeCols;
       const emptyGrid = Array(rows).fill(null).map(() => Array(cols).fill(""));
       
       console.log("Saving initial progress...");
@@ -939,6 +951,14 @@ export async function registerRoutes(
             row: data.row,
             col: data.col,
             value: data.value,
+            userId,
+          }, ws);
+        }
+
+        if (data.type === "bulk_update" && sessionId) {
+          broadcastToSession(sessionId, {
+            type: "progress_update",
+            grid: data.grid,
             userId,
           }, ws);
         }
