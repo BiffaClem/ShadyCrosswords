@@ -425,16 +425,27 @@ export default function Session() {
   }, [data?.session?.isCollaborative, updateCachedProgress]);
 
   const handleGridChange = useCallback((nextGrid: string[][]) => {
-    setGridState(nextGrid);
+    setGridState(prev => {
+      if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN && prev) {
+        for (let r = 0; r < nextGrid.length; r++) {
+          const row = nextGrid[r];
+          const prevRow = prev[r] ?? [];
+          for (let c = 0; c < row.length; c++) {
+            if (prevRow[c] !== row[c]) {
+              wsRef.current.send(JSON.stringify({
+                type: "cell_update",
+                row: r,
+                col: c,
+                value: row[c],
+              }));
+            }
+          }
+        }
+      }
+      return nextGrid;
+    });
     updateCachedProgress(nextGrid);
-
-    if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: "bulk_update",
-        grid: nextGrid,
-      }));
-    }
-  }, [data, updateCachedProgress]);
+  }, [data?.session?.isCollaborative, updateCachedProgress]);
 
 
   const copyInviteLink = () => {

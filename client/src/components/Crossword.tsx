@@ -37,7 +37,7 @@ const isEditableTarget = (target: EventTarget | null) => {
   return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
 };
 
-export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onGridChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
   const puzzle = initialPuzzle || null;
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
@@ -76,25 +76,14 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const grid = initialGrid ?? gridState;
 
   const updateGrid = useCallback((nextGrid: string[][], change?: { row: number; col: number; value: string }) => {
-    const hasCellChange = !!change;
     if (!isControlled) {
       setGridState(nextGrid);
-      return;
     }
-
-    if (hasCellChange) {
-      if (onCellChange && change) {
-        onCellChange(change.row, change.col, change.value, nextGrid);
-        return;
-      }
-      if (onGridChange) {
-        onGridChange(nextGrid);
-      }
-      return;
-    }
-
     if (onGridChange) {
       onGridChange(nextGrid);
+    }
+    if (change && onCellChange) {
+      onCellChange(change.row, change.col, change.value, nextGrid);
     }
   }, [isControlled, onCellChange, onGridChange]);
 
