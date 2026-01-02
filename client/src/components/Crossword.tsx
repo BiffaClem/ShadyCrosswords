@@ -52,8 +52,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [cluePanelHeight, setCluePanelHeight] = useState(200);
   const [clueInputMode, setClueInputMode] = useState(false);
   const [activeInputClue, setActiveInputClue] = useState<Clue | null>(null);
+  const [clueInputValue, setClueInputValue] = useState("");
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const clueAnswerInputRef = useRef<HTMLInputElement>(null);
   const activeClueRef = useRef<HTMLButtonElement>(null);
   const gridWrapperRef = useRef<HTMLDivElement>(null);
   const grid = gridState;
@@ -523,6 +525,37 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   };
   
   const activeClue = getActiveClue();
+
+  const getClueCells = useCallback((clue: Clue): Array<{ row: number; col: number }> => {
+    if (!puzzle) return [];
+    const cells: Array<{ row: number; col: number }> = [];
+    let r = clue.row - 1;
+    let c = clue.col - 1;
+    for (let i = 0; i < clue.length; i++) {
+      cells.push({ row: r, col: c });
+      if (clue.direction === "across") c++;
+      else r++;
+    }
+    return cells;
+  }, [puzzle]);
+
+  const readClueFromGrid = useCallback((clue: Clue): string => {
+    const cells = getClueCells(clue);
+    return cells.map(({ row, col }) => grid?.[row]?.[col] || "").join("");
+  }, [getClueCells, grid]);
+
+  const writeClueToGrid = useCallback((clue: Clue, answer: string) => {
+    const cells = getClueCells(clue);
+    if (!cells.length) return;
+    const letters = answer.toUpperCase().replace(/[^A-Z]/g, "");
+    const next = grid.map(r => [...r]);
+    cells.forEach((cell, idx) => {
+      next[cell.row][cell.col] = letters[idx] ?? "";
+    });
+    updateGrid(next);
+    const nextIndex = Math.min(letters.length, cells.length - 1);
+    setActiveCell(cells[nextIndex]);
+  }, [getClueCells, grid, updateGrid]);
   
   useEffect(() => {
       if (!activeClue && puzzle && activeCell) {
@@ -554,6 +587,13 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }
   }, [activeClue?.number, activeClue?.direction]);
 
+  useEffect(() => {
+    if (clueInputMode && activeInputClue) {
+      setClueInputValue(readClueFromGrid(activeInputClue));
+      setTimeout(() => clueAnswerInputRef.current?.focus(), 50);
+    }
+  }, [clueInputMode, activeInputClue, readClueFromGrid]);
+
   const handleCellClick = (r: number, c: number) => {
     if (!puzzle) return;
     if (puzzle.grid[r][c] === "#") return;
@@ -582,14 +622,13 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       longPressTriggered.current = true;
       setClueInputMode(true);
       setActiveInputClue(clue);
+      setClueInputValue(readClueFromGrid(clue));
       setActiveCell({ row: clue.row - 1, col: clue.col - 1 });
       setDirection(clue.direction);
-      if (hiddenInputRef.current) {
-        hiddenInputRef.current.focus();
-      }
+      setTimeout(() => clueAnswerInputRef.current?.focus(), 50);
       longPressTimerRef.current = null;
     }, 800);
-  }, [isMobile, isSubmitted]);
+  }, [isMobile, isSubmitted, readClueFromGrid]);
   
   const handleCluePointerUp = useCallback(() => {
     if (longPressTimerRef.current) {
@@ -980,14 +1019,37 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       {clueInputMode ? (
         // Focused input screen
         <main className="flex flex-1 overflow-hidden flex-col">
-          {/* Header with back button and clue text */}
-          <div className="flex items-center gap-2 p-4 bg-card border-b border-border">
-            <Button variant="ghost" size="icon" onClick={() => { setClueInputMode(false); setActiveInputClue(null); longPressTriggered.current = false; }}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex-1">
-              <div className="text-xl font-serif font-bold">{activeInputClue?.number} {activeInputClue?.direction === "across" ? "Across" : "Down"}</div>
-              <div className="text-base text-muted-foreground">{activeInputClue?.text}</div>
+          {/* Header with back button, clue text, and immediate answer input */}
+          <div className="p-4 bg-card border-b border-border space-y-3">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => { setClueInputMode(false); setActiveInputClue(null); longPressTriggered.current = false; }}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex-1 space-y-1">
+                <div className="text-2xl font-serif font-bold leading-snug">{activeInputClue?.number} {activeInputClue?.direction === "across" ? "Across" : "Down"}</div>
+                <div className="text-lg text-muted-foreground leading-snug">{activeInputClue?.text}</div>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs uppercase tracking-wide text-muted-foreground">Answer</label>
+              <input
+                ref={clueAnswerInputRef}
+                value={clueInputValue}
+                onChange={(e) => {
+                  const nextVal = e.target.value.toUpperCase();
+                  setClueInputValue(nextVal);
+                  if (activeInputClue) {
+                    writeClueToGrid(activeInputClue, nextVal);
+                  }
+                }}
+                className="w-full rounded-md border border-border bg-white px-3 py-3 text-2xl font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-amber-500"
+                inputMode="text"
+                autoFocus
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+                placeholder={activeInputClue ? `${activeInputClue.length} letters` : ""}
+              />
             </div>
           </div>
           {/* Grid showing only the clue's cells */}

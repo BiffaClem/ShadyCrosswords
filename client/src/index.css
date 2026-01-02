@@ -89,6 +89,12 @@
   --sidebar-ring: 217.2 91.2% 59.8%;
 }
 
+@media (max-width: 640px) {
+  :root {
+    font-size: 17px;
+  }
+}
+
 .dark {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
