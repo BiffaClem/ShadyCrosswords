@@ -523,6 +523,22 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       }
     }) || null;
   };
+
+  const getClueForCell = useCallback((r: number, c: number): Clue | null => {
+    if (!puzzle) return null;
+    const row = r + 1;
+    const col = c + 1;
+    const primary = puzzle.clues[direction].find(clue => {
+      if (direction === "across") return clue.row === row && col >= clue.col && col < clue.col + clue.length;
+      return clue.col === col && row >= clue.row && row < clue.row + clue.length;
+    });
+    if (primary) return primary;
+    const otherDir = direction === "across" ? "down" : "across";
+    return puzzle.clues[otherDir].find(clue => {
+      if (otherDir === "across") return clue.row === row && col >= clue.col && col < clue.col + clue.length;
+      return clue.col === col && row >= clue.row && row < clue.row + clue.length;
+    }) || null;
+  }, [puzzle, direction]);
   
   const activeClue = getActiveClue();
 
@@ -606,19 +622,22 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     if (!isMobile) {
       gridWrapperRef.current?.focus();
     }
-    
-    // On desktop, keyboard works automatically via physical keyboard
-    // On mobile, keyboard requires long-press on clues
   };
+
+  const handleCellPointerDown = useCallback((r: number, c: number, e: React.PointerEvent) => {
+    if (!isMobile || isSubmitted) return;
+    if (!puzzle || puzzle.grid[r][c] === "#") return;
+    const clue = getClueForCell(r, c);
+    if (!clue) return;
+    setActiveCell({ row: r, col: c });
+    startLongPress(clue, { x: e.clientX, y: e.clientY });
+  }, [isMobile, isSubmitted, puzzle, getClueForCell, startLongPress]);
   
   // Long-press handlers for mobile clue keyboard invocation
-  const handleCluePointerDown = useCallback((clue: Clue, e: React.PointerEvent) => {
-    if (!isMobile || isSubmitted || !clue || !clue.answer) return;
-    
-    longPressStartPos.current = { x: e.clientX, y: e.clientY };
-    
+  const startLongPress = useCallback((clue: Clue | null, pos: { x: number; y: number }) => {
+    if (!isMobile || isSubmitted || !clue) return;
+    longPressStartPos.current = pos;
     longPressTimerRef.current = setTimeout(() => {
-      // Long press detected - enter focused input mode for this clue
       longPressTriggered.current = true;
       setClueInputMode(true);
       setActiveInputClue(clue);
@@ -627,8 +646,12 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       setDirection(clue.direction);
       setTimeout(() => clueAnswerInputRef.current?.focus(), 50);
       longPressTimerRef.current = null;
-    }, 800);
+    }, 500);
   }, [isMobile, isSubmitted, readClueFromGrid]);
+
+  const handleCluePointerDown = useCallback((clue: Clue, e: React.PointerEvent) => {
+    startLongPress(clue, { x: e.clientX, y: e.clientY });
+  }, [startLongPress]);
   
   const handleCluePointerUp = useCallback(() => {
     if (longPressTimerRef.current) {
@@ -640,16 +663,21 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   
   const handleCluePointerMove = useCallback((e: React.PointerEvent) => {
     if (!longPressStartPos.current || !longPressTimerRef.current) return;
-    
     const dx = Math.abs(e.clientX - longPressStartPos.current.x);
     const dy = Math.abs(e.clientY - longPressStartPos.current.y);
-    
-    // Cancel long-press if pointer moves too much (probably scrolling)
     if (dx > 10 || dy > 10) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
       longPressStartPos.current = null;
     }
+  }, []);
+
+  const handlePointerCancel = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    longPressStartPos.current = null;
   }, []);
   
   // Separator drag handlers - use window-level events for reliable tracking
@@ -1135,6 +1163,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                               <div 
                                 key={`${r}-${c}`}
                                 onClick={() => !isSubmitted && handleCellClick(r, c)}
+                                onPointerDown={(e) => handleCellPointerDown(r, c, e)}
+                                onPointerUp={handleCluePointerUp}
+                                onPointerCancel={handlePointerCancel}
+                                onPointerMove={handleCluePointerMove}
                                 className={cn(
                                   "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 touch-manipulation w-12 h-12 border",
                                   isSubmitted ? "cursor-default" : "cursor-pointer",
@@ -1202,6 +1234,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                         <div 
                           key={`${r}-${c}`}
                           onClick={() => !isSubmitted && handleCellClick(r, c)}
+                          onPointerDown={(e) => handleCellPointerDown(r, c, e)}
+                          onPointerUp={handleCluePointerUp}
+                          onPointerCancel={handlePointerCancel}
+                          onPointerMove={handleCluePointerMove}
                           className={cn(
                             "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 touch-manipulation",
                             isSubmitted ? "cursor-default" : "cursor-pointer",
