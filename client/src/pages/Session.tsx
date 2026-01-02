@@ -394,7 +394,7 @@ export default function Session() {
     }
   }, [data?.session?.isCollaborative]);
 
-  const handleGridUpdate = useCallback((nextGrid: string[][]) => {
+  const handleGridChange = useCallback((nextGrid: string[][]) => {
     setGridState(nextGrid);
 
     if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN) {
@@ -404,6 +404,29 @@ export default function Session() {
       }));
     }
   }, [data]);
+
+  const handleGridChange = useCallback((nextGrid: string[][]) => {
+    setGridState(prev => {
+      if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN && prev) {
+        for (let r = 0; r < nextGrid.length; r++) {
+          const row = nextGrid[r];
+          const prevRow = prev[r] ?? [];
+          for (let c = 0; c < row.length; c++) {
+            if (prevRow[c] !== row[c]) {
+              wsRef.current.send(JSON.stringify({
+                type: "cell_update",
+                row: r,
+                col: c,
+                value: row[c],
+              }));
+            }
+          }
+        }
+      }
+      return nextGrid;
+    });
+    updateCachedProgress(nextGrid);
+  }, [data?.session?.isCollaborative, updateCachedProgress]);
 
 
   const copyInviteLink = () => {
@@ -574,7 +597,7 @@ export default function Session() {
             initialPuzzle={puzzleData}
             initialGrid={gridState || undefined}
             onCellChange={handleCellChange}
-            onGridChange={handleGridUpdate}
+            onGridChange={handleGridChange}
             onSubmit={() => submitSessionMutation.mutate()}
             isSubmitted={!!data.progress?.submittedAt}
             isCollaborative={data.session.isCollaborative}
