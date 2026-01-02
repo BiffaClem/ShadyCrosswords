@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { PuzzleData, Clue, Position } from "@/lib/crossword-types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Eye, RotateCcw, Menu, X, ZoomIn, ZoomOut, Send, HelpCircle, ArrowLeft } from "lucide-react";
+import { Check, Eye, RotateCcw, Menu, X, ZoomIn, ZoomOut, Send, HelpCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { puzzleStorage } from "@/lib/puzzle-storage";
 
@@ -50,12 +49,8 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [zoom, setZoom] = useState(isMobileInitial ? 0.5 : 1);
   const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
   const [cluePanelHeight, setCluePanelHeight] = useState(200);
-  const [clueInputMode, setClueInputMode] = useState(false);
-  const [activeInputClue, setActiveInputClue] = useState<Clue | null>(null);
-  const [clueInputValue, setClueInputValue] = useState("");
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
-  const clueAnswerInputRef = useRef<HTMLInputElement>(null);
   const activeClueRef = useRef<HTMLButtonElement>(null);
   const gridWrapperRef = useRef<HTMLDivElement>(null);
   const grid = gridState;
@@ -65,11 +60,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const lastSavedGridRef = useRef<string | null>(initialGrid ? JSON.stringify(initialGrid) : null);
   const pendingSaveRef = useRef<string[][] | null>(null);
   const hasHydratedInitialGridRef = useRef(false);
-  
-  // Refs for long-press keyboard detection
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const longPressStartPos = useRef<{ x: number; y: number } | null>(null);
-  const longPressTriggered = useRef(false);
   
   // Refs for separator dragging
   const isDraggingSeparator = useRef(false);
@@ -91,16 +81,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }
   }, [onCellChange, onGridChange]);
 
-  // Auto-focus hidden input when entering clue input mode
-  useEffect(() => {
-    if (clueInputMode && hiddenInputRef.current) {
-      // Small delay to ensure DOM is ready
-      setTimeout(() => {
-        hiddenInputRef.current?.focus();
-      }, 100);
-    }
-  }, [clueInputMode]);
-  
   // Detect mobile for layout purposes, but only set zoom once
   useEffect(() => {
     const checkMobile = () => {
@@ -485,28 +465,14 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     if (e.key === "ArrowLeft") moveSelectionByArrow(0, -1);
     if (e.key === "ArrowRight") moveSelectionByArrow(0, 1);
 
-    if (e.key === "Enter" && clueInputMode) {
-      setClueInputMode(false);
-      setActiveInputClue(null);
-      longPressTriggered.current = false;
-      return;
-    }
-
-    if (e.key === "Escape" && clueInputMode) {
-      setClueInputMode(false);
-      setActiveInputClue(null);
-      longPressTriggered.current = false;
-      return;
-    }
-
-  }, [puzzle, activeCell, grid, direction, moveCursorTyping, moveSelectionByArrow, toggleDirection, updateGrid, clueInputMode]);
+  }, [puzzle, activeCell, grid, direction, moveCursorTyping, moveSelectionByArrow, toggleDirection, updateGrid]);
 
   useEffect(() => {
     if (isMobile) return;
-    if (!activeCell || clueInputMode) return;
+    if (!activeCell) return;
     if (isEditableTarget(document.activeElement)) return;
     gridWrapperRef.current?.focus();
-  }, [activeCell, clueInputMode, isMobile]);
+  }, [activeCell, isMobile]);
 
   const getActiveClue = (): Clue | null => {
     if (!puzzle || !activeCell) return null;
@@ -542,37 +508,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   
   const activeClue = getActiveClue();
 
-  const getClueCells = useCallback((clue: Clue): Array<{ row: number; col: number }> => {
-    if (!puzzle) return [];
-    const cells: Array<{ row: number; col: number }> = [];
-    let r = clue.row - 1;
-    let c = clue.col - 1;
-    for (let i = 0; i < clue.length; i++) {
-      cells.push({ row: r, col: c });
-      if (clue.direction === "across") c++;
-      else r++;
-    }
-    return cells;
-  }, [puzzle]);
-
-  const readClueFromGrid = useCallback((clue: Clue): string => {
-    const cells = getClueCells(clue);
-    return cells.map(({ row, col }) => grid?.[row]?.[col] || "").join("");
-  }, [getClueCells, grid]);
-
-  const writeClueToGrid = useCallback((clue: Clue, answer: string) => {
-    const cells = getClueCells(clue);
-    if (!cells.length) return;
-    const letters = answer.toUpperCase().replace(/[^A-Z]/g, "");
-    const next = grid.map(r => [...r]);
-    cells.forEach((cell, idx) => {
-      next[cell.row][cell.col] = letters[idx] ?? "";
-    });
-    updateGrid(next);
-    const nextIndex = Math.min(letters.length, cells.length - 1);
-    setActiveCell(cells[nextIndex]);
-  }, [getClueCells, grid, updateGrid]);
-  
   useEffect(() => {
       if (!activeClue && puzzle && activeCell) {
           const otherDir = direction === "across" ? "down" : "across";
@@ -603,28 +538,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }
   }, [activeClue?.number, activeClue?.direction]);
 
-  useEffect(() => {
-    if (clueInputMode && activeInputClue) {
-      setClueInputValue(readClueFromGrid(activeInputClue));
-      setTimeout(() => clueAnswerInputRef.current?.focus(), 50);
-    }
-  }, [clueInputMode, activeInputClue, readClueFromGrid]);
-
-  const startLongPress = useCallback((clue: Clue | null, pos: { x: number; y: number }) => {
-    if (!isMobile || isSubmitted || !clue) return;
-    longPressStartPos.current = pos;
-    longPressTimerRef.current = setTimeout(() => {
-      longPressTriggered.current = true;
-      setClueInputMode(true);
-      setActiveInputClue(clue);
-      setClueInputValue(readClueFromGrid(clue));
-      setActiveCell({ row: clue.row - 1, col: clue.col - 1 });
-      setDirection(clue.direction);
-      setTimeout(() => clueAnswerInputRef.current?.focus(), 50);
-      longPressTimerRef.current = null;
-    }, 500);
-  }, [isMobile, isSubmitted, readClueFromGrid]);
-
   const handleCellClick = (r: number, c: number) => {
     if (!puzzle) return;
     if (puzzle.grid[r][c] === "#") return;
@@ -639,55 +552,16 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }
 
     if (isMobile && !isSubmitted) {
-      const clue = getClueForCell(r, c);
-      if (clue) {
-        setActiveInputClue(clue);
-        setClueInputMode(true);
-        setClueInputValue(readClueFromGrid(clue));
-        setTimeout(() => clueAnswerInputRef.current?.focus(), 50);
-      }
+      hiddenInputRef.current?.focus();
     }
   };
 
-  const handleCellPointerDown = useCallback((r: number, c: number, e: React.PointerEvent) => {
+  const handleCellPointerDown = useCallback((r: number, c: number) => {
     if (!isMobile || isSubmitted) return;
     if (!puzzle || puzzle.grid[r][c] === "#") return;
-    const clue = getClueForCell(r, c);
-    if (!clue) return;
     setActiveCell({ row: r, col: c });
-    startLongPress(clue, { x: e.clientX, y: e.clientY });
-  }, [isMobile, isSubmitted, puzzle, getClueForCell, startLongPress]);
-
-  const handleCluePointerDown = useCallback((clue: Clue, e: React.PointerEvent) => {
-    startLongPress(clue, { x: e.clientX, y: e.clientY });
-  }, [startLongPress]);
-  
-  const handleCluePointerUp = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    longPressStartPos.current = null;
-  }, []);
-  
-  const handleCluePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!longPressStartPos.current || !longPressTimerRef.current) return;
-    const dx = Math.abs(e.clientX - longPressStartPos.current.x);
-    const dy = Math.abs(e.clientY - longPressStartPos.current.y);
-    if (dx > 10 || dy > 10) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-      longPressStartPos.current = null;
-    }
-  }, []);
-
-  const handlePointerCancel = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    longPressStartPos.current = null;
-  }, []);
+    hiddenInputRef.current?.focus();
+  }, [isMobile, isSubmitted, puzzle]);
   
   // Separator drag handlers - use window-level events for reliable tracking
   const handleSeparatorStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
@@ -730,7 +604,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   
   // Handle mobile keyboard input via hidden input
   const handleHiddenInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (clueInputMode) return;
     if (!puzzle || !activeCell) return;
     const { row, col } = activeCell;
     if (!grid.length || !grid[row] || col >= grid[row].length) return;
@@ -748,11 +621,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     
     // Clear the input for next character
     e.target.value = '';
-  }, [puzzle, activeCell, grid, moveCursorTyping, clueInputMode, updateGrid]);
+  }, [puzzle, activeCell, grid, moveCursorTyping, updateGrid]);
   
   // Handle backspace on mobile
   const handleHiddenKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (clueInputMode) return;
     if (!puzzle || !activeCell) return;
     const { row, col } = activeCell;
     if (!grid.length || !grid[row] || col >= grid[row].length) return;
@@ -764,16 +636,13 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       updateGrid(newGrid, { row, col, value: "" });
       moveCursorTyping(-1);
     }
-  }, [puzzle, activeCell, grid, moveCursorTyping, clueInputMode, updateGrid]);
+  }, [puzzle, activeCell, grid, moveCursorTyping, updateGrid]);
 
   const handleClueClick = (clue: Clue) => {
     setActiveCell({ row: clue.row - 1, col: clue.col - 1 });
     setDirection(clue.direction);
     if (isMobile && !isSubmitted) {
-      setActiveInputClue(clue);
-      setClueInputMode(true);
-      setClueInputValue(readClueFromGrid(clue));
-      setTimeout(() => clueAnswerInputRef.current?.focus(), 50);
+      hiddenInputRef.current?.focus();
     }
   };
 
@@ -823,17 +692,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
           return activeClue.row === r1 && c1 >= activeClue.col && c1 < activeClue.col + activeClue.length;
       } else {
           return activeClue.col === c1 && r1 >= activeClue.row && r1 < activeClue.row + activeClue.length;
-      }
-  };
-  
-  const isCellInActiveInputClue = (r: number, c: number) => {
-      if (!activeInputClue) return false;
-      const r1 = r + 1;
-      const c1 = c + 1;
-      if (activeInputClue.direction === "across") {
-          return activeInputClue.row === r1 && c1 >= activeInputClue.col && c1 < activeInputClue.col + activeInputClue.length;
-      } else {
-          return activeInputClue.col === c1 && r1 >= activeInputClue.row && r1 < activeInputClue.row + activeInputClue.length;
       }
   };
   
@@ -1058,158 +916,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       />
 
       {/* Main Content - Simple stacked layout: Grid first, Clues below */}
-      {clueInputMode ? (
-        // Focused input screen
-        <main className="flex flex-1 overflow-hidden flex-col">
-          {/* Header with back button, clue text, and immediate answer input */}
-          <div className="p-4 bg-card border-b border-border space-y-3">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => { setClueInputMode(false); setActiveInputClue(null); longPressTriggered.current = false; }}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="flex-1 space-y-1">
-                <div className="text-2xl font-serif font-bold leading-snug">{activeInputClue?.number} {activeInputClue?.direction === "across" ? "Across" : "Down"}</div>
-                <div className="text-lg text-muted-foreground leading-snug">{activeInputClue?.text}</div>
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs uppercase tracking-wide text-muted-foreground">Answer</label>
-              <input
-                ref={clueAnswerInputRef}
-                value={clueInputValue}
-                onChange={(e) => {
-                  const nextVal = e.target.value.toUpperCase();
-                  setClueInputValue(nextVal);
-                  if (activeInputClue) {
-                    writeClueToGrid(activeInputClue, nextVal);
-                  }
-                }}
-                className="w-full rounded-md border border-border bg-white px-3 py-3 text-2xl font-mono tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-amber-500"
-                inputMode="text"
-                autoFocus
-                autoCapitalize="characters"
-                autoCorrect="off"
-                spellCheck={false}
-                placeholder={activeInputClue ? `${activeInputClue.length} letters` : ""}
-              />
-            </div>
-          </div>
-          {/* Grid showing only the clue's cells */}
-          <div className="flex-1 overflow-auto p-4">
-            <div className="bg-card rounded-lg shadow-sm border border-border/50 p-4 max-w-full">
-              {activeInputClue && (() => {
-                // Calculate word lengths from wordBoundaries
-                const wordBoundaries = activeInputClue.wordBoundaries || [];
-                const wordLengths: number[] = [];
-                let start = 0;
-                for (let boundary of wordBoundaries) {
-                  if (boundary > start) {
-                    wordLengths.push(boundary - start);
-                    start = boundary;
-                  }
-                }
-                if (start < activeInputClue.length) {
-                  wordLengths.push(activeInputClue.length - start);
-                }
-                if (wordLengths.length === 0) {
-                  wordLengths.push(activeInputClue.length);
-                }
-
-                // Calculate rows: group words into rows of max 13 cells
-                const rows: number[][] = [];
-                let currentRow: number[] = [];
-                let currentLength = 0;
-                for (let wordLen of wordLengths) {
-                  if (wordLen > 13) {
-                    // Long word: break into rows of 13
-                    if (currentRow.length > 0) {
-                      rows.push(currentRow);
-                      currentRow = [];
-                      currentLength = 0;
-                    }
-                    let remaining = wordLen;
-                    while (remaining > 0) {
-                      const take = Math.min(remaining, 13);
-                      rows.push([take]);
-                      remaining -= take;
-                    }
-                  } else if (currentLength + wordLen <= 13) {
-                    currentRow.push(wordLen);
-                    currentLength += wordLen;
-                  } else {
-                    rows.push(currentRow);
-                    currentRow = [wordLen];
-                    currentLength = wordLen;
-                  }
-                }
-                if (currentRow.length > 0) {
-                  rows.push(currentRow);
-                }
-
-                // Now render the grid rows
-                let cellIndex = 0;
-                return (
-                  <div className="space-y-2 select-none">
-                    {rows.map((row, rowIndex) => (
-                      <div 
-                        key={rowIndex}
-                        className="grid gap-1 justify-center"
-                        style={{
-                          gridTemplateColumns: `repeat(${row.reduce((a, b) => a + b, 0)}, 1fr)`
-                        }}
-                      >
-                        {row.map((wordLen, wordIndex) => 
-                          Array.from({ length: wordLen }, (_, i) => {
-                            const globalIndex = cellIndex++;
-                            let r = activeInputClue.row - 1;
-                            let c = activeInputClue.col - 1;
-                            for (let j = 0; j < globalIndex; j++) {
-                              if (activeInputClue.direction === "across") c++;
-                              else r++;
-                            }
-                            const isActive = activeCell?.row === r && activeCell?.col === c;
-                            const displayValue = getDisplayValue(r, c);
-                            const isError = isCellError(r, c);
-                            const submittedStatus = getCellSubmittedStatus(r, c);
-                            const hasRightBoundary = boundaryMap[`${r}-${c}`]?.right;
-                            const hasBottomBoundary = boundaryMap[`${r}-${c}`]?.bottom;
-                            return (
-                              <div 
-                                key={`${r}-${c}`}
-                                onClick={() => !isSubmitted && handleCellClick(r, c)}
-                                onPointerDown={(e) => handleCellPointerDown(r, c, e)}
-                                onPointerUp={handleCluePointerUp}
-                                onPointerCancel={handlePointerCancel}
-                                onPointerMove={handleCluePointerMove}
-                                className={cn(
-                                  "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 touch-manipulation w-12 h-12 border",
-                                  isSubmitted ? "cursor-default" : "cursor-pointer",
-                                  "bg-white",
-                                  !isSubmitted && isActive ? "bg-amber-200 text-amber-900 z-10 ring-2 ring-amber-500" : "",
-                                  !isSubmitted && isError ? "text-red-600 bg-red-50" : "",
-                                  submittedStatus.isMissing ? "text-blue-600" : "",
-                                  submittedStatus.isIncorrect ? "text-red-600" : "",
-                                  hasRightBoundary ? "border-r-2 border-r-gray-400" : "",
-                                  hasBottomBoundary ? "border-b-2 border-b-gray-400" : ""
-                                )}
-                                style={{ fontSize: '1.5rem' }}
-                              >
-                                {displayValue}
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        </main>
-      ) : (
-        // Normal layout
-        <main className="flex flex-1 overflow-hidden flex-col md:flex-row">
+      <main className="flex flex-1 overflow-hidden flex-col md:flex-row">
           
           {/* Grid Section - Always first visually, flex to fill remaining space on mobile */}
           <div className="flex flex-col items-center w-full flex-1 p-1 md:p-4 md:order-2 overflow-auto min-h-0">
@@ -1248,10 +955,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                         <div 
                           key={`${r}-${c}`}
                           onClick={() => !isSubmitted && handleCellClick(r, c)}
-                          onPointerDown={(e) => handleCellPointerDown(r, c, e)}
-                          onPointerUp={handleCluePointerUp}
-                          onPointerCancel={handlePointerCancel}
-                          onPointerMove={handleCluePointerMove}
+                          onPointerDown={() => handleCellPointerDown(r, c)}
                           className={cn(
                             "relative flex items-center justify-center font-sans font-bold uppercase transition-colors duration-75 touch-manipulation",
                             isSubmitted ? "cursor-default" : "cursor-pointer",
@@ -1321,11 +1025,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                             <button
                                               ref={isActive ? activeClueRef : undefined}
                                               onClick={() => handleClueClick(clue)}
-                                              onPointerDown={(e) => handleCluePointerDown(clue, e)}
-                                              onPointerUp={handleCluePointerUp}
-                                              onPointerMove={handleCluePointerMove}
-                                              onPointerCancel={handleCluePointerUp}
-                                              onPointerLeave={handleCluePointerUp}
+                                              
                                               className={cn(
                                                   "w-full text-left p-2 rounded-md transition-all flex items-start gap-2 group relative",
                                                   isActive 
@@ -1342,7 +1042,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                                 </span>
                                                 <div className="space-y-0.5 min-w-0 flex-1">
                                                     <span className={cn(
-                                                        "block leading-tight text-base md:text-sm",
+                                                      "block leading-tight text-base md:text-sm break-words whitespace-normal hyphens-auto",
                                                         isActive ? "font-medium" : "",
                                                         isFilled && !isActive && "line-through opacity-60"
                                                     )}>
@@ -1376,8 +1076,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
               </Tabs>
           </div>
         </main>
-      )}
-
     </div>
   );
 }
