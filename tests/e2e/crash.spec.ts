@@ -13,11 +13,23 @@ async function login(page: Page) {
 
 test.describe('Crash Detection', () => {
   test('should not crash when typing', async ({ page }) => {
+    page.on('pageerror', exception => {
+      console.log(`Page Error: ${exception}`);
+    });
+    page.on('console', msg => {
+      if (msg.type() === 'error')
+        console.log(`Console Error: ${msg.text()}`);
+    });
+
     await login(page);
     
-    const createBtn = page.locator('button:has-text("Start"), button:has-text("Create")').first();
+    const createBtn = page.locator('button:has-text("New")').first();
     await expect(createBtn).toBeVisible({ timeout: 10000 });
     await createBtn.click();
+
+    const startSessionBtn = page.locator('button:has-text("Start Session")');
+    await expect(startSessionBtn).toBeVisible();
+    await startSessionBtn.click();
     
     await page.waitForURL(/\/session\//, { timeout: 10000 });
     

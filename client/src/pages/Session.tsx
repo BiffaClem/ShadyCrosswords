@@ -74,6 +74,7 @@ function isActiveNow(lastActivity: string | null): boolean {
   return new Date(lastActivity) > oneHourAgo;
 }
 
+
 export default function Session() {
   const { id } = useParams();
   const [, navigate] = useLocation();
@@ -82,11 +83,7 @@ export default function Session() {
   const wsRef = useRef<WebSocket | null>(null);
   const [copied, setCopied] = useState(false);
   const [gridState, setGridState] = useState<string[][] | null>(null);
-  const [activeUsers, setActiveUsers] = useState<string[]>([]);
   const [sharingOpen, setSharingOpen] = useState(false);
-  const lastSavedGridRef = useRef<string | null>(null);
-  const pendingGridRef = useRef<string[][] | null>(null);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasHydratedProgressRef = useRef(false);
 
   const { data, isLoading, error } = useQuery<SessionData>({
@@ -96,9 +93,9 @@ export default function Session() {
       return res.json();
     },
     retry: false,
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: 0,
+    refetchOnWindowFocus: "always",
+    refetchOnMount: "always",
   });
 
   const { data: participantsData, refetch: refetchParticipants } = useQuery<ParticipantsData>({
@@ -119,19 +116,6 @@ export default function Session() {
     },
   });
 
-  const saveProgressMutation = useMutation({
-    mutationFn: async (grid: string[][]) => {
-      const res = await apiRequest("POST", `/api/sessions/${id}/progress`, { grid });
-      return res.json();
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({ title: "Session expired", description: "Logging in again...", variant: "destructive" });
-        redirectToLogin();
-      }
-    }
-  });
-
   const recentSessions: RecentSession[] = allPuzzles?.flatMap(puzzle => 
     (puzzle.sessions ?? []).map((s: any) => ({
       id: s.id,
@@ -146,12 +130,14 @@ export default function Session() {
   }, [id]);
 
   useEffect(() => {
-    if (hasHydratedProgressRef.current) return;
-
+    // Always accept latest server progress; avoid stale view after navigation back
     if (data?.progress?.grid) {
-      setGridState(data.progress.grid);
-      lastSavedGridRef.current = JSON.stringify(data.progress.grid);
-      pendingGridRef.current = null;
+      const incoming = data.progress.grid;
+      setGridState(prev => {
+        if (!prev) return incoming;
+        const same = JSON.stringify(prev) === JSON.stringify(incoming);
+        return same ? prev : incoming;
+      });
       hasHydratedProgressRef.current = true;
       return;
     }
@@ -161,8 +147,6 @@ export default function Session() {
       const cols = data.puzzle.data.size.cols;
       const emptyGrid = Array.from({ length: rows }, () => Array(cols).fill(""));
       setGridState(emptyGrid);
-      pendingGridRef.current = null;
-      lastSavedGridRef.current = null;
       hasHydratedProgressRef.current = true;
     }
   }, [data?.progress?.grid, data?.puzzle?.data?.size]);
@@ -196,16 +180,11 @@ export default function Session() {
       }
       
       if (message.type === "user_joined") {
-        setActiveUsers(prev => {
-          if (prev.includes(message.userId)) return prev;
-          return [...prev, message.userId];
-        });
         toast({ title: "Someone joined the session" });
         refetchParticipants();
       }
       
       if (message.type === "user_left") {
-        setActiveUsers(prev => prev.filter(u => u !== message.userId));
       }
       
       if (message.type === "progress_update") {
@@ -213,8 +192,6 @@ export default function Session() {
           const same = prev && JSON.stringify(prev) === JSON.stringify(message.grid);
           return same ? prev : message.grid;
         });
-        lastSavedGridRef.current = JSON.stringify(message.grid);
-        pendingGridRef.current = null;
         hasHydratedProgressRef.current = true;
       }
     };
@@ -227,124 +204,6 @@ export default function Session() {
       ws.close();
     };
   }, [data?.session?.isCollaborative, user, id, refetchParticipants]);
-
-  useEffect(() => {
-    if (!gridState || !data?.session?.id || !hasHydratedProgressRef.current) return;
-
-    const gridJson = JSON.stringify(gridState);
-    if (gridJson === lastSavedGridRef.current) {
-      return;
-    }
-
-    pendingGridRef.current = gridState;
-
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    saveTimeoutRef.current = setTimeout(() => {
-      if (!pendingGridRef.current) return;
-      const gridToSave = pendingGridRef.current;
-      const gridToSaveJson = JSON.stringify(gridToSave);
-
-      saveProgressMutation.mutate(gridToSave, {
-        onSuccess: () => {
-          lastSavedGridRef.current = gridToSaveJson;
-          if (pendingGridRef.current && JSON.stringify(pendingGridRef.current) === gridToSaveJson) {
-            pendingGridRef.current = null;
-          }
-        },
-        onError: () => {
-          pendingGridRef.current = gridToSave;
-        },
-      });
-    }, 1000);
-
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = null;
-      }
-    };
-  }, [gridState, data?.session?.id, saveProgressMutation]);
-
-  const sendProgressKeepalive = useCallback((grid: string[][]) => {
-    if (!id) return;
-    const payload = JSON.stringify({ grid });
-    if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
-      const blob = new Blob([payload], { type: "application/json" });
-      navigator.sendBeacon(`/api/sessions/${id}/progress`, blob);
-      lastSavedGridRef.current = JSON.stringify(grid);
-      return;
-    }
-
-    fetch(`/api/sessions/${id}/progress`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: payload,
-      keepalive: true,
-    })
-      .then(() => {
-        lastSavedGridRef.current = JSON.stringify(grid);
-      })
-      .catch(() => {
-        pendingGridRef.current = grid;
-      });
-  }, [id]);
-
-  const flushPendingProgress = useCallback((useKeepalive: boolean) => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = null;
-    }
-
-    if (!pendingGridRef.current) return;
-
-    const gridToSave = pendingGridRef.current;
-    const gridJson = JSON.stringify(gridToSave);
-    pendingGridRef.current = null;
-
-    if (useKeepalive) {
-      sendProgressKeepalive(gridToSave);
-      return;
-    }
-
-    saveProgressMutation.mutate(gridToSave, {
-      onSuccess: () => {
-        lastSavedGridRef.current = gridJson;
-      },
-      onError: () => {
-        pendingGridRef.current = gridToSave;
-      },
-    });
-  }, [saveProgressMutation, sendProgressKeepalive]);
-
-  useEffect(() => {
-    return () => {
-      flushPendingProgress(false);
-    };
-  }, [flushPendingProgress]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handleBeforeUnload = () => flushPendingProgress(true);
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        flushPendingProgress(true);
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [flushPendingProgress]);
-
 
   const deleteSessionMutation = useMutation({
     mutationFn: async () => {
@@ -375,15 +234,7 @@ export default function Session() {
     }
   });
 
-  const handleCellChange = useCallback((row: number, col: number, value: string, newGrid: string[][]) => {
-    setGridState(prev => {
-      if (!prev) return newGrid;
-      if (prev[row]?.[col] === value) return prev;
-      const copy = prev.map(r => [...r]);
-      copy[row][col] = value;
-      return copy;
-    });
-    
+  const handleCellChange = useCallback((row: number, col: number, value: string) => {
     if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: "cell_update",
@@ -403,30 +254,9 @@ export default function Session() {
         grid: nextGrid,
       }));
     }
-  }, [data]);
+  }, [data?.session?.isCollaborative]);
 
-  const handleGridChange = useCallback((nextGrid: string[][]) => {
-    setGridState(prev => {
-      if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN && prev) {
-        for (let r = 0; r < nextGrid.length; r++) {
-          const row = nextGrid[r];
-          const prevRow = prev[r] ?? [];
-          for (let c = 0; c < row.length; c++) {
-            if (prevRow[c] !== row[c]) {
-              wsRef.current.send(JSON.stringify({
-                type: "cell_update",
-                row: r,
-                col: c,
-                value: row[c],
-              }));
-            }
-          }
-        }
-      }
-      return nextGrid;
-    });
-    updateCachedProgress(nextGrid);
-  }, [data?.session?.isCollaborative, updateCachedProgress]);
+
 
 
   const copyInviteLink = () => {
@@ -592,20 +422,19 @@ export default function Session() {
 
       <main className="container mx-auto py-4">
         {puzzleData && (
-          <Crossword 
-            key={id}
-            initialPuzzle={puzzleData}
-            initialGrid={gridState || undefined}
-            onCellChange={handleCellChange}
-            onGridChange={handleGridChange}
-            onSubmit={() => submitSessionMutation.mutate()}
-            isSubmitted={!!data.progress?.submittedAt}
-            isCollaborative={data.session.isCollaborative}
-            recentSessions={recentSessions}
-            onSessionSelect={(sessionId) => navigate(`/session/${sessionId}`)}
-            sessionId={id}
-            shouldAutoSave={false}
-          />
+            <Crossword 
+              key={id}
+              initialPuzzle={puzzleData}
+              initialGrid={gridState || undefined}
+              onCellChange={handleCellChange}
+              onGridChange={handleGridChange}
+              onSubmit={() => submitSessionMutation.mutate()}
+              isSubmitted={!!data.progress?.submittedAt}
+              isCollaborative={data.session.isCollaborative}
+              recentSessions={recentSessions}
+              onSessionSelect={(sessionId) => navigate(`/session/${sessionId}`)}
+              sessionId={id}
+            />
         )}
       </main>
     </div>

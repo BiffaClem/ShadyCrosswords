@@ -37,7 +37,7 @@ const isEditableTarget = (target: EventTarget | null) => {
   return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
 };
 
-export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onGridChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
   const puzzle = initialPuzzle || null;
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
@@ -56,6 +56,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const activeClueRef = useRef<HTMLButtonElement>(null);
   const gridWrapperRef = useRef<HTMLDivElement>(null);
+  const grid = gridState;
   const autosaveEnabled = shouldAutoSave !== false && !!sessionId;
   const sessionIdRef = useRef<string | undefined>(sessionId);
   const latestGridRef = useRef<string[][] | null>(initialGrid ?? null);
@@ -72,20 +73,21 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const isDraggingSeparator = useRef(false);
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(200);
-  const isControlled = initialGrid !== undefined && (!!onCellChange || !!onGridChange);
-  const grid = initialGrid ?? gridState;
 
   const updateGrid = useCallback((nextGrid: string[][], change?: { row: number; col: number; value: string }) => {
-    if (!isControlled) {
-      setGridState(nextGrid);
-    }
-    if (onGridChange) {
-      onGridChange(nextGrid);
-    }
+    setGridState(nextGrid);
+
+    // For single-cell edits, notify the cell callback only (avoids double updates).
     if (change && onCellChange) {
       onCellChange(change.row, change.col, change.value, nextGrid);
+      return;
     }
-  }, [isControlled, onCellChange, onGridChange]);
+
+    // For bulk updates (reveal/check/reset), notify the grid callback.
+    if (!change && onGridChange) {
+      onGridChange(nextGrid);
+    }
+  }, [onCellChange, onGridChange]);
 
   // Auto-focus hidden input when entering clue input mode
   useEffect(() => {
@@ -134,9 +136,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     const hasHydrated = hasHydratedInitialGridRef.current;
 
     if (needsSync) {
-      if (!isControlled) {
-        setGridState(initialGrid);
-      }
+      setGridState(initialGrid);
       latestGridRef.current = initialGrid;
     }
 
@@ -144,7 +144,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       lastSavedGridRef.current = JSON.stringify(initialGrid);
       hasHydratedInitialGridRef.current = true;
     }
-  }, [initialGrid, isControlled]);
+  }, [initialGrid]);
 
   // Initialize grid state when puzzle loads
   useEffect(() => {
@@ -216,8 +216,8 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   }, [sessionId]);
 
   useEffect(() => {
-    latestGridRef.current = grid;
-  }, [grid]);
+    latestGridRef.current = gridState;
+  }, [gridState]);
   
   // Save progress whenever grid changes (with debounce)
   useEffect(() => {

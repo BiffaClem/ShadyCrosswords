@@ -11,8 +11,12 @@ test.describe('Interaction Stability', () => {
     await page.waitForURL(/\/(home)?$/);
     
     // 2. Create a session
-    const createBtn = page.locator('button:has-text("Start"), button:has-text("Create")').first();
+    const createBtn = page.locator('button:has-text("New")').first();
     await createBtn.click();
+    
+    const startSessionBtn = page.locator('button:has-text("Start Session")');
+    await startSessionBtn.click();
+
     await page.waitForURL(/\/session\//);
     
     // 3. Wait for grid
