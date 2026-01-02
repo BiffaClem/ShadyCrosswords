@@ -405,6 +405,29 @@ export default function Session() {
     }
   }, [data]);
 
+  const handleGridChange = useCallback((nextGrid: string[][]) => {
+    setGridState(prev => {
+      if (data?.session?.isCollaborative && wsRef.current?.readyState === WebSocket.OPEN && prev) {
+        for (let r = 0; r < nextGrid.length; r++) {
+          const row = nextGrid[r];
+          const prevRow = prev[r] ?? [];
+          for (let c = 0; c < row.length; c++) {
+            if (prevRow[c] !== row[c]) {
+              wsRef.current.send(JSON.stringify({
+                type: "cell_update",
+                row: r,
+                col: c,
+                value: row[c],
+              }));
+            }
+          }
+        }
+      }
+      return nextGrid;
+    });
+    updateCachedProgress(nextGrid);
+  }, [data?.session?.isCollaborative, updateCachedProgress]);
+
 
   const copyInviteLink = () => {
     const link = `${window.location.origin}/session/${id}`;
