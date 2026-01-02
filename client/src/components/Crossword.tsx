@@ -29,6 +29,13 @@ interface CrosswordProps {
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
 
+const isEditableTarget = (target: EventTarget | null) => {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  const tagName = target.tagName;
+  return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
+};
+
 export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
   const puzzle = initialPuzzle || null;
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
@@ -47,6 +54,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const activeClueRef = useRef<HTMLButtonElement>(null);
+  const gridWrapperRef = useRef<HTMLDivElement>(null);
   const autosaveEnabled = shouldAutoSave !== false && !!sessionId;
   const sessionIdRef = useRef<string | undefined>(sessionId);
   const latestGridRef = useRef<string[][] | null>(initialGrid ?? null);
@@ -408,7 +416,8 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     setDirection(prev => prev === "across" ? "down" : "across");
   }, []);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent | React.KeyboardEvent) => {
+    if (isEditableTarget(e.target)) return;
     if (!puzzle || !activeCell) return;
 
     const { row, col } = activeCell;
@@ -476,9 +485,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   }, [puzzle, activeCell, gridState, direction, moveCursorTyping, moveSelectionByArrow, toggleDirection, onCellChange, clueInputMode]);
 
   useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+    if (isMobile) return;
+    if (!activeCell || clueInputMode) return;
+    if (isEditableTarget(document.activeElement)) return;
+    gridWrapperRef.current?.focus();
+  }, [activeCell, clueInputMode, isMobile]);
 
   const getActiveClue = (): Clue | null => {
     if (!puzzle || !activeCell) return null;
@@ -536,6 +547,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       toggleDirection();
     } else {
       setActiveCell({ row: r, col: c });
+    }
+    if (!isMobile) {
+      gridWrapperRef.current?.focus();
     }
     
     // On desktop, keyboard works automatically via physical keyboard
@@ -787,7 +801,12 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
+    <div
+      ref={gridWrapperRef}
+      className="flex flex-col h-screen bg-background overflow-hidden"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
       
       {/* Minimal Header - compact on mobile */}
       <header className="flex items-center justify-between px-2 md:px-4 py-2 md:py-3 border-b border-border bg-card shrink-0">
