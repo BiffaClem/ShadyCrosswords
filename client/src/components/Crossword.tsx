@@ -107,10 +107,29 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     return () => window.removeEventListener('resize', checkMobile);
   }, [hasInitializedZoom]);
 
+  // Handle mobile clue input mode navigation
   useEffect(() => {
-    if (clueInputMode && isMobile) {
-      setTimeout(() => hiddenInputRef.current?.focus(), 50);
+    if (!isMobile) return;
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (clueInputMode) {
+        event.preventDefault();
+        setClueInputMode(false);
+        setActiveInputClue(null);
+        // Push the state back to prevent actual navigation
+        window.history.pushState(null, '', window.location.href);
+      }
+    };
+
+    if (clueInputMode) {
+      // Push a state so browser back will trigger popstate
+      window.history.pushState({ clueInputMode: true }, '', window.location.href);
+      window.addEventListener('popstate', handlePopState);
     }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, [clueInputMode, isMobile]);
 
   // Update grid when initialGrid prop changes (for real-time collaboration)
@@ -1024,12 +1043,12 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-1 min-w-0">
                 <div className="text-xl font-serif font-bold leading-snug truncate">{activeInputClue.number} {activeInputClue.direction === "across" ? "Across" : "Down"}</div>
-                <div className="flex flex-wrap items-baseline gap-2 text-lg font-medium leading-snug break-words whitespace-normal hyphens-auto">
+                <div className="flex flex-wrap items-baseline gap-2 text-xl font-medium leading-snug break-words whitespace-normal hyphens-auto">
                   <span className="text-foreground">{activeInputClue.text}</span>
                   <span className="text-foreground">({activeInputClue.enumeration})</span>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => { setClueInputMode(false); setActiveInputClue(null); }}>
+              <Button variant="default" size="default" onClick={() => { setClueInputMode(false); setActiveInputClue(null); }}>
                 Done
               </Button>
             </div>
