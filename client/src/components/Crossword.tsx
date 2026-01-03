@@ -49,6 +49,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const [zoom, setZoom] = useState(isMobileInitial ? 0.5 : 1);
   const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
   const [cluePanelHeight, setCluePanelHeight] = useState(200);
+  const [cluePanelWidth, setCluePanelWidth] = useState(420);
   const [clueInputMode, setClueInputMode] = useState(false);
   const [activeInputClue, setActiveInputClue] = useState<Clue | null>(null);
   const [clueInputCursor, setClueInputCursor] = useState(0);
@@ -68,6 +69,9 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
   const isDraggingSeparator = useRef(false);
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(200);
+  const isDraggingWidth = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartWidth = useRef(420);
 
   const updateGrid = useCallback((nextGrid: string[][], change?: { row: number; col: number; value: string }) => {
     setGridState(nextGrid);
@@ -614,20 +618,36 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     dragStartHeight.current = cluePanelHeight;
   }, [isMobile, cluePanelHeight]);
   
+  const handleWidthSeparatorStart = useCallback((e: React.MouseEvent) => {
+    if (isMobile) return;
+    e.preventDefault();
+    isDraggingWidth.current = true;
+    dragStartX.current = e.clientX;
+    dragStartWidth.current = cluePanelWidth;
+  }, [isMobile, cluePanelWidth]);
+  
   // Window-level drag handlers
   useEffect(() => {
     const handleMove = (e: TouchEvent | MouseEvent) => {
-      if (!isDraggingSeparator.current) return;
-      
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      const delta = dragStartY.current - clientY;
-      const maxHeight = window.innerHeight - 200;
-      const newHeight = Math.max(100, Math.min(maxHeight, dragStartHeight.current + delta));
-      setCluePanelHeight(newHeight);
+      if (isDraggingSeparator.current) {
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+        const delta = dragStartY.current - clientY;
+        const maxHeight = window.innerHeight - 200;
+        const newHeight = Math.max(100, Math.min(maxHeight, dragStartHeight.current + delta));
+        setCluePanelHeight(newHeight);
+      }
+      if (isDraggingWidth.current && !(e as TouchEvent).touches) {
+        const clientX = (e as MouseEvent).clientX;
+        const deltaX = clientX - dragStartX.current;
+        const maxWidth = Math.min(window.innerWidth - 240, 720);
+        const newWidth = Math.max(280, Math.min(maxWidth, dragStartWidth.current + deltaX));
+        setCluePanelWidth(newWidth);
+      }
     };
     
     const handleEnd = () => {
       isDraggingSeparator.current = false;
+      isDraggingWidth.current = false;
     };
     
     window.addEventListener('mousemove', handleMove);
@@ -1120,7 +1140,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
             </div>
           </div>
           
-          {/* Draggable separator - mobile only */}
+          {/* Draggable separators */}
           <div 
             className="md:hidden flex items-center justify-center h-5 bg-muted/40 border-y border-border cursor-row-resize touch-none select-none shrink-0"
             onMouseDown={handleSeparatorStart}
@@ -1128,11 +1148,22 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
           >
             <div className="w-16 h-1.5 bg-muted-foreground/50 rounded-full" />
           </div>
+          <div 
+            className="hidden md:flex items-center justify-center w-3 bg-muted/40 border-l border-border cursor-col-resize touch-none select-none shrink-0"
+            onMouseDown={handleWidthSeparatorStart}
+            aria-hidden="true"
+          >
+            <div className="h-12 w-1 bg-muted-foreground/50 rounded-full" />
+          </div>
           
           {/* Clue List - Below grid on mobile (resizable), left side on desktop (full height) */}
           <div 
-            className="bg-card flex flex-col flex-none md:flex-1 md:order-1 md:border-t-0 md:border-r border-border md:w-80 md:max-w-80 min-h-0 overflow-hidden"
-            style={{ height: isMobile ? `${cluePanelHeight}px` : '100%' }}
+            className="bg-card flex flex-col flex-none md:order-1 md:border-t-0 md:border-r border-border min-h-0 overflow-hidden"
+            style={{
+              height: isMobile ? `${cluePanelHeight}px` : '100%',
+              width: isMobile ? '100%' : `${cluePanelWidth}px`,
+              maxWidth: isMobile ? '100%' : `${cluePanelWidth}px`
+            }}
           >
               <div className="hidden md:block p-3 bg-muted/20 border-b border-border">
                   <h2 className="font-serif font-bold text-sm">Clues</h2>
@@ -1167,22 +1198,22 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                                       : "hover:bg-muted/50 text-muted-foreground"
                                               )}
                                             >
-                                                <span className={cn(
-                                                    "font-bold font-mono shrink-0 w-6 text-sm md:w-5 md:text-xs",
-                                                    isActive ? "text-primary" : "text-muted-foreground/70",
-                                                    isFilled && !isActive && "line-through opacity-50"
+                                              <span className={cn(
+                                                "font-bold font-mono shrink-0 text-lg md:text-lg",
+                                                isActive ? "text-primary" : "text-muted-foreground/70",
+                                                isFilled && !isActive && "line-through opacity-50"
+                                              )}>
+                                                {clue.number}
+                                              </span>
+                                              <div className="min-w-0 flex-1">
+                                                <div className={cn(
+                                                  "flex flex-wrap items-baseline gap-2 leading-tight text-lg md:text-lg break-words whitespace-normal hyphens-auto",
+                                                  isActive ? "font-medium" : "",
+                                                  isFilled && !isActive && "line-through opacity-60"
                                                 )}>
-                                                    {clue.number}
-                                                </span>
-                                                <div className="min-w-0 flex-1">
-                                                  <div className={cn(
-                                                    "flex flex-wrap items-baseline gap-2 leading-tight text-lg md:text-lg break-words whitespace-normal hyphens-auto",
-                                                    isActive ? "font-medium" : "",
-                                                    isFilled && !isActive && "line-through opacity-60"
-                                                  )}>
-                                                    <span className="text-foreground">{clue.text}</span>
-                                                    <span className="text-foreground">({clue.enumeration})</span>
-                                                  </div>
+                                                  <span className="text-foreground">{clue.text}</span>
+                                                  <span className="text-foreground">({clue.enumeration})</span>
+                                                </div>
                                                     {isSubmitted && clue.answer && (
                                                       <span className="block text-[11px] font-medium text-green-700 mt-1">
                                                         {clue.answer}
