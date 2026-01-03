@@ -2,6 +2,10 @@
 
 A web-based crossword puzzle application built with React, Express, and PostgreSQL. Features user authentication, admin management, real-time puzzle solving, and collaborative sessions.
 
+**Current UX highlights**
+- Mobile: tap a clue to open a segmented answer bar with word breaks; keyboard input writes directly into the grid.
+- Desktop: clue panel is wider by default and can be resized via the vertical drag handle; clue text and enumeration stay inline.
+
 ## System Architecture
 
 ### Frontend

@@ -9,3 +9,4 @@ vite.config.ts.*
 [cookies_test.txt](http://_vscodecontentref_/7)
 data/
 tmp/
+.local/

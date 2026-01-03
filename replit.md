@@ -1,8 +1,10 @@
-# Cryptic Crossword Solver
+# Crossword Application (Historical notes)
+
+> This document reflects an older Replit-based setup. The live stack now runs independently (local/Docker/Railway). Keep this file for historical reference only.
 
 ## Overview
 
-A browser-based cryptic crossword viewer and solver application. Users can upload puzzle JSON files, solve crosswords solo or collaboratively with others in real-time, and track their progress. The app features a classic newspaper-style design with modern multiplayer capabilities through WebSocket-based real-time collaboration.
+A browser-based crossword solver with collaborative sessions, autosave, and mobile-friendly segmented clue input. Users solve puzzles from JSON, solo or with others, with real-time WebSocket sync and inline clue enumerations.
 
 ## User Preferences
 
@@ -11,44 +13,35 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend Architecture
-- **Framework**: React 18 with TypeScript, using Vite as the build tool
+- **Framework**: React 19 with TypeScript, using Vite as the build tool
 - **Routing**: Wouter for lightweight client-side routing
 - **State Management**: TanStack React Query for server state, local React state for UI
-- **Styling**: Tailwind CSS v4 with shadcn/ui component library (New York style)
-- **Fonts**: Playfair Display (serif for headings), Inter (UI), Roboto Mono (grid)
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Clue UX**: Mobile segmented answer bar (word breaks from enumerations); desktop resizable clue panel; inline clue + enumeration formatting
 
 ### Backend Architecture
-- **Runtime**: Node.js with Express
-- **Language**: TypeScript with ESM modules
-- **API Pattern**: RESTful endpoints under `/api/*` prefix
+- **Runtime**: Node.js with Express (TypeScript, ESM)
+- **API Pattern**: RESTful endpoints under `/api/*`
 - **Real-time**: WebSocket server for collaborative puzzle solving
 - **Build**: esbuild for server bundling, Vite for client
 
 ### Authentication
-- **Provider**: Replit Auth via OpenID Connect
-- **Session Storage**: PostgreSQL-backed sessions using connect-pg-simple
-- **Pattern**: Passport.js with OIDC strategy, session-based authentication
+- Email/password with whitelist, Passport.js session-based auth (PostgreSQL-backed sessions). Replit Auth is no longer used.
 
 ### Data Storage
 - **Database**: PostgreSQL with Drizzle ORM
-- **Schema Location**: `shared/schema.ts` with models in `shared/models/`
+- **Schema Location**: `shared/schema.ts`
 - **Key Tables**:
-  - `users` and `sessions` - Authentication (required for Replit Auth)
-  - `puzzles` - Puzzle data storage (JSON blob)
-  - `puzzle_sessions` - Solving sessions (solo or collaborative)
-  - `session_participants` - Multi-user session access
-  - `puzzle_progress` - Current grid state per session
+  - `users`, `allowed_emails`, `puzzles`, `puzzle_sessions`, `session_participants`, `puzzle_progress`
 
 ### Real-time Collaboration
-- WebSocket connections managed per session
-- Grid updates broadcast to all participants in a session
-- Connection tracking via `sessionConnections` Map
+- WebSocket connections per session; grid updates broadcast to all participants
 
 ### Key Design Decisions
-1. **Shared Schema**: Types defined once in `shared/` and imported by both client and server
-2. **JSON Puzzle Format**: Puzzles stored as JSONB, schema defined in attached_assets
-3. **Local Storage Fallback**: Client-side puzzle library for offline puzzle access
-4. **Session-based Progress**: Each solving session has independent progress state
+1. Shared schema in `shared/` for types used by client/server
+2. Puzzle JSON format stored under `puzzles/` and loaded into DB on startup
+3. Autosave to DB with localStorage fallback for non-session mode
+4. Session-based progress with collaborative sync via WebSocket
 
 ## External Dependencies
 
