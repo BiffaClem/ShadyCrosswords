@@ -1,0 +1,51 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img [ref=e7]
+          - generic [ref=e9]:
+            - heading "Shady Crosswords" [level=1] [ref=e10]
+            - paragraph [ref=e11]: It's a family thing...
+        - button "Sign In" [ref=e13]
+    - main [ref=e14]:
+      - generic [ref=e15]:
+        - heading "Shady Crosswords" [level=2] [ref=e16]
+        - paragraph [ref=e17]: It's a family thing...
+        - img "Crossword puzzle" [ref=e19]
+        - paragraph [ref=e20]: Solve cryptic crosswords solo or collaborate with the family in real-time.
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - img [ref=e24]
+            - generic [ref=e26]:
+              - heading "Curated Puzzles" [level=3] [ref=e27]
+              - paragraph [ref=e28]: Guardian & Times crosswords ready to solve.
+          - generic [ref=e29]:
+            - img [ref=e31]
+            - generic [ref=e36]:
+              - heading "Solve Together" [level=3] [ref=e37]
+              - paragraph [ref=e38]: Live cursors, autosave, and invite-only rooms.
+          - generic [ref=e39]:
+            - img [ref=e41]
+            - generic [ref=e49]:
+              - heading "Track Progress" [level=3] [ref=e50]
+              - paragraph [ref=e51]: Resume any board exactly where you left it.
+      - generic [ref=e52]:
+        - heading "Sign in" [level=3] [ref=e53]
+        - paragraph [ref=e54]: Enter your details to continue.
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - text: Email
+            - textbox "Email" [ref=e57]
+          - generic [ref=e58]:
+            - text: Password
+            - textbox "Password" [ref=e59]
+          - button "Sign In" [ref=e60]
+    - contentinfo [ref=e61]:
+      - paragraph [ref=e62]: Need access? Ask Mark to add your email to the allowed list.
+```

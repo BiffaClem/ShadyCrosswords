@@ -109,6 +109,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     return () => window.removeEventListener('resize', checkMobile);
   }, [hasInitializedZoom]);
 
+  const handleCloseClueInputMode = useCallback(() => {
+    setClueInputMode(false);
+    setActiveInputClue(null);
+  }, []);
+
   // Set the close function ref for parent access
   useEffect(() => {
     if (closeClueInputModeRef) {

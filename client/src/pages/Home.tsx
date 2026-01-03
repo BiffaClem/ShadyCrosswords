@@ -67,6 +67,8 @@ export default function Home() {
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [isMobile, setIsMobile] = useState(false);
+  const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
+  const [newDisplayName, setNewDisplayName] = useState("");
 
   useEffect(() => {
     const checkMobile = () => {
@@ -78,12 +80,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (isMobile) {
-      // On mobile, automatically expand all puzzles with sessions
-      const puzzlesWithSessions = puzzles?.filter(p => p.sessions.length > 0).map(p => p.id) || [];
-      setExpandedPuzzles(new Set(puzzlesWithSessions));
-    }
-  }, [puzzles, isMobile]);
+    queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
+  }, [queryClient]);
 
   const { data: puzzles, isLoading } = useQuery<PuzzleWithSessions[]>({
     queryKey: ["/api/puzzles"],
@@ -109,6 +107,14 @@ export default function Home() {
       return res.json();
     },
   });
+
+  useEffect(() => {
+    if (isMobile) {
+      // On mobile, automatically expand all puzzles with sessions
+      const puzzlesWithSessions = puzzles?.filter(p => p.sessions.length > 0).map(p => p.id) || [];
+      setExpandedPuzzles(new Set(puzzlesWithSessions));
+    }
+  }, [puzzles, isMobile]);
 
   const createSessionMutation = useMutation({
     mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean; difficulty: string }) => {

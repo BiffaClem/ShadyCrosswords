@@ -86,6 +86,7 @@ export default function Session() {
   const [sharingOpen, setSharingOpen] = useState(false);
   const [isInClueInputMode, setIsInClueInputMode] = useState(false);
   const closeClueInputModeRef = useRef<(() => void) | null>(null);
+  const hasHydratedProgressRef = useRef(false);
 
   const { data, isLoading, error } = useQuery<SessionData>({
     queryKey: ["/api/sessions", id],

@@ -1,0 +1,232 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - button "Back" [ref=e6]:
+          - img
+          - text: Back
+        - generic [ref=e7]:
+          - button "1 1" [ref=e8]:
+            - img
+            - generic [ref=e9]: "1"
+            - generic [ref=e11]: "1"
+          - button [ref=e12]:
+            - img
+    - main [ref=e13]:
+      - generic [active] [ref=e14]:
+        - generic [ref=e15]:
+          - heading "Times Jumbo Cryptic Crossword 1351 (2018-11-11)" [level=1] [ref=e17]
+          - button [ref=e19]:
+            - img
+        - textbox "Crossword input" [ref=e20]
+        - main [ref=e21]:
+          - generic [ref=e25]:
+            - generic [ref=e26] [cursor=pointer]:
+              - generic [ref=e27]: "1"
+              - text: X
+            - generic [ref=e29] [cursor=pointer]: "2"
+            - generic [ref=e32] [cursor=pointer]: "3"
+            - generic [ref=e35] [cursor=pointer]: "4"
+            - generic [ref=e38] [cursor=pointer]: "5"
+            - generic [ref=e41] [cursor=pointer]: "6"
+            - generic [ref=e44] [cursor=pointer]: "7"
+            - generic [ref=e47] [cursor=pointer]: "8"
+            - generic [ref=e50] [cursor=pointer]: "9"
+            - generic [ref=e53] [cursor=pointer]: "10"
+            - generic [ref=e56] [cursor=pointer]: "11"
+            - generic [ref=e59] [cursor=pointer]: "12"
+            - generic [ref=e86] [cursor=pointer]: "13"
+            - generic [ref=e132] [cursor=pointer]: "14"
+            - generic [ref=e142] [cursor=pointer]: "15"
+            - generic [ref=e151] [cursor=pointer]: "16"
+            - generic [ref=e181] [cursor=pointer]: "17"
+            - generic [ref=e183] [cursor=pointer]: "18"
+            - generic [ref=e190] [cursor=pointer]: "19"
+            - generic [ref=e195] [cursor=pointer]: "20"
+            - generic [ref=e198] [cursor=pointer]: "21"
+            - generic [ref=e203] [cursor=pointer]: "22"
+            - generic [ref=e233] [cursor=pointer]: "23"
+            - generic [ref=e240] [cursor=pointer]: "24"
+            - generic [ref=e244] [cursor=pointer]: "25"
+            - generic [ref=e251] [cursor=pointer]: "26"
+            - generic [ref=e258] [cursor=pointer]: "27"
+            - generic [ref=e266] [cursor=pointer]: "28"
+            - generic [ref=e285] [cursor=pointer]: "29"
+            - generic [ref=e299] [cursor=pointer]: "30"
+            - generic [ref=e302] [cursor=pointer]: "31"
+            - generic [ref=e334] [cursor=pointer]: "32"
+            - generic [ref=e338] [cursor=pointer]: "33"
+            - generic [ref=e347] [cursor=pointer]: "34"
+            - generic [ref=e356] [cursor=pointer]: "35"
+            - generic [ref=e384] [cursor=pointer]: "36"
+            - generic [ref=e392] [cursor=pointer]: "37"
+            - generic [ref=e395] [cursor=pointer]: "38"
+            - generic [ref=e406] [cursor=pointer]: "39"
+            - generic [ref=e428] [cursor=pointer]: "40"
+            - generic [ref=e435] [cursor=pointer]: "41"
+            - generic [ref=e437] [cursor=pointer]: "42"
+            - generic [ref=e450] [cursor=pointer]: "43"
+            - generic [ref=e484] [cursor=pointer]: "44"
+            - generic [ref=e490] [cursor=pointer]: "45"
+            - generic [ref=e493] [cursor=pointer]: "46"
+            - generic [ref=e496] [cursor=pointer]: "47"
+            - generic [ref=e503] [cursor=pointer]: "48"
+            - generic [ref=e510] [cursor=pointer]: "49"
+            - generic [ref=e537] [cursor=pointer]: "50"
+            - generic [ref=e583] [cursor=pointer]: "51"
+            - generic [ref=e593] [cursor=pointer]: "52"
+            - generic [ref=e602] [cursor=pointer]: "53"
+          - generic [ref=e610]:
+            - heading "Clues" [level=2] [ref=e612]
+            - generic [ref=e613]:
+              - tablist [ref=e615]:
+                - tab "Across" [selected] [ref=e616]
+                - tab "Down" [ref=e617]
+              - tabpanel "Across" [ref=e618]:
+                - generic [ref=e620]:
+                  - button "1 Vivacity initially held back mischief maker (6)" [ref=e622]:
+                    - generic [ref=e623]: "1"
+                    - generic [ref=e625]:
+                      - generic [ref=e626]: Vivacity initially held back mischief maker
+                      - generic [ref=e627]: (6)
+                  - button "5 Artist’s medium discomfort after short illness (7)" [ref=e629]:
+                    - generic [ref=e630]: "5"
+                    - generic [ref=e632]:
+                      - generic [ref=e633]: Artist’s medium discomfort after short illness
+                      - generic [ref=e634]: (7)
+                  - button "9 Meandering soldiers put in charge (8)" [ref=e636]:
+                    - generic [ref=e637]: "9"
+                    - generic [ref=e639]:
+                      - generic [ref=e640]: Meandering soldiers put in charge
+                      - generic [ref=e641]: (8)
+                  - button "13 It’s evident prison transmuted a modern criminal (4, 4, 13)" [ref=e643]:
+                    - generic [ref=e644]: "13"
+                    - generic [ref=e646]:
+                      - generic [ref=e647]: It’s evident prison transmuted a modern criminal
+                      - generic [ref=e648]: (4, 4, 13)
+                  - button "14 Chinese finally sought after car dealer (8)" [ref=e650]:
+                    - generic [ref=e651]: "14"
+                    - generic [ref=e653]:
+                      - generic [ref=e654]: Chinese finally sought after car dealer
+                      - generic [ref=e655]: (8)
+                  - button "15 Satellite rattles when blown about (7)" [ref=e657]:
+                    - generic [ref=e658]: "15"
+                    - generic [ref=e660]:
+                      - generic [ref=e661]: Satellite rattles when blown about
+                      - generic [ref=e662]: (7)
+                  - button "16 Sweet nothing with husband being ace (6)" [ref=e664]:
+                    - generic [ref=e665]: "16"
+                    - generic [ref=e667]:
+                      - generic [ref=e668]: Sweet nothing with husband being ace
+                      - generic [ref=e669]: (6)
+                  - button "17 Sharp stuff from fault-finder having delayed resistance with drug (6,4)" [ref=e671]:
+                    - generic [ref=e672]: "17"
+                    - generic [ref=e674]:
+                      - generic [ref=e675]: Sharp stuff from fault-finder having delayed resistance with drug
+                      - generic [ref=e676]: (6,4)
+                  - button "20 Tense one working and failing (12)" [ref=e678]:
+                    - generic [ref=e679]: "20"
+                    - generic [ref=e681]:
+                      - generic [ref=e682]: Tense one working and failing
+                      - generic [ref=e683]: (12)
+                  - button "23 Evens out site of a portico (4)" [ref=e685]:
+                    - generic [ref=e686]: "23"
+                    - generic [ref=e688]:
+                      - generic [ref=e689]: Evens out site of a portico
+                      - generic [ref=e690]: (4)
+                  - button "24 River bird one’s seen on a ship (8)" [ref=e692]:
+                    - generic [ref=e693]: "24"
+                    - generic [ref=e695]:
+                      - generic [ref=e696]: River bird one’s seen on a ship
+                      - generic [ref=e697]: (8)
+                  - button "26 Sacked on Thursday, was very sore? (8)" [ref=e699]:
+                    - generic [ref=e700]: "26"
+                    - generic [ref=e702]:
+                      - generic [ref=e703]: Sacked on Thursday, was very sore?
+                      - generic [ref=e704]: (8)
+                  - button "29 Totter up with beer, welcoming old musical style (12)" [ref=e706]:
+                    - generic [ref=e707]: "29"
+                    - generic [ref=e709]:
+                      - generic [ref=e710]: Totter up with beer, welcoming old musical style
+                      - generic [ref=e711]: (12)
+                  - button "30 School subject one grasped by quiet determination (12 [10 in grid and answer])" [ref=e713]:
+                    - generic [ref=e714]: "30"
+                    - generic [ref=e716]:
+                      - generic [ref=e717]: School subject one grasped by quiet determination
+                      - generic [ref=e718]: (12 [10 in grid and answer])
+                  - button "32 Man stops erring by a crude vice (10)" [ref=e720]:
+                    - generic [ref=e721]: "32"
+                    - generic [ref=e723]:
+                      - generic [ref=e724]: Man stops erring by a crude vice
+                      - generic [ref=e725]: (10)
+                  - button "34 Riding train, the setter’s giving nothing away (12)" [ref=e727]:
+                    - generic [ref=e728]: "34"
+                    - generic [ref=e730]:
+                      - generic [ref=e731]: Riding train, the setter’s giving nothing away
+                      - generic [ref=e732]: (12)
+                  - button "36 Bit by bit, returned animals with good sense (8)" [ref=e734]:
+                    - generic [ref=e735]: "36"
+                    - generic [ref=e737]:
+                      - generic [ref=e738]: Bit by bit, returned animals with good sense
+                      - generic [ref=e739]: (8)
+                  - button "38 Referred to broadcast, ignoring one’s daughter (8)" [ref=e741]:
+                    - generic [ref=e742]: "38"
+                    - generic [ref=e744]:
+                      - generic [ref=e745]: Referred to broadcast, ignoring one’s daughter
+                      - generic [ref=e746]: (8)
+                  - button "39 Ball and function from the right country club (4)" [ref=e748]:
+                    - generic [ref=e749]: "39"
+                    - generic [ref=e751]:
+                      - generic [ref=e752]: Ball and function from the right country club
+                      - generic [ref=e753]: (4)
+                  - button "41 For high tea, do supply alcohol (4, 2, 3, 3)" [ref=e755]:
+                    - generic [ref=e756]: "41"
+                    - generic [ref=e758]:
+                      - generic [ref=e759]: For high tea, do supply alcohol
+                      - generic [ref=e760]: (4, 2, 3, 3)
+                  - button "43 Fake news to support a leaderless country (10)" [ref=e762]:
+                    - generic [ref=e763]: "43"
+                    - generic [ref=e765]:
+                      - generic [ref=e766]: Fake news to support a leaderless country
+                      - generic [ref=e767]: (10)
+                  - button "44 He won’t accept obsolete coin (6)" [ref=e769]:
+                    - generic [ref=e770]: "44"
+                    - generic [ref=e772]:
+                      - generic [ref=e773]: He won’t accept obsolete coin
+                      - generic [ref=e774]: (6)
+                  - button "46 Live in perfect tower (7)" [ref=e776]:
+                    - generic [ref=e777]: "46"
+                    - generic [ref=e779]:
+                      - generic [ref=e780]: Live in perfect tower
+                      - generic [ref=e781]: (7)
+                  - button "48 On the point of retirement, cut expenditure (8)" [ref=e783]:
+                    - generic [ref=e784]: "48"
+                    - generic [ref=e786]:
+                      - generic [ref=e787]: On the point of retirement, cut expenditure
+                      - generic [ref=e788]: (8)
+                  - button "50 Very effusive towards semiotician, with hard journey nearly done (3, 4, 3, 3, 8)" [ref=e790]:
+                    - generic [ref=e791]: "50"
+                    - generic [ref=e793]:
+                      - generic [ref=e794]: Very effusive towards semiotician, with hard journey nearly done
+                      - generic [ref=e795]: (3, 4, 3, 3, 8)
+                  - button "51 French novel all told briefly after the beginning (8)" [ref=e797]:
+                    - generic [ref=e798]: "51"
+                    - generic [ref=e800]:
+                      - generic [ref=e801]: French novel all told briefly after the beginning
+                      - generic [ref=e802]: (8)
+                  - button "52 Article by poet is going slowly (7)" [ref=e804]:
+                    - generic [ref=e805]: "52"
+                    - generic [ref=e807]:
+                      - generic [ref=e808]: Article by poet is going slowly
+                      - generic [ref=e809]: (7)
+                  - button "53 Revealing hypocrisy in empty society (6)" [ref=e811]:
+                    - generic [ref=e812]: "53"
+                    - generic [ref=e814]:
+                      - generic [ref=e815]: Revealing hypocrisy in empty society
+                      - generic [ref=e816]: (6)
+```
