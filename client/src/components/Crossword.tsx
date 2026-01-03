@@ -1004,8 +1004,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-1 min-w-0">
                 <div className="text-xl font-serif font-bold leading-snug truncate">{activeInputClue.number} {activeInputClue.direction === "across" ? "Across" : "Down"}</div>
-                <div className="text-sm text-muted-foreground leading-snug break-words whitespace-normal hyphens-auto">{activeInputClue.text}</div>
-                <div className="text-xs text-muted-foreground">Pattern {activeInputClue.enumeration}</div>
+                <div className="flex flex-wrap items-baseline gap-2 text-lg font-medium leading-snug break-words whitespace-normal hyphens-auto">
+                  <span className="text-foreground">{activeInputClue.text}</span>
+                  <span className="text-foreground">({activeInputClue.enumeration})</span>
+                </div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => { setClueInputMode(false); setActiveInputClue(null); }}>
                 Done
@@ -1172,17 +1174,15 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                                                 )}>
                                                     {clue.number}
                                                 </span>
-                                                <div className="space-y-0.5 min-w-0 flex-1">
-                                                    <span className={cn(
-                                                      "block leading-tight text-base md:text-sm break-words whitespace-normal hyphens-auto",
-                                                        isActive ? "font-medium" : "",
-                                                        isFilled && !isActive && "line-through opacity-60"
-                                                    )}>
-                                                        {clue.text}
-                                                    </span>
-                                                    <span className="text-xs md:text-[10px] text-muted-foreground/60">
-                                                        ({clue.enumeration})
-                                                    </span>
+                                                <div className="min-w-0 flex-1">
+                                                  <div className={cn(
+                                                    "flex flex-wrap items-baseline gap-2 leading-tight text-lg md:text-lg break-words whitespace-normal hyphens-auto",
+                                                    isActive ? "font-medium" : "",
+                                                    isFilled && !isActive && "line-through opacity-60"
+                                                  )}>
+                                                    <span className="text-foreground">{clue.text}</span>
+                                                    <span className="text-foreground">({clue.enumeration})</span>
+                                                  </div>
                                                     {isSubmitted && clue.answer && (
                                                       <span className="block text-[11px] font-medium text-green-700 mt-1">
                                                         {clue.answer}
