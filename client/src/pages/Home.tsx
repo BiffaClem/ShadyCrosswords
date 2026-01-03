@@ -352,30 +352,30 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           {/* Metrics and Activity Section */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 mb-4 sm:mb-6">
-            <div className="bg-white rounded-lg border border-amber-200 p-2 sm:p-4 text-center" data-testid="metric-total">
-              <div className="text-lg sm:text-2xl font-bold text-amber-900">{totalPuzzles}</div>
-              <div className="text-xs text-amber-600">Puzzles</div>
+            <div className="bg-white rounded-lg border border-amber-200 p-3 sm:p-4 text-center" data-testid="metric-total">
+              <div className="text-xl sm:text-2xl font-bold text-amber-900">{totalPuzzles}</div>
+              <div className="text-sm text-amber-600">Puzzles</div>
             </div>
-            <div className="bg-white rounded-lg border border-amber-200 p-2 sm:p-4 text-center" data-testid="metric-progress">
-              <div className="text-lg sm:text-2xl font-bold text-amber-700 flex items-center justify-center gap-1">
-                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+            <div className="bg-white rounded-lg border border-amber-200 p-3 sm:p-4 text-center" data-testid="metric-progress">
+              <div className="text-xl sm:text-2xl font-bold text-amber-700 flex items-center justify-center gap-1">
+                <AlertCircle className="h-5 w-5 sm:h-5 sm:w-5" />
                 {inProgressCount}
               </div>
-              <div className="text-xs text-amber-600">In Progress</div>
+              <div className="text-sm text-amber-600">In Progress</div>
             </div>
-            <div className="bg-white rounded-lg border border-amber-200 p-2 sm:p-4 text-center" data-testid="metric-complete">
-              <div className="text-lg sm:text-2xl font-bold text-green-700 flex items-center justify-center gap-1">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+            <div className="bg-white rounded-lg border border-amber-200 p-3 sm:p-4 text-center" data-testid="metric-complete">
+              <div className="text-xl sm:text-2xl font-bold text-green-700 flex items-center justify-center gap-1">
+                <CheckCircle className="h-5 w-5 sm:h-5 sm:w-5" />
                 {completedCount}
               </div>
-              <div className="text-xs text-amber-600">Submitted</div>
+              <div className="text-sm text-amber-600">Submitted</div>
             </div>
-            <div className="bg-white rounded-lg border border-amber-200 p-2 sm:p-4 text-center" data-testid="metric-accuracy">
-              <div className="text-lg sm:text-2xl font-bold text-amber-900">{overallAccuracy}%</div>
-              <div className="text-xs text-amber-600">Accuracy</div>
+            <div className="bg-white rounded-lg border border-amber-200 p-3 sm:p-4 text-center" data-testid="metric-accuracy">
+              <div className="text-xl sm:text-2xl font-bold text-amber-900">{overallAccuracy}%</div>
+              <div className="text-sm text-amber-600">Accuracy</div>
             </div>
-            <div className="bg-white rounded-lg border border-amber-200 p-2 sm:p-3 col-span-2 sm:col-span-4 lg:col-span-1" data-testid="metric-activity">
-              <div className="text-xs text-amber-600 mb-1 sm:mb-2 font-medium">Who's Online</div>
+            <div className="bg-white rounded-lg border border-amber-200 p-3 sm:p-3 col-span-2 sm:col-span-4 lg:col-span-1" data-testid="metric-activity">
+              <div className="text-sm text-amber-600 mb-1 sm:mb-2 font-medium">Who's Online</div>
               <div className="flex flex-wrap gap-2">
                 {userActivity?.slice(0, 5).map((u) => {
                   const status = getActivityStatus(u.lastActivity);
@@ -386,7 +386,7 @@ export default function Home() {
                       title={`${u.firstName || u.email || 'User'}: ${status.label}`}
                     >
                       <div className={`w-2 h-2 rounded-full ${status.color}`} />
-                      <span className="text-xs text-amber-800 truncate max-w-16">
+                      <span className="text-sm text-amber-800 truncate max-w-16">
                         {u.firstName || u.email?.split('@')[0] || 'User'}
                       </span>
                     </div>
@@ -400,15 +400,15 @@ export default function Home() {
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
                 <TabsList className="h-8">
-                  <TabsTrigger value="all" data-testid="tab-all" className="text-xs sm:text-sm px-2 sm:px-3">All</TabsTrigger>
-                  <TabsTrigger value="inprogress" data-testid="tab-inprogress" className="text-xs sm:text-sm px-2 sm:px-3">In Progress</TabsTrigger>
+                  <TabsTrigger value="all" data-testid="tab-all" className="text-sm sm:text-sm px-3 sm:px-3">All</TabsTrigger>
+                  <TabsTrigger value="inprogress" data-testid="tab-inprogress" className="text-sm sm:text-sm px-3 sm:px-3">In Progress</TabsTrigger>
                 </TabsList>
               </Tabs>
               
               <select 
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="text-xs sm:text-sm border border-amber-200 rounded px-2 py-1 bg-white text-amber-800 h-8"
+                className="text-sm sm:text-sm border border-amber-200 rounded px-3 py-1 bg-white text-amber-800 h-8"
                 data-testid="select-year"
               >
                 <option value="all">All Years</option>
@@ -418,7 +418,7 @@ export default function Home() {
               </select>
             </div>
             
-            <label className="flex items-center gap-2 text-sm text-amber-700 cursor-pointer">
+            <label className="flex items-center gap-2 text-base text-amber-700 cursor-pointer">
               <Checkbox 
                 checked={hideCompleted} 
                 onCheckedChange={(c) => setHideCompleted(!!c)}
@@ -434,18 +434,18 @@ export default function Home() {
             </div>
           ) : sortedPuzzles.length === 0 ? (
             <div className="bg-white rounded-lg border border-amber-200 py-12 text-center">
-              <p className="text-amber-600">No puzzles found.</p>
+              <p className="text-amber-600 text-base">No puzzles found.</p>
             </div>
           ) : (
             <div className="bg-white rounded-lg border border-amber-200 overflow-hidden">
               <table className="w-full">
-                <thead className="bg-amber-100 text-left text-sm text-amber-800">
+                <thead className="bg-amber-100 text-left text-base text-amber-800">
                   <tr>
-                    <th className="px-2 sm:px-4 py-3 font-medium">Puzzle</th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-center hidden sm:table-cell">Date</th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-center hidden md:table-cell">Sessions</th>
-                    <th className="px-2 sm:px-4 py-3 font-medium text-center">Progress</th>
-                    <th className="px-2 sm:px-4 py-3"></th>
+                    <th className="px-3 sm:px-4 py-3 font-medium">Puzzle</th>
+                    <th className="px-3 sm:px-4 py-3 font-medium text-center hidden sm:table-cell">Date</th>
+                    <th className="px-3 sm:px-4 py-3 font-medium text-center hidden md:table-cell">Sessions</th>
+                    <th className="px-3 sm:px-4 py-3 font-medium text-center">Progress</th>
+                    <th className="px-3 sm:px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-100">
@@ -459,27 +459,27 @@ export default function Home() {
                     return (
                       <React.Fragment key={puzzle.id}>
                         <tr 
-                          className="hover:bg-amber-50 cursor-pointer"
+                          className={`hover:bg-amber-50 cursor-pointer ${puzzle.sessions.length > 0 ? 'bg-blue-50/30' : ''}`}
                           onClick={() => puzzle.sessions.length > 0 && togglePuzzleExpand(puzzle.id)}
                           data-testid={`row-puzzle-${puzzle.id}`}
                         >
-                          <td className="px-2 sm:px-4 py-3">
+                          <td className="px-3 sm:px-4 py-3">
                             <div className="flex items-center gap-2">
                               {puzzle.sessions.length > 0 && (
                                 <ChevronDown className={`h-4 w-4 text-amber-500 transition-transform flex-shrink-0 ${isExpanded ? '' : '-rotate-90'}`} />
                               )}
                               {/* Show just puzzle number on mobile (larger font), full title on desktop */}
-                              <span className="font-medium text-amber-900 text-base truncate sm:hidden">#{getPuzzleNumber(puzzle)}</span>
+                              <span className="font-medium text-amber-900 text-lg truncate sm:hidden">#{getPuzzleNumber(puzzle)}</span>
                               <span className="font-medium text-amber-900 text-base truncate hidden sm:inline">{puzzle.title}</span>
                             </div>
                           </td>
-                          <td className="px-2 sm:px-4 py-3 text-center text-amber-700 text-sm hidden sm:table-cell">
+                          <td className="px-3 sm:px-4 py-3 text-center text-amber-700 text-base hidden sm:table-cell">
                             {formatDate(puzzle.data?.date)}
                           </td>
-                          <td className="px-2 sm:px-4 py-3 text-center text-amber-700 text-sm hidden md:table-cell">
+                          <td className="px-3 sm:px-4 py-3 text-center text-amber-700 text-base hidden md:table-cell">
                             {puzzle.sessions.length}
                           </td>
-                          <td className="px-2 sm:px-4 py-3 text-center">
+                          <td className="px-3 sm:px-4 py-3 text-center">
                             {bestSession ? (
                               <div className="flex items-center justify-center gap-1 sm:gap-2">
                                 <div className="w-12 sm:w-24 h-2 bg-amber-100 rounded-full overflow-hidden">
@@ -488,17 +488,17 @@ export default function Home() {
                                     style={{ width: `${bestSession.percentComplete}%` }}
                                   />
                                 </div>
-                                <span className="text-sm text-amber-700">{bestSession.percentComplete}%</span>
+                                <span className="text-base text-amber-700">{bestSession.percentComplete}%</span>
                               </div>
                             ) : (
-                              <span className="text-amber-400 text-sm">-</span>
+                              <span className="text-amber-400 text-base">-</span>
                             )}
                           </td>
-                          <td className="px-2 sm:px-4 py-3 text-right">
+                          <td className="px-3 sm:px-4 py-3 text-right">
                             <Button 
                               size="sm"
                               onClick={(e) => { e.stopPropagation(); handleStartNewSession(puzzle); }}
-                              className="bg-amber-700 hover:bg-amber-800 px-2 sm:px-3"
+                              className="bg-amber-700 hover:bg-amber-800 px-3 sm:px-3"
                               data-testid={`button-new-session-${puzzle.id}`}
                             >
                               <Plus className="h-4 w-4 sm:mr-1" />
@@ -515,35 +515,35 @@ export default function Home() {
                               onClick={() => navigate(`/session/${session.id}`)}
                               data-testid={`session-${session.id}`}
                             >
-                              <td className="px-2 sm:px-4 py-2 pl-6 sm:pl-10" colSpan={1}>
+                              <td className="px-3 sm:px-4 py-2 pl-6 sm:pl-10" colSpan={1}>
                                 <div className="flex items-center gap-1 sm:gap-2">
-                                  <span className="text-amber-800 text-sm truncate max-w-[120px] sm:max-w-none">{session.name}</span>
+                                  <span className="text-amber-800 text-base truncate max-w-[120px] sm:max-w-none">{session.name}</span>
                                   {session.isCollaborative && (
-                                    <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-600 flex-shrink-0" />
+                                    <Users className="h-4 w-4 sm:h-3.5 sm:w-3.5 text-amber-600 flex-shrink-0" />
                                   )}
                                   {session.submittedAt && (
-                                    <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-green-600 flex-shrink-0" />
+                                    <CheckCircle className="h-4 w-4 sm:h-3.5 sm:w-3.5 text-green-600 flex-shrink-0" />
                                   )}
                                 </div>
                               </td>
-                              <td className="px-2 sm:px-4 py-2 text-center text-xs text-amber-600 hidden sm:table-cell">
+                              <td className="px-3 sm:px-4 py-2 text-center text-sm text-amber-600 hidden sm:table-cell">
                                 {session.participants.length > 0 && (
                                   <span>{session.participants.length} participant{session.participants.length !== 1 ? 's' : ''}</span>
                                 )}
                               </td>
-                              <td className="px-2 sm:px-4 py-2 hidden md:table-cell"></td>
-                              <td className="px-2 sm:px-4 py-2 text-center">
+                              <td className="px-3 sm:px-4 py-2 hidden md:table-cell"></td>
+                              <td className="px-3 sm:px-4 py-2 text-center">
                                 <div className="flex items-center justify-center gap-1">
-                                  <div className="w-10 sm:w-20 h-1.5 bg-amber-200 rounded-full overflow-hidden">
+                                  <div className="w-12 sm:w-20 h-2 bg-amber-200 rounded-full overflow-hidden">
                                     <div 
                                       className={`h-full rounded-full ${session.submittedAt ? 'bg-green-600' : 'bg-amber-600'}`}
                                       style={{ width: `${session.percentComplete}%` }}
                                     />
                                   </div>
-                                  <span className="text-xs text-amber-600">{session.percentComplete}%</span>
+                                  <span className="text-sm text-amber-600">{session.percentComplete}%</span>
                                 </div>
                               </td>
-                              <td className="px-1 sm:px-4 py-2 text-right">
+                              <td className="px-2 sm:px-4 py-2 text-right">
                                 <div className="flex items-center justify-end gap-0 sm:gap-2">
                                   {isOwner && (
                                     <button
@@ -552,10 +552,10 @@ export default function Home() {
                                       title="Delete session"
                                       data-testid={`button-delete-session-${session.id}`}
                                     >
-                                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                                      <Trash2 className="h-4 w-4 sm:h-4 sm:w-4" />
                                     </button>
                                   )}
-                                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-amber-400" />
+                                  <ChevronRight className="h-4 w-4 sm:h-4 sm:w-4 text-amber-400" />
                                 </div>
                               </td>
                             </tr>

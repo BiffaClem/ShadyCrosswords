@@ -84,6 +84,7 @@ export default function Session() {
   const [copied, setCopied] = useState(false);
   const [gridState, setGridState] = useState<string[][] | null>(null);
   const [sharingOpen, setSharingOpen] = useState(false);
+  const [isInClueInputMode, setIsInClueInputMode] = useState(false);
   const hasHydratedProgressRef = useRef(false);
 
   const { data, isLoading, error } = useQuery<SessionData>({
@@ -268,6 +269,11 @@ export default function Session() {
   };
 
   const handleBack = () => {
+    if (isInClueInputMode) {
+      // If in clue input mode, just close it instead of navigating
+      setIsInClueInputMode(false);
+      return;
+    }
     queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
     navigate("/");
   };
@@ -434,6 +440,7 @@ export default function Session() {
               recentSessions={recentSessions}
               onSessionSelect={(sessionId) => navigate(`/session/${sessionId}`)}
               sessionId={id}
+              onClueInputModeChange={setIsInClueInputMode}
             />
         )}
       </main>

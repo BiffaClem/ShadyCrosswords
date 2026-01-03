@@ -25,6 +25,7 @@ interface CrosswordProps {
   onSessionSelect?: (sessionId: string) => void;
   sessionId?: string; // For beacon saves on unload
   shouldAutoSave?: boolean;
+  onClueInputModeChange?: (isInClueInputMode: boolean) => void;
 }
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
@@ -36,7 +37,7 @@ const isEditableTarget = (target: EventTarget | null) => {
   return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
 };
 
-export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onGridChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave }: CrosswordProps) {
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onGridChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave, onClueInputModeChange }: CrosswordProps) {
   const puzzle = initialPuzzle || null;
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
@@ -128,6 +129,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       window.removeEventListener('popstate', handlePopState);
     };
   }, [clueInputMode, isMobile]);
+
+  // Notify parent when clue input mode changes
+  useEffect(() => {
+    onClueInputModeChange?.(clueInputMode);
+  }, [clueInputMode, onClueInputModeChange]);
 
   // Update grid when initialGrid prop changes (for real-time collaboration)
   useEffect(() => {
@@ -1038,10 +1044,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         <main className="flex flex-1 overflow-hidden flex-col">
           <div className="p-4 bg-card border-b border-border space-y-2">
             <div className="flex items-center justify-between gap-3">
-              <Button variant="ghost" size="sm" onClick={() => { setClueInputMode(false); setActiveInputClue(null); }}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div className="space-y-1 min-w-0 flex-1">
+              <div className="space-y-1 min-w-0">
                 <div className="text-xl font-serif font-bold leading-snug truncate">{activeInputClue.number} {activeInputClue.direction === "across" ? "Across" : "Down"}</div>
                 <div className="flex flex-wrap items-baseline gap-2 text-xl font-medium leading-snug break-words whitespace-normal hyphens-auto">
                   <span className="text-foreground">{activeInputClue.text}</span>
