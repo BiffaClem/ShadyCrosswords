@@ -85,7 +85,7 @@ export default function Session() {
   const [gridState, setGridState] = useState<string[][] | null>(null);
   const [sharingOpen, setSharingOpen] = useState(false);
   const [isInClueInputMode, setIsInClueInputMode] = useState(false);
-  const hasHydratedProgressRef = useRef(false);
+  const closeClueInputModeRef = useRef<(() => void) | null>(null);
 
   const { data, isLoading, error } = useQuery<SessionData>({
     queryKey: ["/api/sessions", id],
@@ -269,9 +269,9 @@ export default function Session() {
   };
 
   const handleBack = () => {
-    if (isInClueInputMode) {
-      // If in clue input mode, just close it instead of navigating
-      setIsInClueInputMode(false);
+    if (isInClueInputMode && closeClueInputModeRef.current) {
+      // If in clue input mode, close it
+      closeClueInputModeRef.current();
       return;
     }
     queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
@@ -441,6 +441,7 @@ export default function Session() {
               onSessionSelect={(sessionId) => navigate(`/session/${sessionId}`)}
               sessionId={id}
               onClueInputModeChange={setIsInClueInputMode}
+              closeClueInputModeRef={closeClueInputModeRef}
             />
         )}
       </main>

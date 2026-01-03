@@ -66,12 +66,24 @@ export default function Home() {
   const [expandedPuzzles, setExpandedPuzzles] = useState<Set<string>>(new Set());
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>("all");
-  const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
-  const [newDisplayName, setNewDisplayName] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["/api/puzzles"] });
-  }, [queryClient]);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      // On mobile, automatically expand all puzzles with sessions
+      const puzzlesWithSessions = puzzles?.filter(p => p.sessions.length > 0).map(p => p.id) || [];
+      setExpandedPuzzles(new Set(puzzlesWithSessions));
+    }
+  }, [puzzles, isMobile]);
 
   const { data: puzzles, isLoading } = useQuery<PuzzleWithSessions[]>({
     queryKey: ["/api/puzzles"],
@@ -459,14 +471,17 @@ export default function Home() {
                     return (
                       <React.Fragment key={puzzle.id}>
                         <tr 
-                          className={`hover:bg-amber-50 cursor-pointer ${puzzle.sessions.length > 0 ? 'bg-blue-50/30' : ''}`}
-                          onClick={() => puzzle.sessions.length > 0 && togglePuzzleExpand(puzzle.id)}
+                          className={`hover:bg-amber-50 ${isMobile ? '' : 'cursor-pointer'} ${puzzle.sessions.length > 0 ? 'bg-blue-100/50 border-l-4 border-l-blue-400' : ''}`}
+                          onClick={() => !isMobile && puzzle.sessions.length > 0 && togglePuzzleExpand(puzzle.id)}
                           data-testid={`row-puzzle-${puzzle.id}`}
                         >
                           <td className="px-3 sm:px-4 py-3">
                             <div className="flex items-center gap-2">
-                              {puzzle.sessions.length > 0 && (
+                              {puzzle.sessions.length > 0 && !isMobile && (
                                 <ChevronDown className={`h-4 w-4 text-amber-500 transition-transform flex-shrink-0 ${isExpanded ? '' : '-rotate-90'}`} />
+                              )}
+                              {puzzle.sessions.length > 0 && isMobile && (
+                                <ChevronDown className="h-4 w-4 text-amber-500 flex-shrink-0" />
                               )}
                               {/* Show just puzzle number on mobile (larger font), full title on desktop */}
                               <span className="font-medium text-amber-900 text-lg truncate sm:hidden">#{getPuzzleNumber(puzzle)}</span>
@@ -511,7 +526,7 @@ export default function Home() {
                           return (
                             <tr 
                               key={session.id}
-                              className="bg-amber-50/50 hover:bg-amber-100/50 cursor-pointer"
+                              className={`hover:bg-amber-100/50 cursor-pointer ${session.submittedAt ? 'bg-green-50/50' : 'bg-blue-50/50'}`}
                               onClick={() => navigate(`/session/${session.id}`)}
                               data-testid={`session-${session.id}`}
                             >

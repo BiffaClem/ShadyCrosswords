@@ -26,6 +26,7 @@ interface CrosswordProps {
   sessionId?: string; // For beacon saves on unload
   shouldAutoSave?: boolean;
   onClueInputModeChange?: (isInClueInputMode: boolean) => void;
+  closeClueInputModeRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 const getClueId = (clue: Clue) => `${clue.direction}-${clue.number}`;
@@ -37,7 +38,7 @@ const isEditableTarget = (target: EventTarget | null) => {
   return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
 };
 
-export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onGridChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave, onClueInputModeChange }: CrosswordProps) {
+export default function Crossword({ initialPuzzle, initialGrid, onCellChange, onGridChange, onSubmit, isSubmitted, isCollaborative, recentSessions, onSessionSelect, sessionId, shouldAutoSave, onClueInputModeChange, closeClueInputModeRef }: CrosswordProps) {
   const puzzle = initialPuzzle || null;
   const [gridState, setGridState] = useState<string[][]>(initialGrid || []);
   const [activeCell, setActiveCell] = useState<Position | null>(null);
@@ -108,6 +109,13 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     return () => window.removeEventListener('resize', checkMobile);
   }, [hasInitializedZoom]);
 
+  // Set the close function ref for parent access
+  useEffect(() => {
+    if (closeClueInputModeRef) {
+      closeClueInputModeRef.current = handleCloseClueInputMode;
+    }
+  }, [closeClueInputModeRef, handleCloseClueInputMode]);
+
   // Handle mobile clue input mode navigation
   useEffect(() => {
     if (!isMobile) return;
@@ -116,8 +124,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
       if (clueInputMode) {
         // Prevent navigation by pushing the current state back
         window.history.pushState(null, '', window.location.href);
-        setClueInputMode(false);
-        setActiveInputClue(null);
+        handleCloseClueInputMode();
       }
     };
 
@@ -128,7 +135,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [clueInputMode, isMobile]);
+  }, [clueInputMode, isMobile, handleCloseClueInputMode]);
 
   // Notify parent when clue input mode changes
   useEffect(() => {
@@ -1051,7 +1058,7 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
                   <span className="text-foreground">({activeInputClue.enumeration})</span>
                 </div>
               </div>
-              <Button variant="default" size="default" onClick={() => { setClueInputMode(false); setActiveInputClue(null); }}>
+              <Button variant="default" size="default" onClick={handleCloseClueInputMode}>
                 Done
               </Button>
             </div>
