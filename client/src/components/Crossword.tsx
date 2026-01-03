@@ -3,7 +3,7 @@ import { PuzzleData, Clue, Position } from "@/lib/crossword-types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Eye, RotateCcw, Menu, X, ZoomIn, ZoomOut, Send, HelpCircle } from "lucide-react";
+import { Check, Eye, RotateCcw, Menu, X, ZoomIn, ZoomOut, Send, HelpCircle, ArrowLeft } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { puzzleStorage } from "@/lib/puzzle-storage";
 
@@ -113,17 +113,14 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
 
     const handlePopState = (event: PopStateEvent) => {
       if (clueInputMode) {
-        event.preventDefault();
+        // Prevent navigation by pushing the current state back
+        window.history.pushState(null, '', window.location.href);
         setClueInputMode(false);
         setActiveInputClue(null);
-        // Push the state back to prevent actual navigation
-        window.history.pushState(null, '', window.location.href);
       }
     };
 
     if (clueInputMode) {
-      // Push a state so browser back will trigger popstate
-      window.history.pushState({ clueInputMode: true }, '', window.location.href);
       window.addEventListener('popstate', handlePopState);
     }
 
@@ -1041,7 +1038,10 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
         <main className="flex flex-1 overflow-hidden flex-col">
           <div className="p-4 bg-card border-b border-border space-y-2">
             <div className="flex items-center justify-between gap-3">
-              <div className="space-y-1 min-w-0">
+              <Button variant="ghost" size="sm" onClick={() => { setClueInputMode(false); setActiveInputClue(null); }}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="space-y-1 min-w-0 flex-1">
                 <div className="text-xl font-serif font-bold leading-snug truncate">{activeInputClue.number} {activeInputClue.direction === "across" ? "Across" : "Down"}</div>
                 <div className="flex flex-wrap items-baseline gap-2 text-xl font-medium leading-snug break-words whitespace-normal hyphens-auto">
                   <span className="text-foreground">{activeInputClue.text}</span>
