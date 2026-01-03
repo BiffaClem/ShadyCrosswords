@@ -109,12 +109,10 @@ export default function Home() {
   });
 
   useEffect(() => {
-    if (isMobile) {
-      // On mobile, automatically expand all puzzles with sessions
-      const puzzlesWithSessions = puzzles?.filter(p => p.sessions.length > 0).map(p => p.id) || [];
-      setExpandedPuzzles(new Set(puzzlesWithSessions));
-    }
-  }, [puzzles, isMobile]);
+    // Automatically expand all puzzles with sessions for better visibility
+    const puzzlesWithSessions = puzzles?.filter(p => p.sessions.length > 0).map(p => p.id) || [];
+    setExpandedPuzzles(new Set(puzzlesWithSessions));
+  }, [puzzles]);
 
   const createSessionMutation = useMutation({
     mutationFn: async (data: { puzzleId: string; name: string; isCollaborative: boolean; difficulty: string }) => {
@@ -477,17 +475,14 @@ export default function Home() {
                     return (
                       <React.Fragment key={puzzle.id}>
                         <tr 
-                          className={`hover:bg-amber-50 ${isMobile ? '' : 'cursor-pointer'} ${puzzle.sessions.length > 0 ? 'bg-blue-100/50 border-l-4 border-l-blue-400' : ''}`}
-                          onClick={() => !isMobile && puzzle.sessions.length > 0 && togglePuzzleExpand(puzzle.id)}
+                          className={`hover:bg-amber-50 ${puzzle.sessions.length > 0 ? 'cursor-pointer' : ''}`}
+                          onClick={() => puzzle.sessions.length > 0 && togglePuzzleExpand(puzzle.id)}
                           data-testid={`row-puzzle-${puzzle.id}`}
                         >
                           <td className="px-3 sm:px-4 py-3">
                             <div className="flex items-center gap-2">
-                              {puzzle.sessions.length > 0 && !isMobile && (
+                              {puzzle.sessions.length > 0 && (
                                 <ChevronDown className={`h-4 w-4 text-amber-500 transition-transform flex-shrink-0 ${isExpanded ? '' : '-rotate-90'}`} />
-                              )}
-                              {puzzle.sessions.length > 0 && isMobile && (
-                                <ChevronDown className="h-4 w-4 text-amber-500 flex-shrink-0" />
                               )}
                               {/* Show just puzzle number on mobile (larger font), full title on desktop */}
                               <span className="font-medium text-amber-900 text-lg truncate sm:hidden">#{getPuzzleNumber(puzzle)}</span>
@@ -532,7 +527,7 @@ export default function Home() {
                           return (
                             <tr 
                               key={session.id}
-                              className={`hover:bg-amber-100/50 cursor-pointer ${session.submittedAt ? 'bg-green-50/50' : 'bg-blue-50/50'}`}
+                              className={`hover:bg-amber-100/50 cursor-pointer ${session.submittedAt ? 'bg-green-100 border-l-4 border-l-green-500' : 'bg-blue-200 border-l-4 border-l-blue-500'}`}
                               onClick={() => navigate(`/session/${session.id}`)}
                               data-testid={`session-${session.id}`}
                             >
