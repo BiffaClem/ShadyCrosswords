@@ -515,11 +515,6 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }) || null;
   }, [puzzle, direction]);
 
-  const getCellIndexInClue = useCallback((clue: Clue, row: number, col: number): number => {
-    const cells = getClueCells(clue);
-    return cells.findIndex(cell => cell.row === row && cell.col === col);
-  }, [getClueCells]);
-
   const getClueCells = useCallback((clue: Clue): Array<{ row: number; col: number }> => {
     if (!puzzle) return [];
     const cells: Array<{ row: number; col: number }> = [];
@@ -532,6 +527,11 @@ export default function Crossword({ initialPuzzle, initialGrid, onCellChange, on
     }
     return cells;
   }, [puzzle]);
+  
+  const getCellIndexInClue = useCallback((clue: Clue, row: number, col: number): number => {
+    const cells = getClueCells(clue);
+    return cells.findIndex(cell => cell.row === row && cell.col === col);
+  }, [getClueCells]);
   
   const activeClue = getActiveClue();
 
